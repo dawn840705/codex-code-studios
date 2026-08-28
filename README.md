@@ -130,7 +130,7 @@ Codex 플러그인으로 패키징된 소프트웨어 스튜디오. **게임은 
 ### 옵션 1 — GitHub 마켓플레이스에서 설치 (권장)
 
 ```bash
-codex plugin marketplace add dawn840705/claude-code-studios
+codex plugin marketplace add dawn840705/codex-code-studios
 codex plugin add codex-code-studios@code-studios
 ```
 
@@ -143,7 +143,7 @@ codex plugin marketplace upgrade code-studios
 ### 옵션 2 — 로컬 마켓플레이스 (개발 / 포크 시)
 
 ```bash
-git clone https://github.com/dawn840705/claude-code-studios.git /path/to/codex-code-studios
+git clone https://github.com/dawn840705/codex-code-studios.git /path/to/codex-code-studios
 codex plugin marketplace add /path/to/codex-code-studios
 codex plugin add codex-code-studios@code-studios
 ```
