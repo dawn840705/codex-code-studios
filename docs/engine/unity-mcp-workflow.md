@@ -111,6 +111,18 @@ MCP server stale 또는 Unity Editor 미활성. Unity Editor를 활성화하고
 - 러너가 저장된 씬을 요구해도 사용자 씬을 저장하여 제약을 우회하지 않는다. 필요한 경우 고유 경로의 **임시 scene asset을 Additive로 격리**하고 활성 씬·열린 씬·사용자 dirty 상태를 보존한다. 시험 뒤 임시 씬만 닫고 생성한 asset/meta만 제거하며 기존 상태가 유지됐는지 검증한다. 보호 상태를 유지할 수 없는 러너라면 중단 사유를 기록한다.
 - reflection의 `MethodInfo.Invoke`에도 선택한 overload의 인자 슬롯을 모두 전달한다. C# optional parameter의 호출부 생략이 reflection에서도 자동 적용된다고 가정하지 말고 명시적 기본값 또는 해당 API가 지원하는 missing-value 방식을 사용한다.
 
+### 3.7 비동기 셰이더 — 사용 중인 material/pass의 완료 확인
+
+- 비동기 셰이더 컴파일의 cyan 중간 화면을 재질색 불합격으로 판정하지 않는다. `ShaderUtil.anythingCompiling == false`여도 해당 material/pass의 `ShaderUtil.IsPassCompiled(material, passIndex)`는 false일 수 있다. 실제 셰이더·사용 pass와 그 완료 상태를 확인한다.
+- 원본 재질 속성·keyword·texture 참조를 먼저 기록·보존한다. 사용 pass가 0임을 확인한 경우 `ShaderUtil.CompilePass(material, 0, true)`로 해당 pass를 컴파일하고 `IsPassCompiled` 및 셰이더 메시지를 다시 확인한다. 다른 pass를 쓰면 실제 인덱스를 사용하며, 하나의 pass 완료를 전체 셰이더 완료로 확대하지 않는다.
+- 실제 pass 완료 후 원래 재질 조건으로 다시 캡처해 색을 판정한다. 컴파일 전 cyan을 없애려고 팔레트·texture·keyword를 연쇄 변경하지 않는다. 근거는 원본 값을 유지한 채 사용 pass를 컴파일하자 cyan이 해소된 실기 결과이며, 상세 증거는 원 프로젝트에 보존한다.
+
+### 3.8 저장 fixture — 파일 복구보다 쓰기 경로 격리 우선
+
+- 고정된 큰 테스트 슬롯 번호도 `Application.persistentDataPath` 안에서는 사용자 파일과 충돌할 수 있다. 저장 두 번으로 기존 `.bak`가 덮이고 본문 파일만 정리된 실제 사례를 반영한다. 사용자 파일 snapshot·사후 restore만으로 안전하다고 간주하지 않는다.
+- 실행마다 고유 임시 디렉터리를 만들고, 첫 저장·저장 객체 활성화 전에 프로젝트의 경로 override seam(예: `_slotDirectoryOverride`)을 적용한다. `GetSlotPath` 등 **제품이 실제 사용하는 경로 계산 결과**를 절대 경로로 확인해 그 임시 디렉터리 내부임을 단언한다. 본문뿐 아니라 `.bak`·`.tmp` 등 모든 sidecar의 쓰기·읽기·정리를 격리하며, 반복 저장 시험은 백업 내용도 검사한다.
+- 기존 singleton·경로 override를 보존하고 `finally`/teardown에서 시험 객체의 종료 처리를 격리 경로 안에서 마친 뒤 원상복원한다. 자신이 만든 임시 경로임을 재검사한 후 그 범위만 회수한다. 수리 fixture 재실행과 실제 사용자 파일의 전후 존재 여부·SHA 비교가 모두 맞아야 격리 수리를 통과시킨다. 전용 재실행 성공·사용자 파일 해시 불변으로 검증한 절차이며, 파일 수·슬롯 번호·복구 경로는 원 프로젝트에만 기록한다.
+
 ---
 
 ## § 4 — 작업 흐름 (UI 신설 예시)
