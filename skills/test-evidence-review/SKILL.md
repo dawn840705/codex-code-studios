@@ -71,6 +71,8 @@ Note what was found (path) or not found (gap) for each story.
 
 ## 4. Review Automated Test Quality (Logic / Integration)
 
+Read [Test Standards](../../rules/test-standards.md); for Unity posed-mesh evidence, apply its independent bone/scale checks before accepting matching production and measurement results.
+
 For each test file found, read it and evaluate:
 
 ### Assertion coverage

@@ -32,6 +32,11 @@
 
 위 기준의 근거는 2026-09-07 StarDiver의 확정 작업 계약과 이번 지속 반영 지시다. 제품 고유 경로나 특정 협업자의 권한 배분은 이 기준에 포함하지 않는다.
 
+## 2026-09-08 — Unity BakeMesh 좌표 검증
+
+- 근거: StarDiver `03d1746`의 접지 스케일 정정과 후속 `LobbyCrewGrounderTests` 10/10 실행 인계. 제품 코드와 계측이 모두 `BakeMesh(false)` 뒤 `TransformPoint`를 사용해 이중 스케일을 합격으로 오인했다. renderer 자체/부모 스케일 구성의 독립 bone 월드 위치 실측이 이를 검출했다. 상세 실측은 원 프로젝트 `Documents/QA/Lobby-Crew-Idle-Grounding-20260908.md`에 유지한다.
+- 반영: [test-standards](../rules/test-standards.md)의 Unity 좌표 검증에 버전·계층별 스케일 계약과 독립 기대값을 추가하고 [test-evidence-review](../skills/test-evidence-review/SKILL.md)에서 읽도록 연결했다. 특정 제품의 접지 정책이나 모든 Mesh에 동일한 변환식을 강제하는 규칙은 아니다. 이 문서 변경은 Unity 재실행·릴리스·설치 갱신을 뜻하지 않는다.
+
 ## 원본과 설치본
 
 원본 저장소가 수정돼도 설치된 플러그인 캐시는 자동으로 바뀌었다고 간주하지 않는다. 캐시를 직접 수정하지 않고 정상 배포·설치 경로를 이용한다. 결과에는 원본 반영과 설치 적용을 따로 표시하며, 이 문서 작성 자체는 릴리스나 설치 갱신을 뜻하지 않는다.
