@@ -1,6 +1,24 @@
 # Changelog
 
-## Unreleased
+## v0.7.1 — 2026-09-07
+
+### Added — anchor-based 3D art production
+
+- Added the reviewed anchor → consistent views → generated model → Blender
+  editing, rigging and animation workflow, connected to studio orchestration,
+  asset specifications and read-only delivery audits.
+- Required view/anatomy checks, saved-source reopening and independent export
+  checks, including poses between baked samples. Initial evidence covers a
+  stylized armored-creature pilot, not a universal production success rate.
+- Kept asset-specific budgets, paid-call authorization, visual adoption and
+  engine verification separate.
+
+### Changed — shared project policy and asset recovery
+
+- Recorded how validated project practices enter the plugin source and how
+  source changes differ from installed-plugin updates.
+- Strengthened generated-asset delivery, dependency recovery and cross-machine
+  handoff guidance, plus preservation rules for inactive worktrees.
 
 ### Added — experimental reasoning effort observation
 

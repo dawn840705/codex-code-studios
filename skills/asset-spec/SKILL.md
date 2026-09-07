@@ -193,6 +193,12 @@ Ask: "May I update `design/assets/asset-manifest.md`?"
 
 ## Phase 6: Close
 
+For anchor-based 3D assets, include the anchor hash, identity/anatomy constraints,
+intended camera, project budgets and required clips in the production handoff.
+When production is requested, route through `$studio-orchestrator` and
+[`../../docs/anchor-to-3d-workflow.md`](../../docs/anchor-to-3d-workflow.md).
+Speccing an asset does not itself authorize generation, paid calls or retries.
+
 Ask the user directly:
 - Prompt: "Asset specs complete for **[target]**. What's next?"
 - Options:
