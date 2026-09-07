@@ -14,6 +14,12 @@ Use this skill when a request spans disciplines or benefits from specialist revi
 3. If the track cannot be inferred safely and changes the requested outcome, ask the user.
 4. Inspect existing plans, milestones, specifications, and recent changes before staffing work.
 
+For an approved visual anchor → consistent views → generated 3D model → Blender
+editing/rigging/animation request, read
+[`../../docs/anchor-to-3d-workflow.md`](../../docs/anchor-to-3d-workflow.md).
+Use its staged production and verification route within the user's authorized
+scope; workflow adoption alone does not authorize new paid calls.
+
 ## 2. Choose the lightest route
 
 - **Light:** handle the task in the current agent with one workflow skill.

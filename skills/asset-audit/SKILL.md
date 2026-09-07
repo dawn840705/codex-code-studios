@@ -38,6 +38,14 @@ Scan the target asset directory using Glob:
 
 **Missing assets:** Search code for asset references and verify the files exist.
 
+**Anchor-based 3D deliveries:** Read
+[`../../docs/anchor-to-3d-workflow.md`](../../docs/anchor-to-3d-workflow.md) and
+check the recorded view alignment, identity/anatomy, saved-source reopening,
+texture/UV/weight preservation and clip-relative roundtrip evidence against the
+asset specification. Report missing checks and remaining visual defects. Keep
+workflow adoption, visual adoption, exchange verification and engine verification
+separate. This audit stays read-only: it does not regenerate, edit, rig or spend.
+
 ---
 
 ## Phase 4: Output Audit Report
