@@ -11,7 +11,7 @@ Every AI-generated artifact lives in **exactly one** of three zones. The zone de
 ### Zone 1 — Workshop (`Tools/<Service>/output/`)
 
 - **Purpose:** scratch space for raw tool output. Where the bytes land *immediately* after a tool call.
-- **Git status:** `.gitignore`d. Never committed.
+- **Git status:** ignored by default. Preserve any unique output needed for collaboration or recovery using the project's storage policy before discarding this workspace.
 - **Lifetime:** ephemeral. Survives until the next call or until promoted to Zone 2.
 - **Naming:** whatever the tool produces — no convention enforced.
 
@@ -36,11 +36,21 @@ Examples: `Documents/AudioDesign/Anchors/`, `Documents/ArtDesign/Concepts/Bugs/`
 ### Zone 3 — Engine import (`Assets/`, `src/`, etc.)
 
 - **Purpose:** assets that the engine actually loads at build time.
-- **Git status:** typically committed. Large binaries (`.fbx`, large `.png`, audio) sometimes via Git LFS or `.gitignore` if regenerable.
+- **Git status:** project-owned deliverables are versioned with their consuming change, using Git or the project's chosen binary storage. An ignored dependency needs the verified recovery path below.
 - **Lifetime:** governed by engine + build pipeline.
 - **Naming:** engine conventions (e.g. Unity `_normal.png` suffixes, Godot `.import` companions).
 
-Some artifacts live in **both** Zone 2 and Zone 3 — for example, a 3D mesh's render preview lives in Zone 2 (design reference, committed `.png`), while the `.fbx` itself lives in Zone 3 (`Assets/03.Models/`, often `.gitignore`d if regenerable).
+Related artifacts can occupy different zones: a mesh preview belongs in Zone 2 as a design reference, while its engine-ready model belongs in Zone 3. Each required file follows the shared asset recovery requirements below.
+
+### Shared asset recovery
+
+Adopted from a user-confirmed cross-machine collaboration policy on 2026-09-07. Apply when a change depends on generated or edited assets; project instructions determine storage, cost, and licensing decisions.
+
+1. **Share the actual deliverable with its consuming commit.** Include engine identity/import companions (such as Unity `.meta`) and each required mesh, material, texture, animation, or sound, or reference a versioned recovery manifest for excluded dependencies. A prefab or scene file alone does not contain those dependencies. Generation prompts document provenance; they do not guarantee the same output bytes on a later API call.
+2. **Separate project-owned work from vendor originals.** Before excluding a redownloadable package, record its source/product ID, exact version, package hash, required import paths, and recovery procedure. Keep project changes in separately tracked variants, overrides, patches, or derived assets as licensing permits; redownloading an original does not restore local edits. Do not commit credentials or private download tokens in the manifest.
+3. **Inspect exclusions by ownership and actual files.** Blanket extension or parent-folder ignores must not silently omit unique work, even when files are small. Check whether each intended deliverable and companion is tracked or excluded, then use scoped exceptions or project-owned folders. Do not broadly unignore purchased packages to recover one generated file.
+4. **Choose large-file storage per project.** Git, Git LFS, or versioned external storage may hold required binaries. Decide separately how to retain editable intermediates, rejected variants, and video evidence. External storage must provide a durable identifier and hash tied to the consuming commit; an expiring generation URL or one machine's path is not a shared recovery mechanism.
+5. **Verify the receiving environment.** Restore required files and companions from the commit and dependency manifest, check hashes and unresolved references, and run the relevant engine check. Report static file checks separately from an actual second-machine or clean-environment restore. Match required engine/package versions and machine-local merge tooling; do not synchronize regenerable engine caches as project source.
 
 ---
 
@@ -94,7 +104,7 @@ The `.prompt.txt` contains:
 4. **Use** — what scenes / categories this asset is for.
 5. **Variation plan** — known follow-ups (e.g. "Ch2 variation TBD when Phase 5 begins").
 
-This means *anyone* (including future-you with stale memory) can reproduce or extend the asset without re-deriving its prompt.
+These notes let collaborators understand or extend the generation process without re-deriving its prompt. Preserve the actual accepted output as well; rerunning a generative service is not exact recovery.
 
 ---
 
@@ -119,7 +129,7 @@ Engine import (Zone 3) typically *follows* promotion — the curated Zone 2 asse
 | Failure mode | Without zones | With zones |
 |---|---|---|
 | Workshop noise in git history | Every Suno call commits 2 mp3s | Workshop is `.gitignore`d |
-| Cannot reproduce 6-month-old asset | Lost to memory | `.prompt.txt` captures everything |
+| Cannot recover a 6-month-old asset | Output exists only on one machine | Versioned bytes or verified recovery manifest, plus provenance notes |
 | Asset name conflicts | `combat_music.mp3` collides | Prefix system: `mus_combat_ch1_anchor.mp3` |
 | Engine asset drift from design source | Edits in Zone 3 only — design docs go stale | Promotion gate forces Zone 2 update |
 | New AI tool adopted | Mixed conventions per tool | All tools share same Zone 2 / Zone 3 layout |

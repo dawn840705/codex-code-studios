@@ -18,6 +18,7 @@ This repository is the source package for the `codex-code-studios` Codex plugin.
 3. Resolve bundled resources relative to the invoking `SKILL.md` or `PLUGIN_ROOT`; reserve `.codex/` for state stored in the user's project.
 4. Keep hook stdout valid for the matching Codex hook event. Advisory PostToolUse feedback belongs in `hookSpecificOutput.additionalContext`.
 5. Run the plugin validator, every skill validator, the skill linter, shell syntax checks, and the full test suite before release.
+6. When changing asset tracking, ignore rules, or cross-machine handoff workflows, read [Artifact Organization Rules](docs/rules/artifact-organization.md), including the shared asset recovery requirements.
 
 The legacy `.claude-plugin/` manifest and `CLAUDE.md` remain only as a transition compatibility layer for the 0.7 release. Do not make them the source of truth for new Codex behavior.
 
