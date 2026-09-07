@@ -95,6 +95,22 @@ Play 중 `EditorSceneManager.OpenScene` 호출 시 *InvalidOperationException*. 
 MCP server stale 또는 Unity Editor 미활성. Unity Editor를 활성화하고
 `codex mcp get unityMCP`로 등록 상태를 확인한 뒤 태스크 연결을 새로 시작한다.
 
+### 3.5 Static batching — Transform과 실제 화면을 함께 검증
+
+이 절과 다음 절은 제어 도구와 무관한 Unity 검증 절차다. 프로젝트 실기에서 Transform만 바뀌고 표시 위치가 유지된 사례, EditMode fixture의 생명주기·등록 누락을 수리한 결과를 반영한다. 제품별 증거·수치·경로는 해당 프로젝트에 보존한다.
+
+- Play의 static-batched renderer는 자식 Transform 변경만으로 화면이 기대대로 이동하지 않을 수 있다. `Transform` 좌표만 읽고 이동·접지·크기 수리를 통과시키지 않는다. 배칭 여부, `Renderer.bounds`, 실제 카메라 캡처를 함께 비교한다.
+- 원본 prefab을 격리해 배칭 전 상태로 조사한 결과는 **원인 진단**이다. 제품 씬에서 scene override·배칭·실제 카메라가 적용된 상태의 검증과 구분한다. 진단을 위해 원본 자산의 static 플래그나 사용자 씬을 임의 저장하지 않는다.
+- 제품 수정은 승인된 저장 대상에만 반영하고, 재로드 후 실제 표시·bounds·캡처를 다시 확인한다. 격리 진단의 성공을 제품 재로드 검증으로 대신하지 않는다.
+
+### 3.6 EditMode fixture — 생명주기·전역 상태·씬 격리
+
+- 일반 `MonoBehaviour`의 EditMode 생성/활성화/파괴가 Play와 같은 `Awake`·`OnEnable`·`OnDisable`·`OnDestroy` 전달을 보장한다고 가정하지 않는다. 콜백 계약 시험은 필요한 실제 메서드를 명시 호출하고 구독 해제·재활성화 중복을 단언한다. 자동 전달과 실제 입력은 별도 Play 시험으로 확인한다.
+- 생성한 EventSystem에서 선택이 바뀌었다는 사실만으로 제품 경로를 검증하지 않는다. 제품이 읽는 `EventSystem.current`와 fixture 대상이 같은지, 그 current의 실제 선택이 기대값인지 단언한다. 사용 중인 패키지의 등록/해제 경로를 확인하고 자동 호출 여부와 겹쳐 이중 등록하지 않는다.
+- 전역 property setter가 `null`이나 임의 객체를 허용한다고 가정하지 않는다. 특히 `EventSystem.current` setter는 등록을 대체하지 않는다. 기존 시스템·선택·singleton·저장 경로를 보존하고 `finally`/teardown에서 소유 객체만 해제·제거한 뒤 원상복원한다.
+- 러너가 저장된 씬을 요구해도 사용자 씬을 저장하여 제약을 우회하지 않는다. 필요한 경우 고유 경로의 **임시 scene asset을 Additive로 격리**하고 활성 씬·열린 씬·사용자 dirty 상태를 보존한다. 시험 뒤 임시 씬만 닫고 생성한 asset/meta만 제거하며 기존 상태가 유지됐는지 검증한다. 보호 상태를 유지할 수 없는 러너라면 중단 사유를 기록한다.
+- reflection의 `MethodInfo.Invoke`에도 선택한 overload의 인자 슬롯을 모두 전달한다. C# optional parameter의 호출부 생략이 reflection에서도 자동 적용된다고 가정하지 말고 명시적 기본값 또는 해당 API가 지원하는 missing-value 방식을 사용한다.
+
 ---
 
 ## § 4 — 작업 흐름 (UI 신설 예시)
@@ -122,8 +138,8 @@ MCP server stale 또는 Unity Editor 미활성. Unity Editor를 활성화하고
 - ❌ 매 명령 개별 호출 (batch_execute 사용 X) — latency 폭증
 - ❌ instance ID 캐싱 후 recompile 거쳐 재사용 — 깨질 수 있음
 - ❌ execute_code 안에 `using` directive — codedom 컴파일 실패
-- ❌ scene save 누락 — 작업 결과 손실
-- ❌ `manage_scene.load` 호출 시 unsaved changes — 거부됨 (사전 save 의무)
+- ❌ 승인된 제품 변경의 scene save 누락 — 작업 결과 손실
+- ❌ `manage_scene.load`/테스트 러너의 제약을 우회하려고 사용자 unsaved changes 저장 — 소유 변경만 저장하고, 검증은 § 3.6의 격리·복원 경계를 따른다
 
 ---
 

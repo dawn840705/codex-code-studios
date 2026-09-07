@@ -36,6 +36,8 @@ Before doing anything else, gather the full scope:
 
 2. Read `production/stage.txt` to confirm the current project phase.
 
+   For Unity work, read [Unity state verification pitfalls](../../docs/engine/unity-mcp-workflow.md#35-static-batching--transform과-실제-화면을-함께-검증) (§ 3.5–3.6), regardless of the editor-control tool. Include rendered-state evidence, EditMode lifecycle/global-state isolation, and user-scene preservation in the QA plan.
+
 3. Count stories found and report to the user:
    > "QA cycle starting for [sprint/feature]. Found [N] stories. Current stage: [stage]. Ready to begin QA strategy?"
 
