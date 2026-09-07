@@ -21,6 +21,15 @@ credentials out of this file.
 - Record major technical choices as ADRs.
 - Keep `production/session-state/active.md` current during multi-session work.
 
+## Code Studios policy feedback
+
+- Source checkout (configure for this project):
+- When a confirmed working agreement or verified prevention measure also applies
+  to other projects, follow `docs/policy-updates.md` in the source checkout and
+  update the relevant rule, skill, or template during task closeout.
+- Keep product-specific decisions here. Record the source commit and distinguish
+  source changes from the plugin version actually installed.
+
 ## Local commands
 
 - Build:
