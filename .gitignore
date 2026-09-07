@@ -18,3 +18,6 @@ _to_delete/
 
 # 상류 흡수 후보 스캔 리포트 (평일 자동 실행 — 로컬 관찰 기록, 배포물 아님)
 .upstream-scan/
+
+# Per-project effort observation/execution evidence may contain private output.
+.codex/reasoning-effort/

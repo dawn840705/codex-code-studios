@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+### Added — experimental reasoning effort observation
+
+- Prepared a 27-run mechanical-task experiment with balanced arm order, local
+  environment checks, explicit standalone execution and an account-headroom gate.
+  Expanded live execution remains deferred; synthetic checks are not efficacy evidence.
+
+- Added a frozen-snapshot three-arm pilot harness and exact-answer verifier.
+  [First live pilot](docs/effort-pilot-20260907.md): three completed read-only
+  runs; no efficacy or total-cost savings claim from this small, confounded sample.
+
+- Project opt-in `UserPromptSubmit` observation, evidence-based effort selection,
+  and a fixed-model, explicitly authorized read-only Codex CLI runner.
+- Separate selected, dispatched and unconfirmed runtime effort records; no
+  automatic retries, model switching, global config edits or reduced gates.
+- Offline boundary/encoding tests and an opt-in loopback probe of real CLI
+  request serialization. Live quality/cost comparison remains pending.
+- [Capability research, usage and experiment protocol](docs/reasoning-effort.md).
+
 ### Changed — v0.7.0 Codex plugin migration
 
 - Added the Codex manifest at `.codex-plugin/plugin.json` and the shareable

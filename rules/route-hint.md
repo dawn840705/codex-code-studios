@@ -22,6 +22,11 @@ downgrade the model or reasoning effort to save money — those choices belong
 to the user. Cut the number of calls instead: several small calls each reload
 the same context.
 
+An explicit user authorization for automatic **effort-only** selection is a
+separate axis: follow [`reasoning-effort.md`](reasoning-effort.md). Observation
+alone grants no runtime authority. Keep the model fixed, preserve user overrides,
+and never reduce required verification or change approval policy with effort.
+
 **Splitting is the last resort.** Prefer one call. Split only when a hard limit
 forces it, and when you do, make sure the shared context is loaded once — not
 once per piece.

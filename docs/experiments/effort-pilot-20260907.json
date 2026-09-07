@@ -1,0 +1,138 @@
+{
+  "date": "2026-09-07",
+  "plan": {
+    "schema_version": 1,
+    "kind": "live_pilot_plan",
+    "model": "gpt-6-astra",
+    "supported_efforts": [
+      "low",
+      "medium",
+      "high",
+      "xhigh",
+      "max",
+      "ultra"
+    ],
+    "initial_commit": "cada722a9900cb57c312467f3c19ee6315b0ce33",
+    "initial_tree_sha256": "f71cb54c8dbf85e054e579bb977ad18a010975b58ef946da3f772ec88cb826fa",
+    "implementation_sha256": "60e62f5bae037e21faf7071dd447579bbfa93917ef3909a4d5de8985fa1db655",
+    "prompt": "이 저장소의 skills/*/SKILL.md에 해당하는 일반 파일 개수를 실제로 확인하고 최종 답변은 정수 하나만 출력해. 읽기 전용 조사이며 파일 수정, 네트워크 요청, 다른 프로젝트 접근, 서브에이전트 위임은 하지 마. 이 요청에 스킬 실행은 필요하지 않아.",
+    "prompt_sha256": "c5c6215fa0dd3bcbb3680256a164b212b8b0e52935e45608006ad53616e8a3b0",
+    "expected": "91",
+    "order": [
+      "high",
+      "auto",
+      "medium"
+    ],
+    "seed": 20260907,
+    "task_id": "count-skills",
+    "repetitions_per_arm": 1,
+    "maximum_dispatches": 3,
+    "timeout_seconds_per_dispatch": 60,
+    "automatic_retries": 0,
+    "approval_reference": "2026-09-07 user: 다음 단계 진행; bounded ChatGPT CLI pilot, 3 dispatches, 60s each, no retries",
+    "scope": "committed snapshot; excludes current uncommitted changes",
+    "acceptance": "all three independently verified and source unchanged; no efficacy conclusion at n=1"
+  },
+  "result": {
+    "measurement_kind": "model_run",
+    "status": "completed",
+    "runs": [
+      {
+        "arm": "high",
+        "model": "gpt-6-astra",
+        "selected_effort": "high",
+        "passed_effort": "high",
+        "applied_effort": null,
+        "success": true,
+        "source_unchanged": true,
+        "wall_seconds": 19.81227520800894,
+        "execution_usage": {
+          "input_tokens": 44430,
+          "cached_input_tokens": 34944,
+          "output_tokens": 108
+        },
+        "total_usage": null,
+        "reasoning_tokens": null,
+        "status": "completed",
+        "execution_record": ".codex/reasoning-effort/pilot-20260907-01/run-1-high/.codex/reasoning-effort/4a5ed99a66614ff786e0ceda381fdce5/execution/result.json",
+        "retries": 0,
+        "rework_count": 0,
+        "user_interventions_during_dispatch": 0
+      },
+      {
+        "arm": "auto",
+        "model": "gpt-6-astra",
+        "selected_effort": "low",
+        "passed_effort": "low",
+        "applied_effort": null,
+        "success": true,
+        "source_unchanged": true,
+        "wall_seconds": 18.14635516598355,
+        "execution_usage": {
+          "input_tokens": 44421,
+          "cached_input_tokens": 34944,
+          "output_tokens": 98
+        },
+        "total_usage": null,
+        "reasoning_tokens": null,
+        "status": "completed",
+        "execution_record": ".codex/reasoning-effort/pilot-20260907-01/run-2-auto/.codex/reasoning-effort/a61d875253f8436fb0ddc841bf96ca75/execution/result.json",
+        "retries": 0,
+        "rework_count": 0,
+        "user_interventions_during_dispatch": 0
+      },
+      {
+        "arm": "medium",
+        "model": "gpt-6-astra",
+        "selected_effort": "medium",
+        "passed_effort": "medium",
+        "applied_effort": null,
+        "success": true,
+        "source_unchanged": true,
+        "wall_seconds": 17.22332725004526,
+        "execution_usage": {
+          "input_tokens": 44424,
+          "cached_input_tokens": 34944,
+          "output_tokens": 102
+        },
+        "total_usage": null,
+        "reasoning_tokens": null,
+        "status": "completed",
+        "execution_record": ".codex/reasoning-effort/pilot-20260907-01/run-3-medium/.codex/reasoning-effort/4911952be618440db182ac3aa35b24ea/execution/result.json",
+        "retries": 0,
+        "rework_count": 0,
+        "user_interventions_during_dispatch": 0
+      }
+    ],
+    "model": "gpt-6-astra",
+    "initial_commit": "cada722a9900cb57c312467f3c19ee6315b0ce33",
+    "initial_tree_sha256": "f71cb54c8dbf85e054e579bb977ad18a010975b58ef946da3f772ec88cb826fa",
+    "total_usage": null,
+    "cost_savings_claim": null,
+    "parent_and_setup_usage": null
+  },
+  "cli_version": "0.153.4",
+  "python_version": "3.13",
+  "authentication": "ChatGPT subscription",
+  "account_used_percent_before": 95,
+  "account_used_percent_after": 96,
+  "account_delta_scope": "whole account including parent preparation; not attributable only to this pilot",
+  "limitations": [
+    "one task and one sample per arm",
+    "regression tests ran concurrently; timings are confounded",
+    "production applied_effort unconfirmed",
+    "parent/context assessment usage missing; execution subtotal only",
+    "alias, shared prompt cache, installed plugin context and server load not controlled"
+  ],
+  "nonfatal_cli_diagnostics": [
+    "SessionEnd hook timeout clamped to 3s in installed Code Studios 0.7.0",
+    "skill descriptions shortened to fit context budget"
+  ],
+  "calls_completed": 3,
+  "retries": 0,
+  "execution_input_tokens": 133275,
+  "execution_output_tokens": 308,
+  "execution_input_plus_output_tokens": 133583,
+  "total_usage": null,
+  "cost_savings_claim": null
+}

@@ -22,6 +22,11 @@ Use this skill when a request spans disciplines or benefits from specialist revi
 
 Prefer fewer calls. Parallelize only work that is genuinely independent, and keep one integration owner.
 
+When the project opts into effort observation with `.codex/reasoning-effort.json`,
+follow `../../rules/reasoning-effort.md` after inspecting scope. Record a decision
+at task boundaries or material new evidence, preserving explicit user settings.
+Observation does not change the parent's runtime effort or authorize another run.
+
 ## 3. Load specialist roles
 
 Role guides live in `references/roles/`. Select only the roles required for the outcome. Read each selected role guide, then include its relevant responsibilities and constraints in the self-contained prompt passed to the Codex subagent. A role guide is context, not a separately installed agent.

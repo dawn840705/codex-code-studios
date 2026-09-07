@@ -126,6 +126,16 @@ def _sc_removebg(tmp):
     return ["estimate", png], tmp
 
 
+def _sc_reasoning_effort(tmp):
+    # Actual observation, no model invocation. Prompt is deliberately Korean;
+    # privacy hashing keeps nondeterministic record metadata ASCII-only.
+    task = os.path.join(tmp, "task.json")
+    with open(task, "w", encoding="utf-8") as stream:
+        json.dump({"task_id": "console-case", "prompt": "저장 고쳐",
+                   "model": "gpt-5.5"}, stream, ensure_ascii=False)
+    return ["observe", "--task", task, "--root", tmp], tmp
+
+
 def _sc_prepare_monolith(tmp):
     # --run-dir 모드. --text 모드는 저장소 _workspace/ 에 쓰므로 테스트에 부적합.
     run = os.path.join(tmp, "run")
@@ -177,6 +187,7 @@ SCENARIOS = {
     "prepare_monolith_input.py": [("run-dir", _sc_prepare_monolith)],
     "reassemble_chunks.py": [("shrink-warning", _sc_reassemble)],
     "removebg.py": [("estimate-dry-run", _sc_removebg)],
+    "reasoning_effort.py": [("observe-no-inference", _sc_reasoning_effort)],
     "verify_change_rate.py": [("real-pair", _sc_verify_change_rate)],
     "verify_gates.py": [("real-pair", _sc_verify_gates)],
     "verify_policy.py": [("self-test", _sc_repo("--self-test"))],
