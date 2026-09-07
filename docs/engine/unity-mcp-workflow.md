@@ -123,6 +123,14 @@ MCP server stale 또는 Unity Editor 미활성. Unity Editor를 활성화하고
 - 실행마다 고유 임시 디렉터리를 만들고, 첫 저장·저장 객체 활성화 전에 프로젝트의 경로 override seam(예: `_slotDirectoryOverride`)을 적용한다. `GetSlotPath` 등 **제품이 실제 사용하는 경로 계산 결과**를 절대 경로로 확인해 그 임시 디렉터리 내부임을 단언한다. 본문뿐 아니라 `.bak`·`.tmp` 등 모든 sidecar의 쓰기·읽기·정리를 격리하며, 반복 저장 시험은 백업 내용도 검사한다.
 - 기존 singleton·경로 override를 보존하고 `finally`/teardown에서 시험 객체의 종료 처리를 격리 경로 안에서 마친 뒤 원상복원한다. 자신이 만든 임시 경로임을 재검사한 후 그 범위만 회수한다. 수리 fixture 재실행과 실제 사용자 파일의 전후 존재 여부·SHA 비교가 모두 맞아야 격리 수리를 통과시킨다. 전용 재실행 성공·사용자 파일 해시 불변으로 검증한 절차이며, 파일 수·슬롯 번호·복구 경로는 원 프로젝트에만 기록한다.
 
+### 3.9 Input System — 입력 주입 경로와 fixture update 격리
+
+- **버전 한정 관측**: Unity `6000.3.23f1` / Input System `1.20.0`에서 Hera의 `onBeforeUpdate` 콜백이 `InputState.Change`로 버튼 상태를 즉시 바꾸는 경로를 조사했다. 그 입력으로 UI action map을 전환하면 state monitor 알림 도중 monitor가 즉시 제거되어 `DynamicBitfield.ClearBit` assertion으로 이어질 수 있는 재진입 경로가 설치 소스와 실제 스택에서 확인됐다. 모든 Hera 입력이나 정상 장치 이벤트에 같은 결함이 있다고 일반화하지 않는다.
+- 입력 자동화 중 assertion이 발생하면 원본 로그·주입 API·update 단계·action map을 먼저 보존한다. 제품 가드를 약화하거나 예외를 숨기지 말고, `QueueStateEvent` / `QueueDeltaStateEvent`로 이벤트를 큐에 넣어 정상 Input System update에서 소비하는 경로로 같은 시나리오를 재검증한다. press·release·재입력과 모달 진입/복귀를 함께 확인한다. 직접 메서드 호출의 성공은 실제 입력 경로의 대체 증거가 아니다.
+- 제품 동작 결과와 도구/패키지 assertion을 별도로 기록한다. 동작이 맞아도 assertion이 남은 실행을 콘솔 무오류로 처리하지 않는다. 로그 보존 후 새 검증 구간을 정해 queued 입력으로 재실행하고, 동작·콘솔 결과를 각각 확인한다. 이 절의 절차는 전용 회귀와 제품의 정상 진입 경로에서 queued 입력 재검증으로 확인했으며 상세 증거는 원 프로젝트에 둔다.
+- 같은 설치 버전의 `InputTestFixture`는 `UnityTest`에서 press/release helper를 큐에만 넣을 수 있다. `ProcessEventsManually` 시험은 필요한 입력 경계에서 명시적으로 `InputSystem.Update()`하고 실제 버튼 값·action phase·reader 상태·update count를 단언한다. **맵 복귀 후 initial-state check 이전**을 검증하는 구간에는 update나 held 상태 재주입을 넣어 시험하려는 순서를 없애지 않는다.
+- Manual 설정 변경이 `ApplySettings`를 거치며 Editor update bit를 다시 켜는지도 설치 소스로 확인한다. 확인된 버전에서는 fixture의 원래 Editor update 차단을 **fixture가 만든 격리 Input System manager에만** 다시 적용해 Editor buffer 전환의 간섭을 막았다. 이를 제품 코드나 원래 manager에 적용하는 공통 처방으로 쓰지 않는다. 내부 필드 접근이 필요하면 설치 버전의 fixture 구현과 일치하는지 확인하고, teardown에서 원래 runtime·manager·장치·설정을 복원하며 수명/복원 단언을 유지한다. 패키지나 설치 캐시는 고치지 않는다.
+
 ---
 
 ## § 4 — 작업 흐름 (UI 신설 예시)

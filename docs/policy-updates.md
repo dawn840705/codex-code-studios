@@ -37,6 +37,11 @@
 - 근거: StarDiver `03d1746`의 접지 스케일 정정과 후속 `LobbyCrewGrounderTests` 10/10 실행 인계. 제품 코드와 계측이 모두 `BakeMesh(false)` 뒤 `TransformPoint`를 사용해 이중 스케일을 합격으로 오인했다. renderer 자체/부모 스케일 구성의 독립 bone 월드 위치 실측이 이를 검출했다. 상세 실측은 원 프로젝트 `Documents/QA/Lobby-Crew-Idle-Grounding-20260908.md`에 유지한다.
 - 반영: [test-standards](../rules/test-standards.md)의 Unity 좌표 검증에 버전·계층별 스케일 계약과 독립 기대값을 추가하고 [test-evidence-review](../skills/test-evidence-review/SKILL.md)에서 읽도록 연결했다. 특정 제품의 접지 정책이나 모든 Mesh에 동일한 변환식을 강제하는 규칙은 아니다. 이 문서 변경은 Unity 재실행·릴리스·설치 갱신을 뜻하지 않는다.
 
+## 2026-09-08 — Unity 입력 자동화와 Manual fixture 격리
+
+- 근거: Unity `6000.3.23f1` / Input System `1.20.0`의 설치 소스·실제 로그에서 Hera의 즉시 상태 변경과 UI map 전환이 겹친 monitor 재진입 경로를 확인했다. queued 입력으로 정상 진입 경로의 동작·콘솔을 재검증했고, Manual fixture의 Editor update 격리를 복구한 전용 회귀도 통과했다. 상세 증거는 원 프로젝트 `Documents/QA/Pause-Modal-Gameplay-Input-Regression-20260908.md`에 유지한다.
+- 반영: [Unity MCP workflow § 3.9](engine/unity-mcp-workflow.md#39-input-system--입력-주입-경로와-fixture-update-격리)에 버전 한정 관측·queued 입력 재검증·제품 동작과 assertion의 분리·fixture 내부 격리를 추가했다. [team-qa](../skills/team-qa/SKILL.md)의 기존 읽기 범위를 연결했다. 제품 입력의 전역 변경이나 설치 패키지 수정 규칙이 아니며, 이 문서 반영은 릴리스·설치 갱신을 뜻하지 않는다.
+
 ## 원본과 설치본
 
 원본 저장소가 수정돼도 설치된 플러그인 캐시는 자동으로 바뀌었다고 간주하지 않는다. 캐시를 직접 수정하지 않고 정상 배포·설치 경로를 이용한다. 결과에는 원본 반영과 설치 적용을 따로 표시하며, 이 문서 작성 자체는 릴리스나 설치 갱신을 뜻하지 않는다.
