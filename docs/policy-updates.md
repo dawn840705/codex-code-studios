@@ -59,6 +59,11 @@
 - 근거: StarDiver `c6f0725f`의 공유 Blender 세션에서 작업 Scene과 필요한 참조를 `libraries.write({scene})`로 분리하고, 산출물을 독립 재열기하여 대상 Scene만 남았는지 확인한 뒤 그 격리 세션을 편집 원본으로 저장했다. 이는 이번에 검증한 방법의 예시이며 필수 API를 지정하는 규칙은 아니다. 초기 전체 세션 파일은 외부 백업으로 보존했다. 상세 구성·원본 해시·검증 결과는 소비 프로젝트 `Documents/Orders/Order-20260909-Jungle-Contact-Kit.md`의 제작과 main 반입 결과에 유지한다.
 - 반영: [3D 작업 흐름](anchor-to-3d-workflow.md)의 기존 6단계에 편집 원본도 작업 소유 Scene과 필요한 참조로 제한하고 독립 재열기에서 무관한 Scene/data-block 혼입을 확인하도록 보강했다. 기존 `$asset-audit`·`$studio-orchestrator` 읽기 연결과 문서 diff를 검사했다. 공통 문서 변경이며 새 Blender/Unity 실행·릴리스·설치 캐시 갱신은 없다.
 
+## 2026-09-09 — 거부 테스트의 실패 원인 구별
+
+- 근거: 실제 제품의 허용된 Collider 자식을 잘못 거부한 사전 검사가 정상 경로를 막았지만, 예외 종류만 확인하던 부정 테스트는 통과했다. 허용 경로와 대상별 실패 사유·무변경 검사를 보강한 뒤 집중 검사를 다시 통과했다. 상세 실패·정정·실행 결과는 StarDiver `Documents/QA/Adopted-Props-Rest-Support-20260909.md`에 유지한다.
+- 반영: [test-standards](../rules/test-standards.md)에 유효한 기준 fixture와 의도한 실패 원인의 확인을 추가했다. [test-evidence-review](../skills/test-evidence-review/SKILL.md)의 기존 읽기 연결, 문서 diff·링크·기존 규칙 정합성을 검사했다. 원본 문서 변경이며 릴리스·설치 캐시 갱신은 아니다.
+
 ## 원본과 설치본
 
 원본 저장소가 수정돼도 설치된 플러그인 캐시는 자동으로 바뀌었다고 간주하지 않는다. 캐시를 직접 수정하지 않고 정상 배포·설치 경로를 이용한다. 결과에는 원본 반영과 설치 적용을 따로 표시하며, 이 문서 작성 자체는 릴리스나 설치 갱신을 뜻하지 않는다.

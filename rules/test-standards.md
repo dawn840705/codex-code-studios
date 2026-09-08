@@ -13,6 +13,7 @@ paths:
 - Test data must be defined in the test or in dedicated fixtures, never shared mutable state. When an integration test must modify global settings, snapshot and restore every changed entry, including inactive entries in indexed or keyed collections; restoring only the current selection and its value is insufficient. Verify the affected state matches its baseline after cleanup.
 - Mock external dependencies — tests should be fast and deterministic
 - Every bug fix must have a regression test that would have caught the original bug
+- Rejection tests must start from a valid fixture and identify the intended failure by target, reason, or error code. An assertion that accepts any exception can pass because an unrelated earlier precondition failed. Verify the valid path succeeds, then invalidate only the intended condition and assert both the specific rejection and absence of unintended mutations.
 
 ## Unity skinned-mesh coordinate checks
 
