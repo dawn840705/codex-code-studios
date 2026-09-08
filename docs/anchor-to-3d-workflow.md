@@ -65,7 +65,9 @@ for storage, provenance, editable sources and cross-machine recovery.
 6. **Save, export and reopen independently.** Reopen the saved editable file
    and verify its intended scene survives; an in-memory scene is not evidence
    of a valid saved deliverable. Limit exports to the intended scene and asset
-   objects. Bake constraints as needed. In a separate process import each target
+   objects. Keep exact exported object/node names stable across re-exports;
+   resolve automatic suffixes such as `.001` on the export copy. Bake constraints
+   as needed. In a separate process import each target
    format, then check geometry, UVs, weights, deform bones, textures and clips.
    Compare poses at equal clip-relative elapsed time, accounting for format
    start-frame offsets. Test both bake samples and times between samples, plus
@@ -78,7 +80,12 @@ for storage, provenance, editable sources and cross-machine recovery.
    visual defects. Ask for visual adoption only when it is still required by
    the project and not already given. If engine integration is authorized,
    verify the real game camera, materials, import scale, clips and platform
-   budget there. A file roundtrip cannot substitute for that engine check.
+   budget there. For Unity, measure imported axis direction and bounds, inspect
+   UVs and degenerate faces, and verify mesh sub-asset IDs and the actual mesh
+   references held by consuming scenes/prefabs after reimport. Keep any
+   export-only axis correction out of the authored scene and confirm it by
+   remeasuring the imported result. A file roundtrip cannot substitute for that
+   engine check.
 
 ## Decisions and stopping rules
 
