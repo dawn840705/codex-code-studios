@@ -62,9 +62,13 @@ for storage, provenance, editable sources and cross-machine recovery.
    joint limits, unwanted intersections, foot contact and sliding through motion.
    Record intended root motion or in-place matching speed. Create only required
    clips and keep visual timing separate from gameplay event wiring.
-6. **Save, export and reopen independently.** Reopen the saved editable file
-   and verify its intended scene survives; an in-memory scene is not evidence
-   of a valid saved deliverable. Limit exports to the intended scene and asset
+6. **Save, export and reopen independently.** Save only the task-owned scene
+   and its required dependency data-blocks as the editable source; do not save
+   the entire shared Blender session into an asset deliverable. Preserve other
+   users' scenes and data in the live session. Reopen the saved editable file
+   independently and verify both the intended content and the absence of
+   unrelated scenes or data-blocks; an in-memory scene is not evidence of a
+   valid saved deliverable. Limit exports to the intended scene and asset
    objects. Keep exact exported object/node names stable across re-exports;
    resolve automatic suffixes such as `.001` on the export copy. Bake constraints
    as needed. In a separate process import each target
