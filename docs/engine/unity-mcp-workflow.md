@@ -106,6 +106,7 @@ MCP server stale 또는 Unity Editor 미활성. Unity Editor를 활성화하고
 ### 3.6 EditMode fixture — 생명주기·전역 상태·씬 격리
 
 - 일반 `MonoBehaviour`의 EditMode 생성/활성화/파괴가 Play와 같은 `Awake`·`OnEnable`·`OnDisable`·`OnDestroy` 전달을 보장한다고 가정하지 않는다. 콜백 계약 시험은 필요한 실제 메서드를 명시 호출하고 구독 해제·재활성화 중복을 단언한다. 자동 전달과 실제 입력은 별도 Play 시험으로 확인한다.
+- 런타임 `AddComponent`의 필수 설정을 Editor `Reset`에 의존하지 않는다. 설치 패키지의 필드 초기값과 `Reset`을 비교하고, 신규 컴포넌트에 필요한 값을 명시하되 기존 저작 컴포넌트는 보존한다. EditMode에서는 `Reset`이 결함을 숨길 수 있으므로 PlayMode의 실제 제품 생성 경로에서 양성 출력을 먼저 단언한 뒤 0·중간 배율·진행 중 종료를 검사한다. 발신·수신 초기화 누락으로 모든 배율에서 카메라 출력이 0이었던 결함과 수리 후 PlayMode 회귀 통과를 근거로 하며, 신호 계산 검증과 실제 렌더 검증은 구분한다.
 - 생성한 EventSystem에서 선택이 바뀌었다는 사실만으로 제품 경로를 검증하지 않는다. 제품이 읽는 `EventSystem.current`와 fixture 대상이 같은지, 그 current의 실제 선택이 기대값인지 단언한다. 사용 중인 패키지의 등록/해제 경로를 확인하고 자동 호출 여부와 겹쳐 이중 등록하지 않는다.
 - 전역 property setter가 `null`이나 임의 객체를 허용한다고 가정하지 않는다. 특히 `EventSystem.current` setter는 등록을 대체하지 않는다. 기존 시스템·선택·singleton·저장 경로를 보존하고 `finally`/teardown에서 소유 객체만 해제·제거한 뒤 원상복원한다.
 - 러너가 저장된 씬을 요구해도 사용자 씬을 저장하여 제약을 우회하지 않는다. 필요한 경우 고유 경로의 **임시 scene asset을 Additive로 격리**하고 활성 씬·열린 씬·사용자 dirty 상태를 보존한다. 시험 뒤 임시 씬만 닫고 생성한 asset/meta만 제거하며 기존 상태가 유지됐는지 검증한다. 보호 상태를 유지할 수 없는 러너라면 중단 사유를 기록한다.
@@ -127,6 +128,7 @@ MCP server stale 또는 Unity Editor 미활성. Unity Editor를 활성화하고
 
 - **버전 한정 관측**: Unity `6000.3.23f1` / Input System `1.20.0`에서 Hera의 `onBeforeUpdate` 콜백이 `InputState.Change`로 버튼 상태를 즉시 바꾸는 경로를 조사했다. 그 입력으로 UI action map을 전환하면 state monitor 알림 도중 monitor가 즉시 제거되어 `DynamicBitfield.ClearBit` assertion으로 이어질 수 있는 재진입 경로가 설치 소스와 실제 스택에서 확인됐다. 모든 Hera 입력이나 정상 장치 이벤트에 같은 결함이 있다고 일반화하지 않는다.
 - 입력 자동화 중 assertion이 발생하면 원본 로그·주입 API·update 단계·action map을 먼저 보존한다. 제품 가드를 약화하거나 예외를 숨기지 말고, `QueueStateEvent` / `QueueDeltaStateEvent`로 이벤트를 큐에 넣어 정상 Input System update에서 소비하는 경로로 같은 시나리오를 재검증한다. press·release·재입력과 모달 진입/복귀를 함께 확인한다. 직접 메서드 호출의 성공은 실제 입력 경로의 대체 증거가 아니다.
+- UI 회귀는 제품이 실제 사용하는 입력 드라이버의 분기·전달 경로를 포함한다. 개별 위젯의 `OnMove` 성공만으로 공용 내비게이션의 슬라이더 조작을 통과시키지 않는다. 실제 드라이버를 거쳐 값 변경·경계값·축에 따른 포커스 이동·중복 이벤트를 검사하고 queued 입력으로 제품 경로를 재확인한다. 공용 드라이버가 슬라이더 값 조작을 포커스 이동으로 처리하던 결함을 검출·수리한 절차이며, 직접 드라이버 호출과 장치 입력 증거는 따로 기록한다.
 - 제품 동작 결과와 도구/패키지 assertion을 별도로 기록한다. 동작이 맞아도 assertion이 남은 실행을 콘솔 무오류로 처리하지 않는다. 로그 보존 후 새 검증 구간을 정해 queued 입력으로 재실행하고, 동작·콘솔 결과를 각각 확인한다. 이 절의 절차는 전용 회귀와 제품의 정상 진입 경로에서 queued 입력 재검증으로 확인했으며 상세 증거는 원 프로젝트에 둔다.
 - 같은 설치 버전의 `InputTestFixture`는 `UnityTest`에서 press/release helper를 큐에만 넣을 수 있다. `ProcessEventsManually` 시험은 필요한 입력 경계에서 명시적으로 `InputSystem.Update()`하고 실제 버튼 값·action phase·reader 상태·update count를 단언한다. **맵 복귀 후 initial-state check 이전**을 검증하는 구간에는 update나 held 상태 재주입을 넣어 시험하려는 순서를 없애지 않는다.
 - Manual 설정 변경이 `ApplySettings`를 거치며 Editor update bit를 다시 켜는지도 설치 소스로 확인한다. 확인된 버전에서는 fixture의 원래 Editor update 차단을 **fixture가 만든 격리 Input System manager에만** 다시 적용해 Editor buffer 전환의 간섭을 막았다. 이를 제품 코드나 원래 manager에 적용하는 공통 처방으로 쓰지 않는다. 내부 필드 접근이 필요하면 설치 버전의 fixture 구현과 일치하는지 확인하고, teardown에서 원래 runtime·manager·장치·설정을 복원하며 수명/복원 단언을 유지한다. 패키지나 설치 캐시는 고치지 않는다.
