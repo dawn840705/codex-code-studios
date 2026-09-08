@@ -44,6 +44,11 @@
 - 근거: Unity `6000.3.23f1` / Input System `1.20.0`의 설치 소스·실제 로그에서 Hera의 즉시 상태 변경과 UI map 전환이 겹친 monitor 재진입 경로를 확인했다. queued 입력으로 정상 진입 경로의 동작·콘솔을 재검증했고, Manual fixture의 Editor update 격리를 복구한 전용 회귀도 통과했다. 상세 증거는 원 프로젝트 `Documents/QA/Pause-Modal-Gameplay-Input-Regression-20260908.md`에 유지한다.
 - 반영: [Unity MCP workflow § 3.9](engine/unity-mcp-workflow.md#39-input-system--입력-주입-경로와-fixture-update-격리)에 버전 한정 관측·queued 입력 재검증·제품 동작과 assertion의 분리·fixture 내부 격리를 추가했다. [team-qa](../skills/team-qa/SKILL.md)의 기존 읽기 범위를 연결했다. 제품 입력의 전역 변경이나 설치 패키지 수정 규칙이 아니며, 이 문서 반영은 릴리스·설치 갱신을 뜻하지 않는다.
 
+## 2026-09-08 — 테스트 해제 책임과 전역 하위 상태 복원
+
+- 근거: EditMode fixture의 자동 생명주기 가정과 명시적 해제·핸들러 책임 검증을 분리해 확인했다. 여러 전역 하위 설정을 변경하고 현재 항목만 복원하는 누락도 발견했으나, 디스크 변경의 실제 원인 확정이나 수리 검증으로 확대하지 않는다. 사건별 증빙과 미검증 상태는 원 프로젝트에 유지한다.
+- 반영: [test-standards](../rules/test-standards.md)의 기존 통합 테스트 정리·공유 상태 항목을 보강했다. [test-evidence-review](../skills/test-evidence-review/SKILL.md)의 기존 읽기 연결을 사용한다. 실패 시 정리와 변경한 모든 항목의 복원을 요구하며, 직접 호출한 핸들러 검사를 실제 엔진 이벤트 증빙과 구분한다. 문서 환류이며 릴리스·설치 갱신은 아니다.
+
 ## 원본과 설치본
 
 원본 저장소가 수정돼도 설치된 플러그인 캐시는 자동으로 바뀌었다고 간주하지 않는다. 캐시를 직접 수정하지 않고 정상 배포·설치 경로를 이용한다. 결과에는 원본 반영과 설치 적용을 따로 표시하며, 이 문서 작성 자체는 릴리스나 설치 갱신을 뜻하지 않는다.

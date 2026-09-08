@@ -8,9 +8,9 @@ paths:
 - Test naming: `test_[system]_[scenario]_[expected_result]` pattern
 - Every test must have a clear arrange/act/assert structure
 - Unit tests must not depend on external state (filesystem, network, database)
-- Integration tests must clean up after themselves
+- Integration tests must clean up after themselves, including assertion failures. In Unity EditMode, establish which lifecycle callbacks the fixture actually receives; verify explicit resource cleanup and lifecycle-handler delegation separately. Calling a handler directly does not prove that the engine dispatches that event in Play Mode.
 - Performance tests must specify acceptable thresholds and fail if exceeded
-- Test data must be defined in the test or in dedicated fixtures, never shared mutable state
+- Test data must be defined in the test or in dedicated fixtures, never shared mutable state. When an integration test must modify global settings, snapshot and restore every changed entry, including inactive entries in indexed or keyed collections; restoring only the current selection and its value is insufficient. Verify the affected state matches its baseline after cleanup.
 - Mock external dependencies — tests should be fast and deterministic
 - Every bug fix must have a regression test that would have caught the original bug
 
