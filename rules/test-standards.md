@@ -14,6 +14,7 @@ paths:
 - Mock external dependencies — tests should be fast and deterministic
 - Every bug fix must have a regression test that would have caught the original bug
 - Rejection tests must start from a valid fixture and identify the intended failure by target, reason, or error code. An assertion that accepts any exception can pass because an unrelated earlier precondition failed. Verify the valid path succeeds, then invalidate only the intended condition and assert both the specific rejection and absence of unintended mutations.
+- For Unity JsonUtility save compatibility, test missing/null nested classes in the target engine; they may deserialize as default objects. When absence differs from a valid zero-valued snapshot, encode presence explicitly and verify repeated loading preserves that distinction without unnecessary migration writes.
 
 ## Unity skinned-mesh coordinate checks
 
