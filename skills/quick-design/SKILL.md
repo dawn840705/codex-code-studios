@@ -40,8 +40,8 @@ significant cross-system dependencies, requires more than one week of
 implementation, or fundamentally alters an existing system's core rules — stop
 and redirect to `$design-system` instead.
 
-Present the classification to the user and confirm it is correct before
-proceeding. If there is no argument, ask the user to describe the change.
+Record the classification in the spec header and name it in the report. No
+argument → K2, Verdict: **BLOCKED** — name what to pass.
 
 ---
 
@@ -204,28 +204,16 @@ tracking threshold — quick spec is sufficient."]
 
 ---
 
-## 4. Approval and Filing
+## 4. Filing
 
-Present the draft to the user in full. Then ask:
+Write the spec to `design/quick-specs/[kebab-case-title]-[YYYY-MM-DD].md`, creating
+the directory if needed. Use today's date; the title is a kebab-case description of
+the change (e.g., `jump-height-tuning-2026-03-10`, `parry-window-addition-2026-03-10`).
 
-"May I write this Quick Design Spec to
-`design/quick-specs/[kebab-case-title]-[YYYY-MM-DD].md`?"
-
-Use today's date in the filename. The title should be a kebab-case description
-of the change (e.g., `jump-height-tuning-2026-03-10`,
-`parry-window-addition-2026-03-10`).
-
-If yes, create the `design/quick-specs/` directory if it does not exist, then
-write the file.
-
-If a GDD update is required (flagged in the spec), ask separately after
-writing the quick spec:
-
-"This spec modifies rules in [System Name]. May I update
-`design/gdd/[filename].md` — specifically the [section name] section?"
-
-Show the exact text that would be changed (old vs. new) before asking. Do not
-make GDD edits without explicit approval.
+If a GDD update is required (flagged in the spec), apply it to
+`design/gdd/[filename].md` — only the named section, old text replaced by the
+spec's new rule. Report the old/new text and the revert command
+(`git checkout -- design/gdd/[filename].md`).
 
 ---
 
@@ -234,10 +222,10 @@ make GDD edits without explicit approval.
 After writing the file, output:
 
 ```
-Quick Design Spec written to: design/quick-specs/[filename].md
+Quick Design Spec written to: design/quick-specs/[filename].md (revert: git checkout -- <path>)
 Type: [Tuning / Tweak / Addition / New Small System]
 System: [system name]
-GDD update: [Required — pending approval / Applied / Not required]
+GDD update: [Applied to design/gdd/[file] — revert: git checkout -- <path> / Not required]
 
 Next step: This spec is ready for `$story-readiness` validation before
 implementation. Reference this spec in the story's GDD Reference field.

@@ -249,14 +249,12 @@ Difficulty arc: [appropriate / too easy throughout / difficulty spike at T+N]
 
 ## 6. Write Output
 
-Present the protocol summary in conversation, then ask:
+Write the protocol to `production/qa/soak-test-[date]-[duration].md`, creating the directory
+if needed. Report the path, the revert command (`git checkout -- <path>`), and the checkpoint
+plan. Verdict: **COMPLETE** — protocol written; the session results are K3 and come back
+from the human observer.
 
-"May I write this soak test protocol to
-`production/qa/soak-test-[date]-[duration].md`?"
-
-Write only after approval.
-
-After writing:
+Recommended next — after writing:
 
 "Protocol written. To run the soak:
 1. Open the file and follow the Pre-Session Setup checklist
@@ -274,7 +272,8 @@ If the verdict is FAIL, run `$smoke-check` again after fixing the issues."
 - **This skill generates a protocol — humans run it** — never attempt to
   run a soak test automatically. The observations require a human observer.
 - **Duration should match the game's session design** — a 5-minute game
-  doesn't need a 4h soak; a city-builder might. Use judgment and ask if unclear.
+  doesn't need a 4h soak; a city-builder might. Derive it from the concept's intended
+  session length; name the reasoning in the report.
 - **First soak should be `all` focus** — narrow focus (memory-only) is for
   regression soaks after a specific fix, not the first pass
-- **Ask before writing** — always confirm before creating the protocol file
+- **Write and report** — the protocol is a `production/qa/` artifact; name the path and the revert command

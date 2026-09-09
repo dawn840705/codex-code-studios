@@ -37,8 +37,9 @@ the invocation arguments
 ## Phase 4: 산출물 버전 분리
 
 - 새 결과는 `final.md`로 쓰고, **직전 결과는 먼저 `final_prev.md`로 백업한다.**
-- `_workspace/` 아래는 작업 파일이라 승인 없이 써도 된다. 사용자 소유 파일에 반영할
-  때는 반드시 먼저 묻는다 — "이 결과를 `<경로>`에 쓸까요?" (May I write this?)
+- 원래 입력이 파일이었으면 `humanize-korean`의 "파일 쓰기 규약"대로 다시 반영한다 —
+  git 추적 중이고 깨끗하면 제자리에 쓰고 diff 요약과 `git checkout -- <경로>`를 보고,
+  아니면 `<이름>.humanized.<확장자>`를 갱신하고 경로를 보고한다.
 
 ## Phase 5: 판정과 보고
 

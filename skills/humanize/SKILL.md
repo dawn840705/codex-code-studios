@@ -7,7 +7,7 @@ description: AI가 쓴 한글 텍스트를 자연스럽게 윤문하는 진입 �
 
 `humanize-korean` 스킬을 발동해 인자로 전달된 한글 텍스트(또는 파일)에 윤문을 실행한다.
 
-Writes: `_workspace/{YYYY-MM-DD-NNN}/` (humanize-korean 작업 디렉터리)만 새로 만든다. 입력 파일 덮어쓰기는 Phase 3 규칙을 따른다.
+Writes: `_workspace/{YYYY-MM-DD-NNN}/` (humanize-korean 작업 디렉터리). 입력이 파일이면 Phase 3 규칙대로 제자리(git 추적·깨끗할 때) 또는 `<이름>.humanized.<확장자>`에 쓴다.
 
 ## 입력
 the invocation arguments
@@ -35,8 +35,9 @@ PASS를 선언하지 않는다.
 - 주요 변경 하이라이트 3~5건
 - 게이트 FAIL 또는 등급 B 이하면 → "`$humanize-redo`로 2차 윤문 가능" 안내
 
-결과는 **응답으로 보여주는 것이 기본이다.** 사용자 파일에 덮어쓰기 전에는 반드시 먼저
-묻는다 — "윤문 결과를 `<경로>`에 쓸까요?" (May I write this to the file?)
+입력이 파일이면 `humanize-korean`의 "파일 쓰기 규약"을 따른다 — git 추적 중이고 깨끗하면
+제자리에 쓰고 diff 요약과 `git checkout -- <경로>`를 보고, 아니면 `<이름>.humanized.<확장자>`
+옆에 쓰고 경로를 보고한다. 붙여넣은 텍스트는 응답으로만 보여준다.
 
 ## 옵션 (인자 끝에 자연어로)
 - `장르: 칼럼|리포트|블로그|공적` — 장르 명시 (생략 시 첫 300자로 자동 추정)

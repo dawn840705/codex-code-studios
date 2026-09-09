@@ -140,10 +140,8 @@ Record the choice. It determines the AGENTS.md template, naming conventions, spe
 ---
 
 Read `AGENTS.md`. If it does not exist, use `../../docs/AGENTS-template.md` as the
-starting structure. Show the user the proposed Technology Stack changes.
-Ask: "May I write these engine settings to `AGENTS.md`?"
-
-Wait for confirmation before making any edits.
+starting structure. Write the engine settings; report the diff and the revert command
+(`git checkout -- AGENTS.md`).
 
 Update the Technology Stack section, replacing the `[CHOOSE]` placeholders with the actual values:
 
@@ -213,9 +211,9 @@ For **Primary Input**, use the dominant input for the game genre:
 - Action/RPG/platformer targeting console → Gamepad
 - Strategy/point-and-click/RTS → Keyboard/Mouse
 - Mobile game → Touch
-- Cross-platform → ask the user
+- Cross-platform → Keyboard/Mouse unless the concept names a console or mobile lead platform; name the reason in the report
 
-Present the derived values and ask the user to confirm or adjust before writing.
+Record the derived values; they are written in the Collaborative Step below.
 
 Example filled section:
 ```markdown
@@ -229,11 +227,11 @@ Example filled section:
 ```
 
 ### Remaining Sections
-- **Performance Budgets**: Ask the user directly:
-  - Prompt: "Should I set default performance budgets now, or leave them for later?"
-  - Options: `[A] Set defaults now (60fps, 16.6ms frame budget, engine-appropriate draw call limit)` / `[B] Leave as [TO BE CONFIGURED] — I'll set these when I know my target hardware`
-  - If [A]: populate with the suggested defaults. If [B]: leave as placeholder.
-- **Testing**: Suggest engine-appropriate framework (GUT for Godot, NUnit for Unity, etc.) — ask before adding.
+- **Performance Budgets**: Take [A] unless the target platform is mobile or the concept names
+  target hardware; then write those numbers instead and name the reason in the report.
+  - `[A] Set defaults now (60fps, 16.6ms frame budget, engine-appropriate draw call limit)`
+  - `[B] Leave as [TO BE CONFIGURED]` — only when nothing in the concept or platform supports a number
+- **Testing**: Write the engine-appropriate framework as the preference (GUT for Godot, NUnit for Unity, etc.). This is a preference line, not an install — installing is `$test-setup`'s job.
 - **Forbidden Patterns**: Leave as placeholder — do NOT pre-populate.
 - **Allowed Libraries**: Leave as placeholder — do NOT pre-populate dependencies the project does not currently need. Only add a library here when it is actively being integrated, not speculatively.
 
@@ -291,12 +289,10 @@ Also populate the `## Engine Specialists` section in `technical-preferences.md` 
 ```
 
 ### Collaborative Step
-Present the filled-in preferences to the user. For Godot, include the chosen language and note where the full naming conventions and routing tables live:
-> "Here are the default technical preferences for [engine] ([language if Godot]). The naming conventions and specialist routing are in Appendix A of this skill — I'll apply the [GDScript/C#/Both] variant. Want to customize any of these, or shall I save the defaults?"
-
-For all other engines, present the defaults directly without referencing the appendix.
-
-Wait for approval before writing the file.
+Write `.codex/studio/technical-preferences.md` with the filled-in defaults. Report the path,
+the revert command (`git checkout -- .codex/studio/technical-preferences.md`), and — for
+Godot — the language variant applied from Appendix A. Anything the user wants customized
+is one edit away; say so.
 
 ---
 
@@ -362,11 +358,7 @@ Create the full reference doc set by searching the web:
    - Deprecated APIs with replacements
    - New features and best practices
 
-Ask: "May I create the engine reference docs under `docs/engine-reference/<engine>/`?"
-
-Wait for confirmation before writing any files.
-
-3. **Create the full reference directory**:
+3. **Create the full reference directory** (report the paths and `git checkout -- docs/engine-reference/<engine>/` as the revert):
    ```
    docs/engine-reference/<engine>/
    ├── VERSION.md              # Version pin + knowledge gap analysis
@@ -387,10 +379,8 @@ Wait for confirmation before writing any files.
 
 ## 8. Update AGENTS.md Import
 
-Ask: "May I update the `@` import in `AGENTS.md` to point to the new engine reference?"
-
-Wait for confirmation, then update the `@` import under "Engine Version Reference" to point to the
-correct engine:
+Update the `@` import under "Engine Version Reference" to point to the correct engine;
+report the diff:
 
 ```markdown
 ## Engine Version Reference
@@ -405,11 +395,9 @@ Godot to Unity), update it.
 
 ## 9. Update Agent Instructions
 
-Ask: "May I add a Version Awareness section to the engine specialist agent files?" before making any edits.
-
 For the chosen engine's specialist agents, verify they have a
 "Version Awareness" section. If not, add one following the pattern in
-the existing Godot specialist agents.
+the existing Godot specialist agents. Report each file touched with its revert command.
 
 The section should instruct the agent to:
 1. Read `docs/engine-reference/<engine>/VERSION.md`
@@ -493,20 +481,17 @@ Recommended migration order (dependency-sorted):
 If no deprecated APIs are found in `src/`, report: "No deprecated API usage
 found in src/ — upgrade may be low-risk."
 
-### Step 4 — Confirm Before Updating
+### Step 4 — Report the Audit
 
-Ask the user before making any changes:
+The user named the target version in the invocation; that is the decision. Report:
 
 > "Pre-upgrade audit complete. Found [N] files using deprecated APIs.
-> Proceed with upgrading VERSION.md to [new-version]?
-> (This will update the pinned version and add migration notes — it does NOT
-> change any source files. Source migration is done manually or via stories.)"
-
-Wait for explicit confirmation before continuing.
+> Updating VERSION.md to [new-version] — the pinned version and migration notes only; no
+> source file changes. Source migration is done manually or via stories."
 
 ### Step 5 — Update VERSION.md
 
-After confirmation:
+Then:
 
 1. Update `docs/engine-reference/<engine>/VERSION.md`:
    - `Engine Version` → `[new-version]`
@@ -570,11 +555,10 @@ Verdict: **COMPLETE** — engine configured and reference docs populated.
 
 ## Guardrails
 
-- NEVER guess an engine version — always verify via WebSearch or user confirmation
-- NEVER overwrite existing reference docs without asking — append or update
-- If reference docs already exist for a different engine, ask before replacing
-- Always show the user what you're about to change before making AGENTS.md edits
-- If WebSearch returns ambiguous results, show the user and let them decide
+- NEVER guess an engine version — verify via WebSearch. If the results are ambiguous, write `[TO BE VERIFIED: candidate A / candidate B]`, continue, and list it in the report
+- NEVER overwrite existing reference docs — append or update
+- If reference docs already exist for a different engine, that is an engine change — K1. Stop with **BLOCKED** unless the user named the new engine in the invocation
+- Report every `AGENTS.md` and `technical-preferences.md` edit with its diff and revert command
 - When the user chose **GDScript**: copy the GDScript AGENTS.md template from Appendix A1 exactly. NEVER add "C++ via GDExtension" to the Language field. GDScript projects may use GDExtension, but it is not a primary project language. The `godot-gdextension-specialist` in the routing table is available for when native extensions are needed — it does not make C++ a project language.
 
 ---

@@ -220,17 +220,18 @@ The Polish → Release gate requires this report with no open CRITICAL or HIGH i
 
 ## Phase 6: Write Report
 
-Present the report summary (executive summary + CRITICAL/HIGH findings only) in conversation.
-
-Ask: "May I write the full security audit report to `production/security/security-audit-[date].md`?"
-
-Write only after approval.
+Write the full report to `production/security/security-audit-[date].md`, creating the
+directory if needed. Report the path, the revert command (`git checkout -- <path>`), and
+the executive summary with the CRITICAL/HIGH findings.
 
 ---
 
 ## Phase 7: Gate Integration
 
-This report is a required artifact for the **Polish → Release gate**.
+Verdict: **COMPLETE** — report written. State **CONCERNS** while any CRITICAL or HIGH
+finding is open.
+
+This report is a required artifact for the **Polish → Release gate**. Recommended next:
 
 After remediating findings, re-run: `$security-audit quick` to confirm CRITICAL/HIGH items are resolved before running `$gate-check release`.
 
@@ -244,7 +245,7 @@ If no CRITICAL/HIGH findings:
 
 ## Collaborative Protocol
 
-- **Never assume a pattern is safe** — flag it and let the user decide
+- **Never assume a pattern is safe** — flag it. Moving a finding to Accepted Risk is the user's decision; the audit never does it on its own
 - **Accepted risk is a valid outcome** — some LOW findings are acceptable trade-offs for a solo team; document the decision
 - **Multiplayer games have a higher bar** — any HIGH finding in a multiplayer context should be treated as CRITICAL
 - **This is not a penetration test** — this audit covers common patterns; a real pentest by a human security professional is recommended before any competitive or monetised multiplayer launch

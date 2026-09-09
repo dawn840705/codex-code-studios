@@ -222,11 +222,14 @@ Generated: [Date]
 
 ## Phase 5: Save Checklist
 
-Present the completed checklist and summary to the user (total items, blocking items count, conditional items count, departments with incomplete sections).
+Unless in dry-run mode, write the checklist to `production/releases/launch-checklist-[date].md`,
+creating directories as needed. Report the path, the revert command (`git checkout -- <path>`),
+and the summary (total items, blocking items, conditional items, departments with incomplete
+sections).
 
-If not in dry-run mode, ask: "May I write this to `production/releases/launch-checklist-[date].md`?"
-
-If yes, write the file, creating directories as needed.
+This skill writes the document only. Store submission, go-live, tagging, and public posts are
+R4 — the user decides and executes them (K1); never run them from here. Sign-offs are human
+entries: leave them unchecked.
 
 ---
 

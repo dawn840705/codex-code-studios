@@ -164,11 +164,13 @@ resolution and estimated time to address them.]
 
 ## Phase 5: Save Checklist
 
-Present the checklist to the user with: total checklist items, number of known blockers (FIXME/HACK counts, known bugs).
+Write the checklist to `production/releases/release-checklist-[version].md`, creating the
+directory if needed. Report the path, the revert command (`git checkout -- <path>`), the total
+item count, and the known blockers (FIXME/HACK counts, known bugs).
 
-Ask: "May I write this to `production/releases/release-checklist-[version].md`?"
-
-If yes, write the file, creating the directory if needed.
+This skill writes the document only. Ticking the submission, tag, publish, or store items
+is R4 — the user decides and executes them (K1); never run them from here. Sign-offs are
+human entries: leave them unchecked.
 
 ---
 

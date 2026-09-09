@@ -89,7 +89,11 @@ Generate this template and output it to the user:
 
 ## Phase 2B: Analyze Mode
 
-Read the raw notes at the provided path. Cross-reference with existing design documents. Fill in the template above with structured findings. Flag any playtest observations that conflict with design intent.
+Read the raw notes at the provided path (no path and no `production/qa/playtests/*.raw.md` → K2, Verdict: **BLOCKED**). Cross-reference with existing design documents. Fill in the template above with structured findings. Flag any playtest observations that conflict with design intent.
+
+Session facts the notes do not carry (what the tester did, felt, or said) are K3 — only a
+human observed them. Mark each `[DEFERRED: needs observer]`, keep going, and list the
+questions once in the final report.
 
 ---
 
@@ -122,15 +126,15 @@ After categorising findings, spawn `creative-director` as a Codex subagent using
 
 Pass: the structured report content, game pillars and core fantasy (from `design/gdd/game-concept.md`), the specific hypothesis being tested.
 
-Present the creative director's assessment before saving the report. If CONCERNS or REJECT, add a `## Creative Director Assessment` section to the report capturing the verdict and feedback. If APPROVE, note the approval in the report.
+Fold the creative director's assessment into the report. If CONCERNS or REJECT, add a `## Creative Director Assessment` section capturing the verdict and feedback. If APPROVE, note the approval in the report. The verdict is advisory; it does not stop the save.
 
 ---
 
 ## Phase 4: Save Report
 
-Ask: "May I write this playtest report to `production/qa/playtests/playtest-[date]-[tester].md`?"
-
-If yes, write the file, creating the directory if needed.
+Write the report to `production/qa/playtests/playtest-[date]-[tester].md` (create the
+directory if needed). Report the path, the revert command (`git checkout -- <path>`), and
+any `[DEFERRED: needs observer]` questions.
 
 ---
 

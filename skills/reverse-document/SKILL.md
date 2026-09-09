@@ -65,9 +65,15 @@ $reverse-document concept prototypes/vehicle-combat
 - Find technical feasibility insights
 - Document player fantasy / feel
 
-## Phase 3: Ask Clarifying Questions
+## Phase 3: Resolve Intent
 
-**DO NOT** just describe the code. **ASK** about intent:
+**DO NOT** just describe the code. Recover the "why" from the repository first —
+commit messages, code comments, ADRs, prior design notes, prototype READMEs. What
+the repository cannot answer goes into the document as `Assumption: …` with the
+reading you chose, and into the report as a question for the author. Do not wait
+for the answer; the document is R and the assumption is easy to correct.
+
+Questions worth an `Assumption:` line —
 
 **Design questions**:
 - "I see a [resource] system that depletes during [activity]. Was this for:
@@ -88,12 +94,12 @@ $reverse-document concept prototypes/vehicle-combat
 - "The prototype emphasizes stealth over combat. Is that the intended pillar?"
 - "Players seem to exploit the grappling hook for speed. Feature or bug?"
 
-## Phase 4: Present Findings
+## Phase 4: Record Findings
 
-Before drafting, show what you discovered:
+Open the report with what you discovered:
 
 ```
-I've analyzed [path]/. Here's what I found:
+Analyzed [path]/:
 
 MECHANICS IMPLEMENTED:
 - [mechanic-a] with [property] (e.g. timing windows, cooldowns)
@@ -105,15 +111,11 @@ FORMULAS DISCOVERED:
 - [Output] = [formula using discovered variables]
 - [Secondary output] = [formula]
 
-UNCLEAR INTENT AREAS:
-1. [Resource] system — pacing or resource management?
-2. [Mechanic] — core pillar or supporting feature?
-3. [Value] scaling — intentional design or needs tuning?
-
-Before I draft the design doc, could you clarify these points?
+ASSUMPTIONS (repository gave no answer — correct me in the doc):
+1. [Resource] system — read as pacing; alternative: resource management
+2. [Mechanic] — read as core pillar; alternative: supporting feature
+3. [Value] scaling — read as intentional; alternative: needs tuning
 ```
-
-Wait for user to clarify intent before drafting.
 
 ## Phase 5: Draft Document Using Template
 
@@ -127,42 +129,35 @@ Based on type, use appropriate template:
 
 **Draft structure**:
 - Capture **what exists** (mechanics, patterns, implementation)
-- Document **why it exists** (intent clarified with user)
+- Document **why it exists** (intent from the repository, or `Assumption:`)
 - Identify **what's missing** (edge cases not handled, gaps in design)
 - Flag **follow-up work** (balance tuning, missing features)
 
-## Phase 6: Show Draft and Request Approval
+## Phase 6: Explain the Draft
 
-**Collaborative protocol**:
+Put this in the report next to the path:
 ```
-I've drafted the [system-name] design doc based on your code and clarifications.
-
-[Show key sections: Overview, Mechanics, Formulas, Design Intent]
-
 ADDITIONS I MADE:
-- Documented [mechanic] as "[intent]" per your clarification
+- Documented [mechanic] as "[intent]" (source: [commit/comment], or Assumption)
 - Added edge cases not in code (e.g., what if [resource] hits 0 mid-[action]?)
 - Flagged balance concern: [scaling type] scaling at [boundary condition]
 
 SECTIONS MARKED AS INCOMPLETE:
 - "[System] interaction with [other-system]" (not fully implemented yet)
 - "[Variant or feature]" (only [subset] implemented so far)
-
-May I write this to design/gdd/[system-name].md?
 ```
-
-Wait for approval. User may request changes before writing.
 
 ## Phase 7: Write Document with Metadata
 
-When approved, write the file with special markers:
+Write the file (path from the Phase 5 table; never overwrite an existing document —
+write `[name].reverse.md` beside it and say so) with special markers:
 
 ```markdown
 ---
 status: reverse-documented
 source: [path/]
 date: [today]
-verified-by: [User name]
+verified-by: [pending — see Assumptions]
 ---
 
 # [System Name] Design
@@ -176,10 +171,11 @@ verified-by: [User name]
 
 ## Phase 8: Flag Follow-Up Work
 
-After writing, suggest next steps:
+After writing, report:
 
 ```
-✅ Written to design/gdd/combat-system.md
+✅ Written to design/gdd/combat-system.md (revert: git checkout -- design/gdd/combat-system.md)
+Verdict: COMPLETE — [N] assumptions await the author's correction
 
 FOLLOW-UP RECOMMENDED:
 1. Run $balance-check on combat formulas (exponential scaling concern)
@@ -188,9 +184,9 @@ FOLLOW-UP RECOMMENDED:
    - Stamina depletion mid-combo behavior
    - Stagger state during dodge
 4. Extend design doc when weapon variety is implemented
-
-Would you like me to tackle any of these now?
 ```
+
+Do not run the follow-ups; the user picks.
 
 ---
 
@@ -214,31 +210,16 @@ User: $reverse-document design src/gameplay/[system]
 Agent: I'll analyze your [system] implementation to create a design doc.
        [Reads code, discovers mechanics, formulas]
 
-Agent: I've analyzed src/gameplay/[system]/. Here's what I found:
-       [Shows mechanics, formulas, unclear areas]
+Agent: Analyzed src/gameplay/[system]/ — [mechanics, formulas].
+       Intent from git log: [resource] added in [commit] "prevent [unwanted behavior]" → pacing.
+       Assumptions (no source found): [mechanic] read as core pillar; [value] scaling read as intentional.
 
-       Before drafting, could you clarify:
-       1. [Resource] system intent?
-       2. Is [mechanic] a core pillar?
-       3. [Value] scaling — intentional or needs tuning?
-
-User: 1. [Resource] is for pacing, prevent [unwanted behavior]
-      2. [Mechanic] is core — I want [design intent]
-      3. Yeah, exponential is too much, should be linear
-
-Agent: Perfect, that clarifies the vision. Let me draft the design doc.
-       [Shows draft with clarified intent]
-
-       May I write this to design/gdd/[system-name].md?
-
-User: Yes, write it.
-
-Agent: ✅ Written to design/gdd/[system-name].md
-       ✅ Marked as [REVERSE-DOCUMENTED]
+       ✅ Written to design/gdd/[system-name].md (revert: git checkout -- design/gdd/[system-name].md)
+       ✅ Marked as [REVERSE-DOCUMENTED], verified-by pending
        ✅ Flagged [value] scaling for rebalancing
 
+       Please correct the two assumptions in the doc if they are wrong.
        Next steps:
-       - Update [formula] to [corrected scaling]
        - Run $balance-check to validate [curve]
        - Document [mechanic] as core pillar in game-pillars.md
 ```
@@ -250,12 +231,10 @@ Agent: ✅ Written to design/gdd/[system-name].md
 This skill follows the collaborative design principle:
 
 1. **Analyze First**: Read code, understand implementation
-2. **Question Intent**: Ask about "why", not just "what"
-3. **Present Findings**: Show discoveries, highlight unclear areas
-4. **User Clarifies**: Separate intent from accidents
-5. **Draft Document**: Create doc based on reality + intent
-6. **Show Draft**: Display key sections, explain additions
-7. **Get Approval**: "May I write to [filepath]?" On approval: Verdict: **COMPLETE** — document generated. On decline: Verdict: **BLOCKED** — user declined write.
-8. **Flag Follow-Up**: Suggest related work, don't auto-execute
+2. **Recover Intent**: "why" from commits, comments, ADRs — not just "what"
+3. **Mark Assumptions**: what the repository cannot answer is written as `Assumption:`, never as fact
+4. **Draft Document**: reality + intent + assumptions
+5. **Write and Report**: path, revert command, additions, assumptions. Verdict: **COMPLETE** — document generated. **BLOCKED** only when the path does not exist or the type is missing (K2).
+6. **Flag Follow-Up**: Suggest related work, don't auto-execute
 
-**Never assume intent. Always ask before documenting "why".**
+**Never present an assumption as intent. Label it, and let the author correct it.**

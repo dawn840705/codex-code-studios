@@ -16,11 +16,11 @@ Resolve the review mode (once, store for all gate spawns this run):
 **Confirm the track before writing anything.** This skill produces a *product*
 concept. If `PROJECT_TYPE` is `game`, stop and route to `$brainstorm` instead —
 the two documents are not interchangeable and `design/gdd/game-concept.md` is
-what the game track's gates look for. If `PROJECT_TYPE` is `unknown`, ask which
-one the project is before proceeding.
+what the game track's gates look for. If `PROJECT_TYPE` is `unknown`, ask once,
+write the answer to `production/track.txt`, and continue.
 
 If `product/prd/product-concept.md` already exists, do **not** overwrite. Read
-it, identify missing or placeholder sections, and offer to fill only those.
+it, identify missing or placeholder sections, and fill only those.
 Never touch section content that is already written.
 
 ---
@@ -43,14 +43,12 @@ Read before asking the user anything:
 
 ## 3. Author Section by Section (Write Phase)
 
-Walk the user through each section **in order, one at a time**: propose a draft
-from what you read, ask for corrections, then move on. Do not generate the whole
-document silently — this is the one document where a wrong assumption propagates
-into every downstream PRD.
-
-Ask the user directly for constrained choices (target segment, scope tier
-boundaries, monetization posture). Ask open questions as plain text so the user
-can answer freely.
+Draft every section from what you read. Three choices are K1 — taste and strategy
+decide them, not evidence: **target segment, scope tier boundaries, monetization
+posture**. Present each as a decision item (recommendation, alternatives, why) and
+let the user choose; do not guess them, because a wrong assumption here propagates
+into every downstream PRD. Every other section: draft it, mark assumptions per
+`../../rules/claim-confidence.md`, and continue.
 
 **Required sections:**
 
@@ -78,8 +76,8 @@ can answer freely.
 
 Any market size, competitor fact, pricing, or regulatory claim follows
 `../../rules/claim-confidence.md`: cite the source, or mark `(추정)` with the
-arithmetic, or `[확인 필요]`. Do not write these from memory. If the user can
-answer it faster than a search, ask the user.
+arithmetic, or `[확인 필요]`. Do not write these from memory. Mark `[확인 필요]`
+and continue; list them in the report.
 
 ---
 
@@ -94,19 +92,12 @@ See `../../docs/director-gates.md` for the full check pattern.
 
 ---
 
-## 5. Write Approval
+## 5. Write
 
-Ask the user directly:
-
-- Prompt: "Product concept is ready. May I write it to `product/prd/product-concept.md`?"
-- Options: `[A] Yes — write it` / `[B] Not yet — revise a section first`
-
-If [B]: ask which section by asking the user directly with the section names from
-§ 3. Show the revised section as a clear before/after, then ask again. Repeat
-until the user selects [A].
-
-On approval, write `product/prd/product-concept.md`, creating the directory if
-needed.
+Write `product/prd/product-concept.md`, creating the directory if needed. A K1
+choice still open stays in the file as `[BLOCKED: user decision — <choice>]`; write
+the rest. Report the path, the revert command (`git checkout -- <path>`), and the
+open choices.
 
 ---
 
@@ -120,10 +111,10 @@ architecture` depend on knowing which:
 - **CONCERNS** — written and usable, but list each `[확인 필요]` that a feature PRD
   will inherit. These are the assumptions that will propagate; name them here or
   they will surface as facts in three PRDs' time.
-- **BLOCKED** — a decision only the user can make is missing (target segment,
-  monetization posture, a regulatory question). Do not guess it to finish the
-  document. Record it in `production/human-actions.md` per
-  `../../rules/work-records.md` § 2 and stop.
+- **BLOCKED** — a K1 decision is missing (target segment, monetization posture,
+  a regulatory question). Do not guess it to finish the document. Record it in
+  `production/human-actions.md` per `../../rules/work-records.md` § 2 and name
+  what resumes the run.
 
 ---
 

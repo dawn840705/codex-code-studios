@@ -137,7 +137,7 @@ Check for drift indicators:
 - Stories completed this sprint with no corresponding test files in `tests/`
 - New systems added to `systems-index.md` since the last regression-suite update
 - GDD sections added or revised since the regression suite was last updated
-  (use Grep on GDD file modification hints if available, or ask the user)
+  (`git log --since` on the GDD files, or file modification hints)
 - `tests/regression-suite.md` last-updated date vs. current date — if gap >
   2 sprints, flag as likely stale
 
@@ -223,15 +223,15 @@ Tests that are flaky or disabled (do not run in CI):
 
 ## 7. Write Output
 
-Ask: "May I write/update `tests/regression-suite.md` with the current
-regression suite manifest?"
+Write `tests/regression-suite.md`. Report the path and the revert command
+(`git checkout -- tests/regression-suite.md`).
 
 For `update` mode: append new entries; never remove existing entries
 (use `Edit` with targeted insertions).
 For `audit` mode: rewrite the full manifest with updated coverage data.
 For `report` mode: do not write anything.
 
-After writing (if approved):
+Recommended next (after writing):
 
 - For each HIGH priority gap: "Consider creating the missing regression test
   before the next sprint. Run `$test-helpers` to scaffold the test file."
@@ -240,18 +240,18 @@ After writing (if approved):
 - If coverage drift detected: "Regression suite may be drifting. Consider
   running `$regression-suite audit` at the next sprint boundary."
 
-Verdict: **COMPLETE** — regression suite updated. (If user declined write: Verdict: **BLOCKED**.)
+Verdict: **COMPLETE** — regression suite updated.
 
 ---
 
 ## Collaborative Protocol
 
-- **Never remove existing regression tests from the manifest** without
-  explicit user approval — removing a test that was deliberately written is a
+- **Never remove existing regression tests from the manifest** — mark them
+  `STALE` or quarantine them; removing a test that was deliberately written is a
   regression risk itself
 - **Gaps are advisory, not blocking** — surface them clearly but do not prevent
   other work from proceeding (except at release gate where regression suite is required)
 - **Quarantine is not deletion** — tests with intermittent failures should be
   quarantined (noted in manifest) but not removed; they should be fixed by
   `$test-flakiness`
-- **Ask before writing** — always confirm before creating or updating the manifest
+- **Write and report** — the manifest is a tracked file; name the path and the revert command

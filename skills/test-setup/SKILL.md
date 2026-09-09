@@ -54,14 +54,15 @@ Only create files that are missing.
 
 ---
 
-## Phase 2: Present Plan
+## Phase 2: Record the Plan
 
-Based on the engine detected and the existing state, present a plan:
+Based on the engine detected and the existing state, record the plan; it opens the
+Phase 6 report:
 
 ```
 ## Test Setup Plan — [Engine]
 
-I will create the following (skipping any that already exist):
+Creating the following (skipping any that already exist):
 
 tests/
   unit/           — Isolated unit tests for formulas, state, and logic
@@ -77,16 +78,13 @@ tests/
 Estimated time: ~5 minutes to create all files.
 ```
 
-Ask: "May I create these files? I will not overwrite any test files that
-already exist at these paths."
-
-Do not proceed without approval.
+No test file that already exists at these paths is overwritten.
 
 ---
 
 ## Phase 3: Create Directory Structure
 
-After approval, create the following files:
+Create the following files:
 
 ### `tests/README.md`
 
@@ -400,6 +398,7 @@ Files created:
 - tests/evidence/ (directory)
 [engine-specific files]
 - .github/workflows/tests.yml
+Revert: git checkout -- tests/ .github/workflows/tests.yml (or rm the untracked paths)
 
 Next steps:
 1. [Engine-specific install step, e.g., "Install GdUnit4 via AssetLib"]
@@ -423,7 +422,7 @@ Verdict: **COMPLETE** — test framework scaffolded and CI/CD wired up.
 
 - **Never overwrite existing test files** — only create files that are missing.
   If a test runner file exists, leave it as-is.
-- **Always ask before creating files** — Phase 2 requires explicit approval.
+- **Write and report** — every created path is listed in Phase 6 with the revert command.
 - **Engine detection is non-negotiable** — if the engine is not configured,
   stop and redirect to `$setup-engine`. Do not guess.
 - **`force` flag skips the "already exists" early-exit but never overwrites.**

@@ -45,9 +45,9 @@ Parse `the invocation arguments`:
 
 If no argument is given, check whether `design/assets/asset-manifest.md` exists:
 
-- If it exists, find assets whose category is a 2D/sprite/UI type and use
-  a direct user question: "Run background removal on **[context]** ([N] assets)?"
-  with options `[A] Yes` / `[B] Pick a different context` / `[C] Point me at a folder instead`.
+- If it exists, take the assets whose category is a 2D/sprite/UI type as the
+  target. The Phase 2 disclosure shows that scope before anything is charged;
+  the user narrows it there with `modify`.
 - If it does not exist, fail with:
   > "Usage: `$remove-bg <file|folder|url>` — e.g. `$remove-bg design/assets/raw/hero.png`
   > Or `$remove-bg manifest:tower-defense` once you have an asset manifest."
@@ -186,12 +186,9 @@ update it:
   approval.
 - Append the cutout path to the row's Spec File cell or a `Cutout` column.
 
-Also update the Progress Summary counts. Then ask:
-
-> "May I update `design/assets/asset-manifest.md` with [N] cutout results?"
-
-Wait for confirmation before writing. If the user declines, leave the manifest
-alone — the JSON report is already on disk and nothing is lost.
+Also update the Progress Summary counts. Write the manifest and report the path
+and the revert command (`git checkout -- design/assets/asset-manifest.md`). The
+JSON report stays on disk either way.
 
 If no manifest exists, skip this phase silently. Do not create one here; that is
 `$asset-spec`'s job.
@@ -211,12 +208,13 @@ Report in this shape:
   report    : <out-dir>/removebg-report.json
 ```
 
-Then ask the user directly:
+Recommended next — take [A] unless the verdict was CONCERNS, then name [B] with
+the flags you would change. [B] and [C] charge again: they re-enter Phase 1-3 and
+never run without a fresh disclosure and approval.
 
 - `[A] Review the cutouts — $asset-audit` (validate delivered assets against specs)
 - `[B] Re-run the failures with a tighter --type / --roi`
-- `[C] Re-run at --size full for the ones that passed review` (charges again)
-- `[D] Stop here`
+- `[C] Re-run at --size full for the ones that passed review`
 
 **Follow-up handoff:** cutouts are raw output, not approved art. Route them
 through `$asset-audit` before they are treated as production-ready, and let

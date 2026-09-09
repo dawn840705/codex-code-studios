@@ -98,15 +98,17 @@ auto-detect using these heuristics (check from most-advanced backward):
 | **Polish** | Explicit only (set by `$gate-check` Production → Polish gate) |
 | **Release** | Explicit only (set by `$gate-check` Polish → Release gate) |
 
-### 3. Collaborative Gap Identification
+### 3. Gap Identification
 
-**DO NOT** just list missing files. Instead, **ask clarifying questions**:
+**DO NOT** just list missing files. Pair each gap with the question it raises and the
+recommended skill. Answer the question yourself when the repository can (git log, READMEs,
+`AGENTS.md`); leave the rest as questions in the report — they do not block the write.
 
-- "I see combat code (`src/gameplay/combat/`) but no `design/gdd/combat-system.md`. Was this prototyped first, or should we reverse-document?"
-- "You have 15 ADRs but no architecture overview. Should I create one to help new contributors?"
-- "No sprint plans in `production/`. Are you tracking work elsewhere (Jira, Trello, etc.)?"
-- "I found a game concept but no systems index. Have you decomposed the concept into individual systems yet, or should we run `$map-systems`?"
-- "Prototypes directory has 3 projects with no READMEs. Were these experiments, or do they need documentation?"
+- "Combat code (`src/gameplay/combat/`) but no `design/gdd/combat-system.md`. Prototyped first? → `$reverse-document design src/gameplay/combat`"
+- "15 ADRs but no architecture overview → `$reverse-document architecture`"
+- "No sprint plans in `production/`. Tracked elsewhere (Jira, Trello)? → `$sprint-plan`"
+- "Game concept but no systems index → `$map-systems`"
+- "3 prototypes with no READMEs. Experiments, or do they need documentation?"
 
 ### 4. Generate Stage Report
 
@@ -155,27 +157,16 @@ If user provided a role argument (e.g., `$project-stage-detect programmer`):
 - Holistic view of all gaps
 - Highest-priority items across domains
 
-### 6. Request Approval Before Writing
+### 6. Write the Report
 
-**Collaborative protocol**:
+Write the full analysis to `production/project-stage-report.md`. Then report:
+
 ```
-I've analyzed your project. Here's what I found:
-
-[Show summary]
-
-Gaps identified:
-1. [Gap 1 + question]
-2. [Gap 2 + question]
-
-Recommended next steps:
-- [Priority 1]
-- [Priority 2]
-- [Priority 3]
-
-May I write the full stage analysis to production/project-stage-report.md?
+Stage: [stage] (check_phase.py → exit N) · Confidence: [PASS/CONCERNS/FAIL]
+Gaps: 1. [Gap 1 + question] 2. [Gap 2 + question]
+Next: [Priority 1] · [Priority 2] · [Priority 3]
+Written: production/project-stage-report.md — revert: git checkout -- production/project-stage-report.md
 ```
-
-Wait for user approval before creating the file.
 
 ---
 
@@ -209,12 +200,7 @@ After generating the report, suggest relevant next steps:
 
 ## Collaborative Protocol
 
-This skill follows the collaborative design principle:
-
-1. **Question First**: Ask about gaps, don't assume
-2. **Present Options**: "Should I create X, or is it tracked elsewhere?"
-3. **User Decides**: Wait for direction
-4. **Show Draft**: Display report summary
-5. **Get Approval**: "May I write to production/project-stage-report.md?"
-
-**Never** silently write files. **Always** show findings and ask before creating artifacts.
+1. **Gate first**: the stage comes from `check_phase.py`'s exit code, not from a guess.
+2. **Gaps as questions**: each gap carries its question and the skill that closes it; open questions ride in the report, never block it.
+3. **Write and report**: the report is a `production/` artifact (R) — write it, name the path and the revert command.
+4. **Never run the recommended skills yourself**: this is a diagnostic; the user picks the next step.

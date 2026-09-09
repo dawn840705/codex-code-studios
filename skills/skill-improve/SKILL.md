@@ -56,27 +56,21 @@ For each failing or warning **static** check, identify the exact gap:
 - **Check 8/10 warn** → description lacks a negative boundary or explicit trigger
 - **Check 9 warn** → description is too similar to another skill and needs a clearer boundary
 
-Show the full combined diagnosis to the user before proposing any changes.
+Record the full combined diagnosis; it goes into the final report.
 
 ---
 
-## Phase 4: Propose Fix
+## Phase 4: Fix
 
-Write a targeted fix for each failure and warning. Show the proposed changes
-as clearly marked before/after blocks. Only change what is failing — do not
-rewrite sections that are passing.
-
-Ask: "May I write this improved version to `../[name]/SKILL.md`?"
-
-If the user says no, stop here.
+Write a targeted fix for each failure and warning. Only change what is failing — do not
+rewrite sections that are passing. Keep the before/after blocks for the report.
 
 ---
 
 ## Phase 5: Write and Retest
 
-Record the current content of the skill file (for revert if needed).
-
-Write the improved skill to `../[name]/SKILL.md`.
+Write the improved skill to `../[name]/SKILL.md` (the file is git-tracked; the revert
+path is `git checkout -- ../[name]/SKILL.md`).
 
 Re-run `$skill-test static [name]` and record the new static score.
 
@@ -93,14 +87,11 @@ Change: improved / no change / worse
 Count the combined total: static FAILs + static WARNs.
 
 **If the score improved (combined issue count is lower than baseline):**
-Report: "Score improved. Changes kept."
-Show a summary of what was fixed in each dimension.
+Report: "Score improved. Changes kept." with the before/after blocks and the revert command.
 
 **If combined score is the same or worse:**
-Report: "Combined score did not improve."
-Show what changed and why it may not have helped.
-Ask: "May I revert `../[name]/SKILL.md` using git checkout?"
-If yes: run `git checkout -- ../[name]/SKILL.md`
+Run `git checkout -- ../[name]/SKILL.md` yourself. Report: "Combined score did not
+improve; reverted." with what changed and why it may not have helped.
 
 ---
 

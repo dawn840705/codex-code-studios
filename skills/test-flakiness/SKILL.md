@@ -10,7 +10,7 @@ change. Flaky tests are worse than no tests in some ways — they train the team
 to ignore red CI runs, masking genuine failures. This skill identifies them,
 explains likely causes, and recommends whether to quarantine or fix each one.
 
-**Output:** Updated `tests/regression-suite.md` quarantine section + optional
+**Output:** Updated `tests/regression-suite.md` quarantine section +
 `production/qa/flakiness-report-[date].md`
 
 **When to run:**
@@ -58,15 +58,12 @@ If a path argument is provided, read that file directly.
 
 ### Option C — No log data available
 
-If no logs found:
+If no logs found, fall back to `registry` mode when `tests/regression-suite.md` has a
+quarantine entry. If it has none, that is K2 — Verdict: **BLOCKED**:
 > "No CI log data found. To detect flaky tests, this skill needs test result
-> history from multiple runs. Options:
+> history from multiple runs. What resumes it:
 > 1. Run the test suite at least 3 times and collect the output logs
-> 2. Check CI pipeline output and save a log to `test-results/`
-> 3. Run `$test-flakiness registry` to review tests already flagged as flaky
->    in `tests/regression-suite.md`"
-
-Stop and ask the user which option to pursue.
+> 2. Check CI pipeline output and save a log to `test-results/`"
 
 ---
 
@@ -169,21 +166,18 @@ For each flaky test:
 
 ---
 
-## 7. Update Regression Suite + Optional Report File
+## 7. Update Regression Suite + Report File
 
-Ask: "May I update the quarantine section of `tests/regression-suite.md`
-with the flaky tests found?"
+Use `Edit` to append the flaky tests found to the Quarantined Tests table of
+`tests/regression-suite.md`. Never remove existing quarantine entries — only add new ones.
 
-If yes: use `Edit` to append entries to the Quarantined Tests table.
-Never remove existing quarantine entries — only add new ones.
+Write the full flakiness report to `production/qa/flakiness-report-[date].md`: per-test
+analysis with cause details and engine-specific fix snippets.
 
-Ask (separately): "May I write a full flakiness report to
-`production/qa/flakiness-report-[date].md`?"
+Report both paths and their revert commands (`git checkout -- <path>`).
+Verdict: **COMPLETE** — flakiness report written.
 
-The full report includes per-test analysis with cause details and
-engine-specific fix snippets.
-
-After writing:
+Recommended next (after writing):
 
 - For each quarantined test: "Add the engine-specific skip annotation to
   disable this test in CI. Re-enable after the root cause is fixed."
@@ -198,10 +192,9 @@ After writing:
 
 - **Never delete test files** — quarantine means annotate + list, not remove
 - **Statistical confidence matters** — with < 3 runs, flag findings as
-  "suspected" not "confirmed"; ask if more run data is available
+  "suspected" not "confirmed" and name the run count in the report
 - **Fix is always the goal** — quarantine is temporary; surface the fix
   direction even when recommending quarantine
-- **Ask before writing** — both the regression-suite update and the report
-  file require explicit approval. On write: Verdict: **COMPLETE** — flakiness report written. On decline: Verdict: **BLOCKED** — user declined write.
+- **Write and report** — both files are tracked; name each path and its revert command
 - **Flakiness in CI is a team problem** — surface the list and recommended
   actions clearly; do not just silently quarantine without the team knowing

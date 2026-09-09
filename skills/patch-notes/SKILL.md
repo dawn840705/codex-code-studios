@@ -18,7 +18,7 @@ description: "Generate player-facing patch notes from git history, sprint data, 
 - `version`: the release version to generate notes for (e.g., `1.2.0`)
 - `--style`: output style — `brief` (bullet points), `detailed` (with context), `full` (with developer commentary). Default: `detailed`.
 
-If no version is provided, ask the user before proceeding.
+If no version is given, take the newest `production/releases/*$changelog.md`. None found → K2, Verdict: **BLOCKED** (name the missing version).
 
 ---
 
@@ -173,13 +173,10 @@ Check the generated notes for:
 
 ## Phase 6: Save Patch Notes
 
-Present the completed patch notes to the user along with: a count of changes by category, and any internal changes that were excluded (for review).
-
-Ask: "May I write these patch notes to `docs/patch-notes/[version].md`?"
-
-If yes, write the file to `docs/patch-notes/[version].md`, creating the directory
-if needed. Also write to `production/releases/[version]$patch-notes.md` as the
-internal archive copy.
+Write the notes to `docs/patch-notes/[version].md` (create the directory if needed) and the
+internal archive copy to `production/releases/[version]$patch-notes.md`. Report both paths,
+the revert command (`git checkout -- <path>`), a count of changes by category, and the
+internal changes that were excluded.
 
 ---
 

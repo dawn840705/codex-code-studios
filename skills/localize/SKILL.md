@@ -64,9 +64,7 @@ Report all findings with file paths and line numbers. This mode is read-only —
 
 Output a diff of new strings to add to the string table.
 
-Present the diff to the user. Ask: "May I write these new entries to `assets/data/strings/strings-en.json`?"
-
-If yes, write only the diff (new entries), not a full replacement. Verdict: **COMPLETE** — strings extracted and written.
+Write only the diff (new entries) to `assets/data/strings/strings-en.json`, not a full replacement. Report the diff, the path, and the revert command (`git checkout -- <path>`). Verdict: **COMPLETE** — strings extracted and written.
 
 ---
 
@@ -169,7 +167,7 @@ Direct questions to: [placeholder for user/team contact]
 Delivery format: JSON, same schema as strings-en.json
 ```
 
-Ask: "May I write this translator brief to `production/localization/translator-brief-[locale]-[date].md`?"
+Write the brief to `production/localization/translator-brief-[locale]-[date].md`. Report the path and the revert command. Sending it to a vendor is a paid order — K1, the user's call.
 
 ---
 
@@ -212,7 +210,7 @@ Present findings as a table:
 
 BLOCKING = must fix before shipping that locale. ADVISORY = recommend change. NOTE = informational only.
 
-Ask: "May I write this cultural review report to `production/localization/cultural-review-[date].md`?"
+Write the report to `production/localization/cultural-review-[date].md`. Report the path and the revert command.
 
 ---
 
@@ -252,7 +250,7 @@ Generate a recording script document for each character, grouped by scene. Inclu
 - Emotion/direction note for each line (`[Warm, welcoming]`, `[Annoyed, clipped]`)
 - Any lines that are responses in a conversation (provide context: "Player just said X")
 
-Ask: "May I write the VO recording scripts to `production/localization/vo-scripts-[locale]-[date].md`?"
+Write the scripts to `production/localization/vo-scripts-[locale]-[date].md`. Report the path and the revert command. Booking the recording is a paid order — K1, the user's call.
 
 ### VO Pipeline: Validate
 
@@ -299,7 +297,7 @@ Grep patterns to check:
 
 Report findings. Flag BLOCKING issues (content unreadable without fix) vs ADVISORY (cosmetic improvements).
 
-Ask: "May I write this RTL check report to `production/localization/rtl-check-[date].md`?"
+Write the report to `production/localization/rtl-check-[date].md`. Report the path and the revert command.
 
 ---
 
@@ -327,11 +325,15 @@ Pre-Freeze Checklist
 [ ] Marketing strings (store description, achievements) are final
 ```
 
-Ask the user directly:
+Fill in what the repository can verify (`$localize scan` and `validate` results, string counts).
+Calling the freeze is **K1** — it commits translation spend and locks the team's source table.
+Ask the user directly and stop until they answer:
 - Prompt: "Are all items above confirmed? Calling string freeze locks the source table."
 - Options: `[A] Yes — call string freeze now` / `[B] No — I still have strings to add`
 
-If [A]: Write `production/localization/freeze-status.md`:
+If [B] or no answer: Verdict: **BLOCKED** — freeze not called; name the unchecked items.
+
+If [A]: Write `production/localization/freeze-status.md` (report the path and revert command):
 
 ```markdown
 # String Freeze Status
@@ -400,7 +402,7 @@ Output a QA verdict per locale:
 [ ] Producer approves shipping [Locale]
 ```
 
-Ask: "May I write this localization QA report to `production/localization/loc-qa-[locale]-[date].md`?"
+Write the report to `production/localization/loc-qa-[locale]-[date].md`. Report the path and the revert command. The Producer sign-off line is a human entry — leave it unchecked and list it as DEFERRED.
 
 **Gate integration**: The Polish → Release gate requires a PASS or PASS WITH CONDITIONS verdict for every locale being shipped. A FAIL blocks release for that locale only — other locales may still proceed if their QA passes.
 

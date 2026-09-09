@@ -10,7 +10,7 @@ goes further — it reviews the **quality** of those tests and evidence document
 A test file that exists and passes may still leave critical behaviour uncovered.
 A manual evidence doc that exists may lack the sign-offs required for closure.
 
-**Output:** Summary report (in conversation) + optional `production/qa/evidence-review-[date].md`
+**Output:** `production/qa/evidence-review-[date].md` + summary in the report
 
 **When to run:**
 - Before QA hand-off sign-off (`$team-qa` Phase 5)
@@ -25,7 +25,7 @@ A manual evidence doc that exists may lack the sign-offs required for closure.
 - `$test-evidence-review [story-path]` — review a single story's evidence
 - `$test-evidence-review sprint` — review all stories in the current sprint
 - `$test-evidence-review [system-name]` — review all stories in an epic/system
-- No argument — ask which scope: "Single story", "Current sprint", "A system"
+- No argument — take the current sprint if `production/sprints/` has a plan; else K2, Verdict: **BLOCKED** (name the three scopes)
 
 ---
 
@@ -215,24 +215,20 @@ The overall sprint/system verdict is the worst story verdict present.
 
 ---
 
-## 7. Write Output (Optional)
+## 7. Write Output
 
-Present the report in conversation.
+Write the review to `production/qa/evidence-review-[date].md`, creating the directory if
+needed. Report the path, the revert command (`git checkout -- <path>`), and the summary table.
 
-Ask: "May I write this test evidence review to
-`production/qa/evidence-review-[date].md`?"
-
-This is optional — the report is useful standalone. Write only if the user
-wants a persistent record.
-
-After the report:
+Recommended next, in the report:
 
 - For BLOCKING items: "These must be resolved before `$story-done` can mark the
-  story Complete. Would you like to address any of them now?"
+  story Complete." Do not fix them here.
 - For thin assertions: "Consider running `$test-helpers [system]` to see
   scaffolded assertion patterns for common cases."
-- For missing sign-offs: "Manual sign-off is required from [role]. Share
-  `[evidence-path]` with them to complete sign-off."
+- For missing sign-offs and visual acceptance: these are K3 — only a human can
+  supply them. List each as `DEFERRED: [role] sign-off on [evidence-path]` in one
+  block at the end of the report; they do not block the verdict.
 
 Verdict: **COMPLETE** — evidence review finished. Use CONCERNS if BLOCKING items were found.
 
@@ -246,4 +242,4 @@ Verdict: **COMPLETE** — evidence review finished. Use CONCERNS if BLOCKING ite
   tests that are functioning and comprehensive enough to give confidence
 - **BLOCKING vs. ADVISORY distinction is important** — only flag BLOCKING when
   the gap leaves a story criterion genuinely unverified
-- **Ask before writing** — the report file is optional; always confirm before writing
+- **Write and report** — the review is a `production/qa/` artifact; name the path and the revert command

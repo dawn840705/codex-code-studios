@@ -37,27 +37,20 @@ Categorize each finding:
 - **Dependency Debt**: Outdated packages, deprecated APIs, version conflicts
 - **Performance Debt**: Known slow paths, unoptimized queries, memory issues
 
-Present the findings to the user.
-
-Ask: "May I write these findings to `docs/tech-debt-register.md`?"
-
-If yes, update the register (append new entries, do not overwrite existing ones). Verdict: **COMPLETE** — scan findings written to register.
-
-If no, stop here. Verdict: **BLOCKED** — user declined write.
+Update `docs/tech-debt-register.md` (append new entries, do not overwrite existing ones).
+Report the findings, the path, and the revert command (`git checkout -- docs/tech-debt-register.md`).
+Verdict: **COMPLETE** — scan findings written to register.
 
 ---
 
 ## Phase 2B: Add Mode
 
-Prompt for: description, category, affected files, estimated fix effort, impact if left unfixed.
+Take from the argument: description, category, affected files, estimated fix effort, impact
+if left unfixed. Fill category, files and effort from the codebase when omitted; a missing
+description is K2 — Verdict: **BLOCKED**, name what to pass.
 
-Present the new entry to the user.
-
-Ask: "May I append this entry to `docs/tech-debt-register.md`?"
-
-If yes, append the entry. Verdict: **COMPLETE** — entry added to register.
-
-If no, stop here. Verdict: **BLOCKED** — user declined write.
+Append the entry to `docs/tech-debt-register.md`. Report the entry, the path, and the revert
+command. Verdict: **COMPLETE** — entry added to register.
 
 ---
 
@@ -69,13 +62,9 @@ Score each item by: `(impact_if_unfixed × frequency_of_encounter) / fix_effort`
 
 Re-sort the register by priority score and recommend which items to include in the next sprint.
 
-Present the re-prioritized register to the user.
-
-Ask: "May I write the re-prioritized register back to `docs/tech-debt-register.md`?"
-
-If yes, write the updated file. Verdict: **COMPLETE** — register re-prioritized and saved.
-
-If no, stop here. Verdict: **BLOCKED** — user declined write.
+Write the re-prioritized register back to `docs/tech-debt-register.md`. Report the new order,
+the sprint recommendation, the path, and the revert command. Verdict: **COMPLETE** — register
+re-prioritized and saved.
 
 ---
 

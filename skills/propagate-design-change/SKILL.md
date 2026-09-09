@@ -7,7 +7,7 @@ description: "When a GDD is revised, scans all ADRs and the traceability index t
 
 When a GDD changes, architectural decisions written against it may no longer be
 valid. This skill finds every affected ADR, compares what the ADR assumed against
-what the GDD now says, and guides the user through resolution.
+what the GDD now says, and records the resolution for each.
 
 **Usage:** `$propagate-design-change design/gdd/combat-system.md`
 
@@ -120,7 +120,7 @@ Recommended action:
 
 ## 6. Present Impact Report
 
-Present the full impact report to the user before asking for any action. Format:
+Assemble the full impact report before resolving anything. Format:
 
 ```
 ## Design Change Impact Report
@@ -159,26 +159,26 @@ The technical-director reviews whether:
 
 Apply the verdict:
 - **APPROVE** → proceed to Phase 7 resolution workflow
-- **CONCERNS** → surface the specific ADRs or recommendations flagged; ask the user directly with options: `Revise the impact assessment` / `Accept with noted concerns` / `Discuss further`
+- **CONCERNS** → revise the assessment for each flagged ADR where the flag holds; otherwise accept and carry the concern into the report. Name each choice in the report.
 - **REJECT** → do not proceed to resolution; re-analyze the impact before continuing
 
 ---
 
 ## 7. Resolution Workflow
 
-For each ADR marked "Needs Review" or "Likely Superseded", ask the user what to do:
+Resolve each ADR marked "Needs Review" or "Likely Superseded" by its status. If you
+deviate, name the reason in the report.
 
-Ask for each ADR in turn:
-> "ADR-NNNN ([title]) — [status]. What would you like to do?"
-> Options:
-> - "Mark Superseded (I'll write a new ADR)" — updates ADR status line to `Superseded by: [pending]`
-> - "Update in place (minor revision)" — opens the ADR for editing; note what to revise
-> - "Keep as-is (the change doesn't actually affect this decision)"
-> - "Skip for now (revisit later)"
+- **Likely Superseded** → set the ADR's Status field to
+  `Superseded by ADR-[next number] (pending — see change-impact-[date]-[system].md)`.
+  The decision text stays untouched; the replacement ADR is written later with
+  `$architecture-decision`.
+- **Needs Review** → append a `Needs Review ([date]): [what to check]` line under the
+  Status field. Do not rewrite the decision — reopening a confirmed ADR is the user's
+  call (`../../rules/decision-lifecycle.md` § 4).
+- **Still Valid** → no edit.
 
-For ADRs marked **Superseded**:
-- Update the ADR's Status field: `Superseded by ADR-[next number] (pending — see change-impact-[date]-[system].md)`
-- Ask: "May I update the status in [ADR filename]?"
+Report every ADR touched with its revert command (`git checkout -- <path>`).
 
 ---
 
@@ -194,13 +194,14 @@ If `docs/architecture/architecture-traceability.md` exists:
 | [date] | [gdd] | [old requirement text] | [new requirement text] | ADR-NNNN | [Superseded/Updated/Valid] |
 ```
 
-Ask: "May I update the traceability index?"
+Write the rows. Report the path and the revert command.
 
 ---
 
 ## 9. Output Change Impact Document
 
-Ask: "May I write the change impact report to `docs/architecture/change-impact-[date]-[system-slug].md`?"
+Write the change impact report to `docs/architecture/change-impact-[date]-[system-slug].md`.
+Report the path and the revert command (`git checkout -- <path>`).
 
 The document contains:
 - The change summary from step 3
@@ -208,8 +209,7 @@ The document contains:
 - Resolution decisions made in step 7
 - List of ADRs that need to be written or updated
 
-If user approved: Verdict: **COMPLETE** — change impact report saved.
-If user declined: Verdict: **BLOCKED** — user declined write.
+Verdict: **COMPLETE** — change impact report saved.
 
 ---
 
@@ -227,8 +227,7 @@ Based on the resolution decisions, suggest:
 
 ## Collaborative Protocol
 
-1. **Read silently** — compute the full impact before presenting anything
-2. **Show the full report first** — let the user see the scope before asking for action
-3. **Ask per-ADR** — don't batch decisions; each affected ADR may need different treatment
-4. **Ask before writing** — always confirm before modifying any file
-5. **Non-destructive** — never delete ADR content; only add "Superseded by" notes
+1. **Read silently** — compute the full impact before resolving anything
+2. **Resolve per-ADR** — each affected ADR gets its own status-driven resolution (§ 7), named in the report
+3. **Write and report** — every file touched is listed with its revert command
+4. **Non-destructive** — never delete or rewrite ADR decision text; only add status and "Needs Review" notes

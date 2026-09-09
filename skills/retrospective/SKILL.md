@@ -19,17 +19,12 @@ Before loading any data, glob for an existing retrospective file:
   (also check `production/sprints/sprint-[N]-retrospective.md` as an alternate location)
 - For milestone retrospectives: `production/retrospectives/retro-[milestone-name]-*.md`
 
-If a matching file is found, present the user with:
+If a matching file is found, take [A] update unless `--fresh` was passed or the file covers a
+different period; then take [B] start fresh (archive the old one as `<name>.prev.md`). If
+you deviate, name the reason in the report.
 
-```
-An existing retrospective was found: [filename]
-
-[A] Update existing retrospective — load it and add/revise sections
-[B] Start fresh — generate a new retrospective, archiving the old one
-```
-
-Wait for user selection before continuing. If updating, read the existing file and
-carry its content forward into the generation phase, revising sections with new data.
+- [A] Update — read the existing file, carry its content forward, revise sections with new data.
+- [B] Start fresh — generate a new retrospective.
 
 ---
 
@@ -40,19 +35,9 @@ Read the sprint or milestone plan from the appropriate location:
 - Sprint plans: `production/sprints/`
 - Milestone definitions: `production/milestones/`
 
-**If the file does not exist or is empty**, output:
-
-> "No sprint data found for [sprint/milestone]. Run `$sprint-status` to generate
-> sprint data first, or provide the sprint details manually."
-
-Then ask the user directly to present two options:
-
-- **[A] Provide data manually** — ask the user to paste or describe the sprint
-  tasks, dates, and outcomes; use that as the source of truth for the retrospective.
-- **[B] Stop** — abort the skill. Verdict: **BLOCKED** — no sprint data available.
-
-If the user chooses [A], collect the data and continue to Phase 3 using what they provide.
-If the user chooses [B], stop here.
+**If the file does not exist or is empty**, that is K2. Verdict: **BLOCKED** — name the
+missing path and what would resume the run: `$sprint-status` to generate the sprint data, or
+the sprint tasks, dates and outcomes pasted into the invocation.
 
 Extract: planned tasks, estimated effort, owners, and goals.
 
@@ -182,13 +167,10 @@ the single most important thing to change going forward?]
 
 ## Phase 5: Save Retrospective
 
-Present the retrospective and top findings to the user (completion rate, velocity trend, top blocker, most important action item).
-
-Ask: "May I write this to `production/sprints/sprint-[N]-retrospective.md`?" (or the milestone path if applicable)
-
-If yes, write the file, creating the directory if needed. Verdict: **COMPLETE** — retrospective saved.
-
-If no, stop here. Verdict: **BLOCKED** — user declined write.
+Write the file to `production/sprints/sprint-[N]-retrospective.md` (or the milestone path),
+creating the directory if needed. Report the path, the revert command (`git checkout -- <path>`),
+and the top findings (completion rate, velocity trend, top blocker, most important action item).
+Verdict: **COMPLETE** — retrospective saved.
 
 ---
 

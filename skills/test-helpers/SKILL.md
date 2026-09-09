@@ -344,10 +344,10 @@ static func assert_damage_in_bounds(damage: float) -> void:
 
 ## 6. Write Output
 
-Present a summary of what will be created:
+Write the files, then report what was created:
 
 ```
-## Test Helpers to Create
+## Test Helpers Created
 
 Base helpers (engine: [engine]):
 - tests/helpers/game_assertions.[ext]
@@ -358,7 +358,8 @@ System helpers ([mode]):
 - tests/helpers/[system]_factory.[ext]  ← from [system] GDD
 ```
 
-Ask: "May I write these helper files to `tests/helpers/`?"
+Write them to `tests/helpers/`. Report each path and the revert command
+(`git checkout -- tests/helpers/` or `rm` for untracked files).
 
 **Never overwrite existing files.** If a file already exists, report:
 "Skipping `[path]` — already exists. Remove the file manually if you want it
@@ -382,7 +383,7 @@ After writing: Verdict: **COMPLETE** — helper files created.
   the code exists
 - **Helpers should reflect the GDD** — bounds and constants in helpers should
   trace to GDD Formulas sections, not invented values
-- **Ask before writing** — always confirm before creating files in `tests/`
+- **Write and report** — new files only; name each path and the revert command
 
 ## Next Steps
 

@@ -30,15 +30,13 @@ Define in 3-5 bullet points what the minimum viable prototype looks like:
 - What is the absolute minimum code needed to answer it?
 - What can be skipped (error handling, polish, architecture)?
 
-Present this plan to the user before building. Ask for confirmation if scope seems unclear.
+Record the plan; it becomes the report's Approach section. If the scope grows past 1-3 days, cut it back to the question.
 
 ---
 
 ## Phase 4: Implement
 
-Ask: "May I create the prototype directory at `prototypes/[concept-name]/` and begin implementation?"
-
-If yes, create the directory. Every file must begin with:
+Create `prototypes/[concept-name]/` and implement there. Every file must begin with:
 
 ```
 // PROTOTYPE - NOT FOR PRODUCTION
@@ -103,9 +101,8 @@ Draft the report:
 [Discoveries that affect other systems or future work]
 ```
 
-Ask: "May I write this report to `prototypes/[concept-name]/REPORT.md`?"
-
-If yes, write the file.
+Write the report to `prototypes/[concept-name]/REPORT.md`. Report the path and the revert
+command (`git checkout -- prototypes/[concept-name]/` or `rm -rf` if untracked).
 
 ---
 
@@ -126,7 +123,7 @@ The creative director evaluates the prototype result against the game's creative
 
 ## Phase 7: Summary and Next Steps
 
-Output a summary to the user: the core question, the result, the prototyper's initial recommendation, and the creative-director's final decision. Link to the full report at `prototypes/[concept-name]/REPORT.md`.
+Report: the core question, the result, the prototyper's initial recommendation, the creative-director's final decision, and the path `prototypes/[concept-name]/REPORT.md`.
 
 If **PROCEED**: run `$design-system` to begin the production GDD for this mechanic, or `$architecture-decision` to record key technical decisions before implementation.
 

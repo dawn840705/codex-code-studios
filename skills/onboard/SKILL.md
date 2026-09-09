@@ -75,11 +75,8 @@ Read recent changes (git log if available) to understand current momentum.
 
 ## Phase 4: Save Document
 
-Present the onboarding document to the user.
-
-Ask: "May I write this to `production/onboarding/onboard-[role]-[date].md`?"
-
-If yes, write the file, creating the directory if needed.
+Write the document to `production/onboarding/onboard-[role]-[date].md`, creating the directory
+if needed. Report the path and the revert command (`git checkout -- <path>`).
 
 ---
 

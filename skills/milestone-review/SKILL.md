@@ -114,19 +114,15 @@ Before generating the Go/No-Go recommendation, spawn `producer` as a Codex subag
 
 Pass: milestone name and target date, current completion percentage, blocked story count, velocity data from sprint reports (if available), list of cut candidates.
 
-Present the producer's assessment inline within the Go/No-Go section. The producer's verdict (ON TRACK / AT RISK / OFF TRACK) informs the overall recommendation — do not issue a GO against an OFF TRACK producer verdict without explicit user acknowledgement.
+Fold the producer's assessment into the Go/No-Go section. The producer's verdict (ON TRACK / AT RISK / OFF TRACK) informs the overall recommendation — an OFF TRACK verdict caps it at CONDITIONAL GO; name the conflict in the rationale.
 
 ---
 
 ## Phase 4: Save Review
 
-Present the review to the user.
-
-Ask: "May I write this to `production/milestones/[milestone-name]-review.md`?"
-
-If yes, write the file, creating the directory if needed. Verdict: **COMPLETE** — milestone review saved.
-
-If no, stop here. Verdict: **BLOCKED** — user declined write.
+Write the review to `production/milestones/[milestone-name]-review.md`, creating the directory
+if needed. Report the path, the revert command (`git checkout -- <path>`), and the Go/No-Go
+recommendation. Verdict: **COMPLETE** — milestone review saved.
 
 ---
 
