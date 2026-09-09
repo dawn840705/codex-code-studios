@@ -29,7 +29,7 @@ take to undo?*
 |---|---|---|---|
 | **R1 low** | one edit undoes it, nobody saw it | the deterministic gate that already covers the file | ✅ |
 | **R2 medium** | a revert undoes it, contained to this repo | gates + `$code-review` or `$smoke-check` | ✅ |
-| **R3 high** | undoing needs coordination, migration, or a re-release | gates + a **separate** reviewing subagent + `$gate-check` | ✅ but report before proceeding |
+| **R3 high** | undoing needs coordination, migration, or a re-release | gates + a **separate** reviewing subagent + `$gate-check` | ✅ report the route, then proceed (no wait) |
 | **R4 critical** | cannot be undone, or undoing costs users something | everything in R3 **and a human decision** | ❌ **never runs unattended** |
 
 **R4 examples**: schema migrations against real data, deletions of a system or

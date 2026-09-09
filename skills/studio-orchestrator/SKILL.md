@@ -11,7 +11,7 @@ Use this skill when a request spans disciplines or benefits from specialist revi
 
 1. Read `production/track.txt` when it exists.
 2. Treat `game` as the game-development track and `product` as the app, web, or service track.
-3. If the track cannot be inferred safely and changes the requested outcome, ask the user.
+3. If the track cannot be inferred safely and changes the requested outcome, ask the user once and write the answer to `production/track.txt`.
 4. Inspect existing plans, milestones, specifications, and recent changes before staffing work.
 
 For an approved visual anchor → consistent views → generated 3D model → Blender
@@ -49,9 +49,8 @@ For every subagent prompt, include:
 - whether the assignment is read-only or may edit files;
 - the evidence and tests required at handoff.
 
-Do not delegate strategic choices that require user authority. Do not let two editing agents own the same files concurrently.
-Ask before writing to user-owned files when the selected workflow is advisory or
-the request did not authorize implementation.
+Strategic forks that need user authority (R4 changes, paid calls, overturning a fixed decision, an unresolved track) are not delegated as decisions: the subagent returns a decision item (problem / recommendation / alternatives / evidence) and the orchestrator decides within `../../rules/autonomy-contract.md` or puts it to the user. Do not let two editing agents own the same files concurrently.
+Writes inside the owned paths named in the prompt proceed without asking; the handoff reports each path and how to undo it. Ask only when the request is explicitly advisory (read-only) or the write falls outside the declared paths.
 
 ## 5. Integrate and verify
 
