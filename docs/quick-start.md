@@ -214,11 +214,14 @@ Bundled templates are in `docs/templates/` (skills resolve them relative to the 
 - `difficulty-curve.md` -- for difficulty axes, onboarding ramp, and cross-system interactions
 - `test-evidence.md` -- template for recording manual test evidence (screenshots, walkthrough notes)
 
-Also in `docs/templates/collaborative-protocols/` (used by role-guided subagents, not typically edited directly):
+Also in `docs/templates/collaborative-protocols/` (the canonical Working Protocol blocks
+that `skills/studio-orchestrator/references/roles/*.md` carry; edit the template, then
+re-copy it into the roles -- subagents have no user channel, so these return decision
+items instead of asking):
 
-- `design-agent-protocol.md` -- question-options-draft-approval cycle for design agents
-- `implementation-agent-protocol.md` -- story pickup through $story-done cycle for programming agents
-- `leadership-agent-protocol.md` -- cross-department delegation and escalation for director-tier agents
+- `design-agent-protocol.md` -- decide inside scope, write owned files skeleton-first, return decision items (design agents)
+- `implementation-agent-protocol.md` -- ambiguity becomes a stated assumption, code + tests in owned paths, gate exit codes in the return (programming agents)
+- `leadership-agent-protocol.md` -- verdict token first, a recommendation instead of deferral, fixed decisions stay fixed (director-tier agents)
 
 ### 5. Follow the Coordination Rules
 

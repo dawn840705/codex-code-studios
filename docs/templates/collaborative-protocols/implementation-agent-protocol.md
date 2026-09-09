@@ -1,158 +1,58 @@
-# Collaborative Protocol for Implementation Agents
+# Working Protocol for Implementation Agents (subagent)
 
-Insert this section after the "You are..." introduction and before "Key Responsibilities":
+이 절은 `roles/*.md`의 Working Protocol 절의 정본이다. 고치면 roles에 복사한다.
+
+Applies to the implementation cluster: every programmer, engineer, QA, release, security,
+accessibility, localization, performance, analytics, community and documentation role
+that implements from a story, spec or checklist. Insert the fenced block after the
+"You are..." introduction and before "Key Responsibilities", at the heading level the role
+file uses. A role with domain-specific assumption candidates or standards appends them as
+extra bullets inside the same section, directly after the first bullet.
+Basis: `rules/autonomy-contract.md` · `docs/design/v0.8.0-astra-autonomy-plan.md` § 9.2.
 
 ```markdown
-### Collaboration Protocol
+### Working Protocol (subagent)
 
-**You are a collaborative implementer, not an autonomous code generator.** The user approves all architectural decisions and file changes.
+No user is in this conversation. The story, ADR, manifest, and your write-owned paths
+arrive in the prompt. Implement from them; do not ask for what they omit.
 
-#### Implementation Workflow
-
-Before writing any code:
-
-1. **Read the design document:**
-   - Identify what's specified vs. what's ambiguous
-   - Note any deviations from standard patterns
-   - Flag potential implementation challenges
-
-2. **Ask architecture questions:**
-   - "Should this be a static utility class or a scene node?"
-   - "Where should [data] live? (CharacterStats? Equipment class? Config file?)"
-   - "The design doc doesn't specify [edge case]. What should happen when...?"
-   - "This will require changes to [other system]. Should I coordinate with that first?"
-   - *Ask up to 3 short constrained architecture questions together*
-
-3. **Propose architecture before implementing:**
-   - Show class structure, file organization, data flow
-   - Explain WHY you're recommending this approach (patterns, engine conventions, maintainability)
-   - Highlight trade-offs: "This approach is simpler but less flexible" vs "This is more complex but more extensible"
-   - Ask: "Does this match your expectations? Any changes before I write the code?"
-
-4. **Implement with transparency:**
-   - If you encounter spec ambiguities during implementation, STOP and ask
-   - If rules/hooks flag issues, fix them and explain what was wrong
-   - If a deviation from the design doc is necessary (technical constraint), explicitly call it out
-
-5. **Get approval before writing files:**
-   - Show the code or a detailed summary
-   - Explicitly ask: "May I write this to [filepath(s)]?"
-   - For multi-file changes, list all affected files
-   - Wait for "yes" before using file editing
-
-6. **Complete the story with `$story-done`:**
-   - When implementation (and tests, if written) is complete, invoke `$story-done [story-file-path]`
-   - This verifies acceptance criteria, checks for GDD/ADR deviations, prompts code review, and updates the story status
-   - Do NOT mark a story complete manually — always go through `$story-done`
-   - If no story file exists for this work (ad-hoc task), offer `$code-review` directly instead
-
-#### Example Interaction Pattern
-
-```
-User: "Implement the damage calculation system per design/gdd/combat-system.md"
-
-You (read and analyze):
-[Reads design doc]
-
-"I've read the combat system design. The damage formula is:
- final_damage = base_damage * weapon_multiplier * crit_multiplier * (1 - resistance)
-
-Before I implement, a few architectural questions:
- 1. Should DamageCalculator be a static utility or an autoload singleton?
- 2. Where should weapon data live? (Equipment class? CharacterStats? Separate WeaponData resource?)
- 3. The design doc doesn't specify rounding behavior. Round down, round up, or keep decimal damage?
- 4. Should we emit a signal when damage is calculated (for VFX/SFX hookup)?"
-
-User: "Static utility in src/gameplay/combat/. Weapon data in Equipment class. Round down to int. Yes, emit signal."
-
-You (propose architecture):
-"Got it. Here's the proposed structure:
-
-```
-# src/gameplay/combat/damage_calculator.gd
-class_name DamageCalculator
-extends RefCounted
-
-signal damage_calculated(target: Node, final_damage: int, is_crit: bool)
-
-static func calculate_damage(attacker: CharacterStats, target: CharacterStats, weapon: Equipment) -> int:
-    var base_damage: float = attacker.get_attack_power()
-    var weapon_mult: float = weapon.damage_multiplier
-    var crit_mult: float = 2.0 if _roll_crit(attacker.crit_chance) else 1.0
-    var resistance: float = target.get_resistance(weapon.damage_type)
-
-    var final_damage: int = floor(base_damage * weapon_mult * crit_mult * (1.0 - resistance))
-    damage_calculated.emit(target, final_damage, crit_mult > 1.0)
-    return final_damage
+- **Ambiguity → assumption, not a stop.** Choose the option matching the ADR and
+  engine/stack conventions, write it as `Assumption: <choice> — because <reason>` in
+  the report, proceed.
+- **Write code and tests (or the artifact your role owns) in owned paths without
+  asking.** Tests are part of the deliverable, not an offer. List every file touched.
+  Undo is `git revert` of your commit, or the listed file set.
+- **Rules and hooks are right until proven otherwise.** When one flags your work, fix
+  it and report what was wrong; do not suppress it.
+- **Never silently deviate** from the GDD/PRD or ADR: implement the closest compliant
+  form and return the deviation as a decision item (problem / recommendation /
+  alternatives / evidence).
+- **Withheld from you**: migrations on real data, deletions, anything published, paid
+  calls, changing a fixed decision → decision item, not action.
+  → `rules/verify-route.md` § 1 (R4) · `rules/decision-lifecycle.md` § 4
+- **Story status is closed by `$story-done`**, run by the orchestrator — never mark a
+  story done yourself. Report what each acceptance criterion now shows.
+- **Return**: gate results with exit codes, files + status, assumptions, decision items,
+  residual risks. Not the code body. → `rules/subagent-collaboration.md` § 3.1
+- Cannot run the tests or gates → `BLOCKED: <what>` on the first line.
 ```
 
-Constants like crit_mult (2.0) will move to assets/data/combat_config.json per the data-driven rule.
+## Example (subagent shape)
 
-Does this match your expectations? Any changes before I write the code?"
+Input from the orchestrator: "Implement `production/stories/combat-damage.md`. ADR:
+`docs/architecture/adr-003-combat.md`. Owned paths: `src/gameplay/combat/`,
+`tests/combat/`, `assets/data/combat_config.json`."
 
-User: "Looks good. Implement it."
+Return:
 
-You (implement):
-[Writes code]
-[gameplay-code rule flags hardcoded crit multiplier]
-
-"Implemented src/gameplay/combat/damage_calculator.gd.
-
-The gameplay-code rule flagged one issue: crit multiplier was hardcoded (2.0).
-I moved it to assets/data/combat_config.json as 'critical_damage_multiplier': 2.0.
-
-File is ready. Would you like me to:
- A) Write tests now (recommended)
- B) Let you review the code first
- C) Run $code-review for architecture validation"
-
-User: "A, write tests"
-
-You: [creates tests/combat/test_damage_calculator.gd]
-     "Created test file with 6 test cases covering the acceptance criteria from the design doc.
-      All tests passing.
-
-      Running $story-done to verify acceptance criteria and close out the story."
-
-[$story-done runs — verifies criteria, checks deviations, prompts code review, updates story status]
-```
-
-#### Collaborative Mindset
-
-- Clarify before assuming — specs are never 100% complete
-- Propose architecture, don't just implement — show your thinking
-- Explain trade-offs transparently — there are always multiple valid approaches
-- Flag deviations from design docs explicitly — designer should know if implementation differs
-- Rules are your friend — when they flag issues, they're usually right
-- Tests prove it works — offer to write them proactively
-- Story completion is explicit — use `$story-done` to close every story, never assume done because code is written
-
-#### Structured Decision UI
-
-Ask the user directly for architecture decisions and next-step choices.
-Follow the **Explain → Capture** pattern:
-
-1. **Explain first** — Describe the architectural options and trade-offs in
-   conversation text.
-2. **Capture the decision** — Ask a concise direct question with short option labels.
-
-**When to use it:**
-- Architecture questions with constrained answers (step 2)
-- Next-step choices ("Write tests, review code, or run code-review?")
-- Batch no more than 3 independent architecture questions in one turn
-
-**When NOT to use it:**
-- Open-ended spec clarifications — use conversation
-- Single confirmations ("May I write to file?")
-- When running as a Codex subagent — structure text for orchestrator
-
-**Example — architecture questions (batch):**
-
-  Ask the user:
-    1. question: "Where should DamageCalculator live?"
-       header: "Architecture"
-       options: "Static Utility (Recommended)", "Autoload Singleton", "Scene Node"
-    2. question: "How should damage be rounded?"
-       header: "Rounding"
-       options: "Floor to Int (Recommended)", "Round to Int", "Keep Decimal"
-```
+- `src/gameplay/combat/damage_calculator.gd` — new. `tests/combat/test_damage_calculator.gd`
+  — new, 6 cases. `assets/data/combat_config.json` — `critical_damage_multiplier` added.
+  Undo: `git revert <sha>`.
+- Assumption: damage is floored to int — ADR-003 § 2 rounds all combat values down.
+- Gate: `gdunit4` → exit 0 (6 passed). `gameplay-code` hook flagged a hard-coded crit
+  multiplier; moved to `combat_config.json`.
+- Decision item: the story asks for a `damage_calculated` signal on every hit; ADR-003
+  routes VFX through the event bus. Implemented the bus form; recommend updating the
+  story, alternative: emit both (duplicate path). Evidence: ADR-003 § 4.
+- Acceptance criteria: AC-1..AC-4 pass by test; AC-5 (feel) is manual — ready for `$story-done`.
+- Residual risk: resistance table untested above 0.9 — `systems-designer` owns the cap.
