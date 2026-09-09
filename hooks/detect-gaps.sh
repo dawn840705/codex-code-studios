@@ -67,6 +67,21 @@ if [ "$SRC_FILES" -gt 0 ]; then
   FRESH_PROJECT=false
 fi
 
+# The domain detector's verdict rules out "fresh" too. production/track.txt or
+# a stack signal (package.json naming react, pubspec.yaml, go.mod, …) means a
+# stack was already chosen, even when nothing lives under a known source root
+# — a web app that keeps its code in pages/ and components/ counts 0 sources
+# and used to be told to run $start every session. Reuse the detector rather
+# than re-deriving its heuristics here; only `unknown` leaves this flag alone.
+if [ -f "$SCRIPT_DIR/detect-project-type.sh" ]; then
+  PROJECT_TYPE=$(bash "$SCRIPT_DIR/detect-project-type.sh" 2>/dev/null \
+                 | sed -n 's/^PROJECT_TYPE=//p' | head -1)
+  case "${PROJECT_TYPE%+ai}" in
+    ""|unknown) ;;
+    *) FRESH_PROJECT=false ;;
+  esac
+fi
+
 # A body of design docs also rules out "fresh", even when none of them is
 # named game-concept.md — projects that predate this template name it whatever
 # they like.
@@ -84,7 +99,7 @@ fi
 
 if [ "$FRESH_PROJECT" = true ]; then
   echo ""
-  echo "🚀 NEW PROJECT: No engine configured, no game concept, no source code."
+  echo "🚀 NEW PROJECT: No engine configured, no game concept, no source code, no production/track.txt."
   echo "   This looks like a fresh start! Run: \$start"
   echo ""
   echo "💡 To get a comprehensive project analysis, run: \$project-stage-detect"

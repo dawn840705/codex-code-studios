@@ -1,7 +1,8 @@
 #!/bin/bash
-# Codex PreToolUse hook: validates git push commands
-# Warns on pushes to protected branches
-# Exit 0 = allow, Exit 2 = block
+# Codex PreToolUse hook: warns on git push to a protected branch
+# Advisory only: emits a systemMessage and always exits 0. It never blocks.
+# Only commands that BEGIN with `git push` are inspected — a prefixed form
+# (`git add -A && git push`, `ENV=x git push`) passes without a verdict.
 #
 # Input schema (PreToolUse for Bash):
 # { "tool_name": "Bash", "tool_input": { "command": "git push origin main" } }
@@ -20,7 +21,7 @@ else
     COMMAND=$(echo "$INPUT" | grep -oE '"command"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/"command"[[:space:]]*:[[:space:]]*"//;s/"$//')
 fi
 
-# Only process git push commands
+# Only commands that begin with `git push`
 if ! echo "$COMMAND" | grep -qE '^git[[:space:]]+push'; then
     exit 0
 fi
@@ -46,9 +47,7 @@ if [ -n "$MATCHED_BRANCH" ]; then
     if command -v studio_emit_system_message >/dev/null 2>&1; then
         studio_emit_system_message "$MESSAGE"
     fi
-    # Allow the push but warn -- uncomment below to block instead:
-    # echo "BLOCKED: Run tests before pushing to $CURRENT_BRANCH" >&2
-    # exit 2
+    # Allow the push; the message above is the whole verdict.
 fi
 
 exit 0

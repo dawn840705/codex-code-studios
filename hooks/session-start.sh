@@ -104,7 +104,16 @@ echo "Pick a route BEFORE spawning: light = handle it yourself (0 agents) | stan
 echo "Savings come from FEWER CALLS, not a cheaper model. Splitting is the last resort — measured: 7 chunks 610K tok vs 134K single call, equal quality."
 echo "Tied between two routes? Take the lighter one. Full rule: ${SCRIPT_DIR}/../rules/route-hint.md"
 
+# --- Autonomy contract (default is proceed; applies to every project) ---
+echo ""
+echo "=== Autonomy Contract (always active) ==="
+echo "Default is proceed. Stop only for: R4/paid calls · unresolved track (ask once, write production/track.txt) · overturning a pinned decision"
+echo "  · files outside write ownership · facts only a person can observe · items the user asked to review."
+echo "Full rule: ${SCRIPT_DIR}/../rules/autonomy-contract.md"
+
 # --- Lesson Ledger (교육용 노하우 원장) ---
+# Announced only when it exists. Every project without one used to get a
+# "not initialized" reminder every session; $lesson-log creates it on demand.
 LESSON_DIR="Documents/Lessons"
 if [ -d "$LESSON_DIR" ]; then
     LESSON_COUNT=$(find "$LESSON_DIR" -name "LES-*.md" 2>/dev/null | wc -l)
@@ -112,10 +121,6 @@ if [ -d "$LESSON_DIR" ]; then
     echo ""
     echo "Lesson Ledger: $LESSON_COUNT lessons recorded$([ -n "$LATEST_LESSON" ] && echo ", latest: $(basename "$LATEST_LESSON" .md)")"
     echo "  (교육 자료 원칙: 함정 반복/설계 구멍/뒤집힌 가정/도구 함정/기획 패턴 발생 시 \$lesson-log 로 기록)"
-else
-    echo ""
-    echo "Lesson Ledger: not initialized — this studio treats every project as teaching material."
-    echo "  First lesson-worthy moment: run \$lesson-log to create Documents/Lessons/ (${SCRIPT_DIR}/../rules/lesson-capture.md)"
 fi
 
 echo "==================================="

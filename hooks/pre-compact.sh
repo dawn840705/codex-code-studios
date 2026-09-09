@@ -6,6 +6,34 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/hook-io.sh
 . "$SCRIPT_DIR/lib/hook-io.sh"
 
+if [ -f "$SCRIPT_DIR/lib/detect-layout.sh" ]; then
+    # shellcheck source=lib/detect-layout.sh
+    . "$SCRIPT_DIR/lib/detect-layout.sh"
+else
+    # Degraded fallback: the pre-v0.6.2 hardcoded web layout.
+    STUDIO_DESIGN_ROOTS="design/gdd"
+    studio_find_design_docs() { find design/gdd -type f -name '*.md' 2>/dev/null; }
+fi
+
+# Every list this hook injects is capped. A Unity project can have hundreds of
+# untracked files and a Documents/ tree full of TODO markers; the point of the
+# dump is the recovery pointer, not an inventory.
+MAX_LIST_LINES=30
+
+# print_capped <heading> <newline-separated list> — "  - item" lines, at most
+# MAX_LIST_LINES of them, then a count of what was left out.
+print_capped() {
+    local heading="$1" list="$2" total
+    [ -n "$list" ] || return 0
+    total=$(printf '%s\n' "$list" | grep -c .)
+    echo "$heading"
+    printf '%s\n' "$list" | grep . | head -n "$MAX_LIST_LINES" \
+        | while IFS= read -r item; do echo "  - $item"; done
+    if [ "$total" -gt "$MAX_LIST_LINES" ]; then
+        echo "  ... and $((total - MAX_LIST_LINES)) more"
+    fi
+}
+
 build_message() {
 
 echo "=== SESSION STATE BEFORE COMPACTION ==="
@@ -23,10 +51,6 @@ if [ -f "$STATE_FILE" ]; then
     else
         cat "$STATE_FILE"
     fi
-else
-    echo ""
-    echo "## No active session state file found"
-    echo "Consider maintaining production/session-state/active.md for better recovery."
 fi
 
 # --- Files modified this session (unstaged + staged + untracked) ---
@@ -40,39 +64,40 @@ CHANGED=$(git --no-optional-locks diff --name-only 2>/dev/null)
 STAGED=$(git --no-optional-locks diff --staged --name-only 2>/dev/null)
 UNTRACKED=$(git --no-optional-locks ls-files --others --exclude-standard 2>/dev/null)
 
-if [ -n "$CHANGED" ]; then
-    echo "Unstaged changes:"
-    echo "$CHANGED" | while read -r f; do echo "  - $f"; done
-fi
-if [ -n "$STAGED" ]; then
-    echo "Staged changes:"
-    echo "$STAGED" | while read -r f; do echo "  - $f"; done
-fi
-if [ -n "$UNTRACKED" ]; then
-    echo "New untracked files:"
-    echo "$UNTRACKED" | while read -r f; do echo "  - $f"; done
-fi
+print_capped "Unstaged changes:" "$CHANGED"
+print_capped "Staged changes:" "$STAGED"
+print_capped "New untracked files:" "$UNTRACKED"
 if [ -z "$CHANGED" ] && [ -z "$STAGED" ] && [ -z "$UNTRACKED" ]; then
     echo "  (no uncommitted changes)"
 fi
 
 # --- Work-in-progress design docs ---
+# Roots come from detect-layout.sh: design/gdd on the web layout, Documents/
+# and friends on Unity. This used to glob design/gdd/*.md only.
 echo ""
 echo "## Design Docs — Work In Progress"
 
-WIP_FOUND=false
-for f in design/gdd/*.md; do
-    [ -f "$f" ] || continue
-    INCOMPLETE=$(grep -n -E "TODO|WIP|PLACEHOLDER|\[TO BE|\[TBD\]" "$f" 2>/dev/null)
-    if [ -n "$INCOMPLETE" ]; then
-        WIP_FOUND=true
-        echo "  $f:"
-        echo "$INCOMPLETE" | while read -r line; do echo "    $line"; done
-    fi
-done
+DESIGN_ROOT_LIST=$(printf '%s' "$STUDIO_DESIGN_ROOTS" | tr '\n' ' ')
+WIP=""
+while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    HITS=$(grep -nHE "TODO|WIP|PLACEHOLDER|\[TO BE|\[TBD\]" "$f" 2>/dev/null)
+    [ -n "$HITS" ] || continue
+    WIP="$WIP$HITS
+"
+done <<EOF
+$(studio_find_design_docs)
+EOF
 
-if [ "$WIP_FOUND" = false ]; then
-    echo "  (no WIP markers found in design docs)"
+if [ -n "$WIP" ]; then
+    WIP_TOTAL=$(printf '%s' "$WIP" | grep -c .)
+    printf '%s' "$WIP" | grep . | head -n "$MAX_LIST_LINES" \
+        | while IFS= read -r line; do echo "  $line"; done
+    if [ "$WIP_TOTAL" -gt "$MAX_LIST_LINES" ]; then
+        echo "  ... and $((WIP_TOTAL - MAX_LIST_LINES)) more"
+    fi
+else
+    echo "  (no WIP markers found in: $DESIGN_ROOT_LIST)"
 fi
 
 # --- Log compaction event ---
@@ -83,8 +108,10 @@ echo "Context compaction occurred at $(date)." \
 
 echo ""
 echo "## Recovery Instructions"
-echo "After compaction, read $STATE_FILE to recover full working context."
-echo "Then read any files listed above that are being actively worked on."
+if [ -f "$STATE_FILE" ]; then
+    echo "After compaction, read $STATE_FILE to recover full working context."
+fi
+echo "Read any files listed above that are being actively worked on."
 echo "=== END SESSION STATE ==="
 }
 

@@ -31,6 +31,10 @@ ANIM_STR_PAT='(\b[A-Za-z0-9_]*[Aa]nim[A-Za-z0-9_]*|GetComponent<Animator>\(\))\.
 PATHS=$(studio_extract_changed_paths "$INPUT")
 WARNINGS=""
 
+# Findings per file are capped: the advice is one line, the evidence needs
+# only enough to locate it.
+MAX_FINDINGS=5
+
 while IFS= read -r FILE_PATH; do
     case "$FILE_PATH" in
         *.cs) ;;
@@ -45,9 +49,15 @@ while IFS= read -r FILE_PATH; do
     fi
 
     if [ -n "$FINDINGS" ]; then
+        TOTAL=$(printf '%s\n' "$FINDINGS" | grep -c .)
+        SHOWN=$(printf '%s\n' "$FINDINGS" | head -n "$MAX_FINDINGS")
+        if [ "$TOTAL" -gt "$MAX_FINDINGS" ]; then
+            SHOWN="$SHOWN
+... and $((TOTAL - MAX_FINDINGS)) more"
+        fi
         WARNINGS="$WARNINGS
 Unity Animator string access in $FILE_PATH:
-$FINDINGS
+$SHOWN
 Cache parameters with Animator.StringToHash and pass the integer hash."
     fi
 done <<< "$PATHS"

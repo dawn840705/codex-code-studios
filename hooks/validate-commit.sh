@@ -43,7 +43,10 @@ else
     COMMAND=$(echo "$INPUT" | grep -oE '"command"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/"command"[[:space:]]*:[[:space:]]*"//;s/"$//')
 fi
 
-# Only process git commit commands
+# Only commands that BEGIN with `git commit`. A prefixed form (`git add -A &&
+# git commit`, `ENV=x git commit`, `git -C dir commit`) passes without a
+# verdict. Widening this anchor is a separate decision: it would switch the
+# JSON block on for every such commit at once.
 if ! echo "$COMMAND" | grep -qE '^git[[:space:]]+commit'; then
     exit 0
 fi
@@ -178,10 +181,20 @@ summarize_hits() {
     fi
 }
 
-if [ "$CODE_COUNT" -gt 0 ]; then
+# Hardcoded gameplay values are a game-track concern (balance belongs in data
+# files). Product code carries `timeout duration = 300` or `rate = 100`
+# legitimately and got this warning on every commit, so the scan runs only
+# when production/track.txt says `game`. No file, or any other value, skips it.
+# The TODO-owner-tag warning that used to sit beside it is gone: a style
+# opinion, never a verdict.
+TRACK=""
+if [ -f "production/track.txt" ]; then
+    TRACK=$(tr -d '[:space:]' < production/track.txt 2>/dev/null)
+fi
+
+if [ "$CODE_COUNT" -gt 0 ] && [ "$TRACK" = "game" ]; then
     SCANNED=0
     HARDCODED=""
-    TODOS=""
 
     while IFS= read -r file; do
         [ -n "$file" ] || continue
@@ -190,23 +203,15 @@ if [ "$CODE_COUNT" -gt 0 ]; then
             break
         fi
 
-        # Hardcoded gameplay values -- data-driven design advisory.
         # -q keeps the matches out of stdout; the old version leaked every
         # matching line into the hook's output.
         if grep -qE '(damage|health|speed|rate|chance|cost|duration)[[:space:]]*[:=][[:space:]]*[0-9]+' "$file" 2>/dev/null; then
             HARDCODED="$HARDCODED$file
 "
         fi
-
-        # TODO/FIXME without an owner tag -- TODO(name) is the accepted form.
-        if grep -qE '(TODO|FIXME|HACK)[^(]' "$file" 2>/dev/null; then
-            TODOS="$TODOS$file
-"
-        fi
     done <<< "$CODE_FILES"
 
     summarize_hits "CODE: may contain hardcoded gameplay values — use data files" "$HARDCODED"
-    summarize_hits "STYLE: TODO/FIXME without owner tag — use TODO(name) format" "$TODOS"
 
     if [ "$CODE_COUNT" -gt "$MAX_SCAN" ]; then
         WARNINGS="$WARNINGS\nNOTE: scanned the first $MAX_SCAN of $CODE_COUNT staged source files (hook time budget)."

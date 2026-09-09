@@ -26,6 +26,10 @@ LIB = os.path.join(HOOKS, "lib", "detect-layout.sh")
 DETECT_GAPS = os.path.join(HOOKS, "detect-gaps.sh")
 VALIDATE_COMMIT = os.path.join(HOOKS, "validate-commit.sh")
 VALIDATE_ASSETS = os.path.join(HOOKS, "validate-assets.sh")
+PRE_COMPACT = os.path.join(HOOKS, "pre-compact.sh")
+SESSION_START = os.path.join(HOOKS, "session-start.sh")
+SKILL_CHANGE = os.path.join(HOOKS, "validate-skill-change.sh")
+ANIMATOR_LINT = os.path.join(HOOKS, "unity-animator-string-lint.sh")
 
 COMMIT_EVENT = json.dumps(
     {"tool_name": "Bash", "tool_input": {"command": 'git commit -m "test"'}}
@@ -377,6 +381,21 @@ def test_empty_production_directory_does_not_count(empty):
     assert "NEW PROJECT" in run_hook(DETECT_GAPS, empty).stdout
 
 
+def test_stack_signal_without_a_source_root_is_not_new(empty):
+    """A web app that keeps its code in pages/ counts 0 sources under the known
+    roots and was told to run $start every session. detect-project-type.sh
+    still reads react out of package.json; its verdict, not the source count,
+    decides whether the project is fresh."""
+    write(empty, "package.json", '{"dependencies": {"react": "18"}}\n')
+    write(empty, "pages/index.tsx", "export default () => null;\n")
+    assert "NEW PROJECT" not in run_hook(DETECT_GAPS, empty).stdout
+
+
+def test_track_file_alone_rules_out_fresh(empty):
+    write(empty, "production/track.txt", "product\n")
+    assert "NEW PROJECT" not in run_hook(DETECT_GAPS, empty).stdout
+
+
 def test_unity_gap_checks_actually_run(unity):
     """Checks 1-5 were unreachable behind the fresh-project early exit."""
     shutil.rmtree(unity / "Documents")
@@ -514,8 +533,13 @@ def test_detect_gaps_survives_a_missing_helper(unity, tmp_path):
 # validate-commit.sh
 # --------------------------------------------------------------------------
 
+# The hardcoded-value scan is gated on production/track.txt == game: balance
+# values belong in data files on a game, while `duration = 300` is ordinary
+# product code. Fixtures that expect the warning declare the track.
+
 def test_commit_hook_fires_on_unity_sources(unity):
     git_init(unity)
+    write(unity, "production/track.txt", "game\n")
     write(unity, "Assets/02.Scripts/PlayerController.cs",
           "public class PlayerController {\n    // TODO: refactor\n    int health = 100;\n}\n")
     git_add_all(unity)
@@ -523,12 +547,12 @@ def test_commit_hook_fires_on_unity_sources(unity):
     result = run_hook(VALIDATE_COMMIT, unity, stdin=COMMIT_EVENT)
     assert result.returncode == 0
     assert "hardcoded gameplay values" in hook_text(result)
-    assert "TODO/FIXME without owner tag" in hook_text(result)
     assert "PlayerController.cs" in hook_text(result)
 
 
 def test_commit_hook_still_fires_on_web_sources(web):
     git_init(web)
+    write(web, "production/track.txt", "game\n")
     write(web, "src/gameplay/combat.ts", "// FIXME broken\nexport const damage = 12;\n")
     git_add_all(web)
 
@@ -537,12 +561,30 @@ def test_commit_hook_still_fires_on_web_sources(web):
     assert "src/gameplay/combat.ts" in hook_text(result)
 
 
-def test_commit_hook_matches_owned_todos_as_clean(unity):
+@pytest.mark.parametrize("track", ["product", None], ids=["product", "no-track-file"])
+def test_commit_hook_skips_the_hardcoded_scan_off_the_game_track(web, track):
+    """`duration = 300` on the product track is a timeout, not a balance value."""
+    git_init(web)
+    if track:
+        write(web, "production/track.txt", track + "\n")
+    write(web, "src/api/client.ts", "export const duration = 300;\n")
+    git_add_all(web)
+
+    result = run_hook(VALIDATE_COMMIT, web, stdin=COMMIT_EVENT)
+    assert result.returncode == 0
+    assert "hardcoded gameplay values" not in hook_text(result)
+
+
+def test_commit_hook_no_longer_nags_about_todo_owner_tags(unity):
+    """The TODO(name) style opinion is gone on every track."""
     git_init(unity)
-    write(unity, "Assets/02.Scripts/Clean.cs",
-          "public class Clean {\n    // TODO(dawn): later\n}\n")
+    write(unity, "production/track.txt", "game\n")
+    write(unity, "Assets/02.Scripts/Todo.cs",
+          "public class Todo {\n    // TODO: later\n}\n")
     git_add_all(unity)
-    assert "TODO/FIXME" not in run_hook(VALIDATE_COMMIT, unity, stdin=COMMIT_EVENT).stderr
+    result = run_hook(VALIDATE_COMMIT, unity, stdin=COMMIT_EVENT)
+    assert result.returncode == 0
+    assert "TODO/FIXME" not in hook_text(result)
 
 
 def test_commit_hook_blocks_invalid_json_under_unity_assets(unity):
@@ -600,6 +642,7 @@ def test_commit_hook_ignores_non_commit_commands(unity):
 
 def test_commit_hook_produces_valid_codex_json(unity):
     git_init(unity)
+    write(unity, "production/track.txt", "game\n")
     write(unity, "Assets/02.Scripts/Noisy.cs", "// TODO: x\nint damage = 5;\n")
     git_add_all(unity)
     result = run_hook(VALIDATE_COMMIT, unity, stdin=COMMIT_EVENT)
@@ -740,6 +783,17 @@ def test_animator_lint_still_flags_string_access(unity):
     assert "Unity Animator string access" in hook_text(result)
 
 
+def test_animator_lint_caps_findings_per_file(unity):
+    """Five lines locate the problem; the rest is a count."""
+    calls = "".join('void F%d() { animator.SetBool("P%d", true); }\n' % (i, i)
+                    for i in range(8))
+    write(unity, "Assets/02.Scripts/Anim.cs", calls)
+    text = hook_text(run_hook(ANIMATOR_LINT, unity,
+                              stdin=write_event("Assets/02.Scripts/Anim.cs")))
+    assert text.count("animator.SetBool") == 5
+    assert "... and 3 more" in text
+
+
 # 이 훅이 강제하는 규칙은 「Animator 파라미터는 해시로 접근」이다. 그런데 패턴이
 # 수신자 이름을 `animator` 로 못박아 둬서, 실제 프로젝트가 쓰는 이름 5변형 중
 # 1개만 잡았다 — 훅이 조용했던 건 잘 잡아서가 아니라 잡을 게 없어서였다.
@@ -795,6 +849,109 @@ def test_animator_lint_does_not_flag_non_animator_calls(unity, name, call):
 
 
 # --------------------------------------------------------------------------
+# pre-compact.sh — capped, layout-aware, no nag for a missing state file
+# --------------------------------------------------------------------------
+
+def test_pre_compact_caps_the_file_list(web):
+    git_init(web)
+    for i in range(40):
+        write(web, f"scratch/n{i}.txt", "x\n")
+    text = hook_text(run_hook(PRE_COMPACT, web, stdin="{}"))
+    listed = [ln for ln in text.splitlines() if ln.startswith("  - ")]
+    assert len(listed) == 30
+    # 8 fixture files + 40 scratch files, 30 shown.
+    assert "... and 18 more" in text
+
+
+def test_pre_compact_scans_wip_markers_across_design_roots(unity):
+    """The WIP scan globbed design/gdd/*.md; Unity keeps its docs in Documents/."""
+    git_init(unity)
+    write(unity, "Documents/Specs/Cover.md", "# Cover\n\nTODO: decide the peek rule\n")
+    text = hook_text(run_hook(PRE_COMPACT, unity, stdin="{}"))
+    assert "Documents/Specs/Cover.md:3:TODO" in text
+
+
+def test_pre_compact_caps_wip_rows(web):
+    git_init(web)
+    write(web, "design/gdd/big.md", "".join(f"TODO {i}\n" for i in range(45)))
+    text = hook_text(run_hook(PRE_COMPACT, web, stdin="{}"))
+    assert text.count("design/gdd/big.md:") == 30
+    assert "... and 15 more" in text
+
+
+def test_pre_compact_does_not_nag_about_a_missing_state_file(web):
+    git_init(web)
+    text = hook_text(run_hook(PRE_COMPACT, web, stdin="{}"))
+    assert "No active session state" not in text
+    assert "Consider maintaining" not in text
+    assert "=== END SESSION STATE ===" in text
+
+
+# --------------------------------------------------------------------------
+# validate-skill-change.sh — once per skill per session
+# --------------------------------------------------------------------------
+
+def skill_event(session_id, path="skills/foo/SKILL.md"):
+    event = {"tool_name": "Write", "tool_input": {"file_path": path}}
+    if session_id:
+        event["session_id"] = session_id
+    return json.dumps(event)
+
+
+@pytest.fixture
+def scratch_env(tmp_path):
+    """Isolates the marker files the hook keeps under $TMPDIR."""
+    scratch = tmp_path / "scratch"
+    os.makedirs(scratch)
+    return {"TMPDIR": str(scratch)}
+
+
+def test_skill_notice_fires_once_per_session(empty, scratch_env):
+    first = run_hook(SKILL_CHANGE, empty, stdin=skill_event("s1"), env=scratch_env)
+    assert "skill modified: foo" in hook_text(first)
+    assert "$skill-test static" in hook_text(first)
+    second = run_hook(SKILL_CHANGE, empty, stdin=skill_event("s1"), env=scratch_env)
+    assert second.returncode == 0
+    assert second.stdout == ""
+
+
+def test_skill_notice_fires_again_for_another_skill_or_session(empty, scratch_env):
+    run_hook(SKILL_CHANGE, empty, stdin=skill_event("s1"), env=scratch_env)
+    other = run_hook(SKILL_CHANGE, empty,
+                     stdin=skill_event("s1", "skills/bar/SKILL.md"), env=scratch_env)
+    assert "skill modified: bar" in hook_text(other)
+    assert "foo" not in hook_text(other)
+    new_session = run_hook(SKILL_CHANGE, empty, stdin=skill_event("s2"), env=scratch_env)
+    assert "skill modified: foo" in hook_text(new_session)
+
+
+def test_skill_notice_without_a_session_id_fires_every_time(empty, scratch_env):
+    for _ in range(2):
+        result = run_hook(SKILL_CHANGE, empty, stdin=skill_event(None), env=scratch_env)
+        assert "skill modified: foo" in hook_text(result)
+
+
+# --------------------------------------------------------------------------
+# session-start.sh — rule summaries, no ledger nag
+# --------------------------------------------------------------------------
+
+def test_session_start_prints_the_autonomy_contract(empty):
+    out = run_hook(SESSION_START, empty, stdin="{}").stdout
+    assert "=== Autonomy Contract (always active) ===" in out
+    assert "Default is proceed." in out
+    assert "rules/autonomy-contract.md" in out
+
+
+def test_session_start_is_silent_about_a_missing_lesson_ledger(empty):
+    out = run_hook(SESSION_START, empty, stdin="{}").stdout
+    assert "Lesson Ledger" not in out
+    assert "not initialized" not in out
+    write(empty, "Documents/Lessons/LES-001.md", "# Lesson\n")
+    out = run_hook(SESSION_START, empty, stdin="{}").stdout
+    assert "Lesson Ledger: 1 lessons recorded" in out
+
+
+# --------------------------------------------------------------------------
 # plugin manifest
 # --------------------------------------------------------------------------
 
@@ -817,7 +974,7 @@ def test_apply_patch_paths_are_validated(web):
 
 
 def test_every_layout_aware_hook_sources_the_helper():
-    for script in (DETECT_GAPS, VALIDATE_COMMIT, VALIDATE_ASSETS):
+    for script in (DETECT_GAPS, VALIDATE_COMMIT, VALIDATE_ASSETS, PRE_COMPACT):
         with open(script, encoding="utf-8") as fh:
             body = fh.read()
         assert "lib/detect-layout.sh" in body, script

@@ -23,6 +23,23 @@ studio_emit_additional_context() {
     printf '{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"%s"}}\n' "$studio__message"
 }
 
+# studio_extract_session_id <input-json> — the session id Codex puts on every
+# hook payload, or nothing when the payload has none.
+studio_extract_session_id() {
+    if command -v jq >/dev/null 2>&1; then
+        printf '%s' "$1" | jq -r '.session_id // empty' 2>/dev/null
+    elif command -v python3 >/dev/null 2>&1; then
+        printf '%s' "$1" | python3 -c \
+            'import json,sys; print(json.load(sys.stdin).get("session_id", "") or "")' \
+            2>/dev/null
+    else
+        printf '%s' "$1" \
+            | grep -oE '"session_id"[[:space:]]*:[[:space:]]*"[^"]*"' \
+            | head -1 \
+            | sed -E 's/.*"session_id"[[:space:]]*:[[:space:]]*"([^"]*)".*/\1/'
+    fi
+}
+
 studio_extract_changed_paths() {
     studio__input=$1
     studio__file=""

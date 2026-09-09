@@ -34,6 +34,7 @@
 # EXPORTED FUNCTIONS
 #   studio_find_sources [max]      print source file paths (optionally capped)
 #   studio_count_sources           print the source file count
+#   studio_find_design_docs        print design .md paths across design roots
 #   studio_count_design_docs       print the design .md count across design roots
 #   studio_design_doc_exists <n>   exit 0 if <n>.md or <n>-system.md exists
 #   studio_find_subdir <name...>   print source subdirs matching any given name
@@ -391,18 +392,21 @@ studio_count_sources() {
     studio_find_sources | wc -l | tr -d ' '
 }
 
-studio_count_design_docs() {
-    studio__cdd_total=0
-    while IFS= read -r studio__cdd_root; do
-        [ -n "$studio__cdd_root" ] || continue
-        [ -d "$studio__cdd_root" ] || continue
-        studio__cdd_n=$(find "$studio__cdd_root" \( "${studio__PRUNE[@]}" \) -prune -o \
-                             -type f -name '*.md' -print 2>/dev/null | wc -l | tr -d ' ')
-        studio__cdd_total=$((studio__cdd_total + studio__cdd_n))
+# studio_find_design_docs — every .md under every existing design root, pruned
+# like the source walk. pre-compact.sh scans these for WIP markers.
+studio_find_design_docs() {
+    while IFS= read -r studio__fdd_root; do
+        [ -n "$studio__fdd_root" ] || continue
+        [ -d "$studio__fdd_root" ] || continue
+        find "$studio__fdd_root" \( "${studio__PRUNE[@]}" \) -prune -o \
+             -type f -name '*.md' -print 2>/dev/null
     done <<EOF
 $STUDIO_DESIGN_ROOTS
 EOF
-    printf '%s' "$studio__cdd_total"
+}
+
+studio_count_design_docs() {
+    studio_find_design_docs | wc -l | tr -d ' '
 }
 
 # studio_design_doc_exists <basename-without-extension>

@@ -5,20 +5,20 @@ plugin root after the user completes the hook trust review:
 
 | Hook | Event | Trigger | Action |
 | ---- | ----- | ------- | ------ |
-| `validate-commit.sh` | PreToolUse (`exec_command`/`Bash`) | `git commit` commands | Validates design doc sections, JSON data files, hardcoded values, TODO format |
-| `validate-push.sh` | PreToolUse (`exec_command`/`Bash`) | `git push` commands | Warns on pushes to protected branches (develop/main) |
+| `validate-commit.sh` | PreToolUse (`exec_command`/`Bash`) | Commands that **begin with** `git commit` (a prefixed form — `git add -A && git commit`, `ENV=x git commit`, `git -C dir commit` — is not inspected) | Validates design doc sections and JSON data files (invalid JSON blocks); warns on hardcoded gameplay values only when `production/track.txt` is `game` |
+| `validate-push.sh` | PreToolUse (`exec_command`/`Bash`) | Commands that **begin with** `git push` (same prefix rule as above) | Warns on pushes to protected branches (develop/main/master); never blocks |
 | `validate-assets.sh` | PostToolUse (`apply_patch`/edit aliases) | Asset file changes | Extracts every changed path, then checks naming conventions and JSON validity |
 | `unity-meta-check.sh` | PostToolUse (`apply_patch`/edit aliases) | Unity asset writes | Warns when a Unity asset has no paired `.meta` |
-| `unity-animator-string-lint.sh` | PostToolUse (`apply_patch`/edit aliases) | `.cs` writes | Warns on `Animator.SetBool("literal")` instead of a cached `StringToHash` |
-| `session-start.sh` | SessionStart | Session begins | Loads sprint context, milestone, git activity; detects and previews active session state file for recovery |
-| `detect-gaps.sh` | SessionStart | Session begins | Detects fresh projects (suggests $start) and missing documentation when code/prototypes exist, suggests $reverse-document or $project-stage-detect |
+| `unity-animator-string-lint.sh` | PostToolUse (`apply_patch`/edit aliases) | `.cs` writes | Warns on `Animator.SetBool("literal")` instead of a cached `StringToHash` (first 5 findings per file) |
+| `session-start.sh` | SessionStart | Session begins | Loads sprint context, milestone, git activity; detects and previews active session state file for recovery; prints the always-active rule summaries (self-loop, route hint, autonomy contract) |
+| `detect-gaps.sh` | SessionStart | Session begins | Detects fresh projects (suggests $start — only when `detect-project-type.sh` also says `unknown`) and missing documentation when code/prototypes exist, suggests $reverse-document or $project-stage-detect |
 | `detect-project-type.sh` | SessionStart | Session begins | Prints `PROJECT_TYPE=<game\|web\|mobile\|service\|unknown>` so the orchestrator activates the right agent pack |
-| `pre-compact.sh` | PreCompact | Context compression | Dumps session state (active.md, modified files, WIP design docs) into conversation before compaction so it survives summarization |
+| `pre-compact.sh` | PreCompact | Context compression | Dumps session state (active.md, modified files, WIP markers across the detected design roots; each list capped at 30 lines) into conversation before compaction so it survives summarization |
 | `post-compact.sh` | PostCompact | After compaction | Returns JSON context instructing Codex to restore `active.md` |
 | `session-stop.sh` | SessionEnd | Actual session shutdown | Summarizes accomplishments and updates session log |
 | `log-agent.sh` | SubagentStart | Agent spawned | Audit trail start — logs subagent invocation with timestamp |
 | `log-agent-stop.sh` | SubagentStop | Agent stops | Audit trail stop — completes subagent record |
-| `validate-skill-change.sh` | PostToolUse (`apply_patch`/edit aliases) | `skills/*/SKILL.md` changes | Returns JSON context advising `$skill-test` and Codex skill validation |
+| `validate-skill-change.sh` | PostToolUse (`apply_patch`/edit aliases) | `skills/*/SKILL.md` changes | Returns JSON context advising `$skill-test` and Codex skill validation — once per skill per session (keyed by the payload's `session_id`) |
 
 The legacy `notify.sh` remains in the repository for Claude compatibility but is
 not registered because Codex has no `Notification` hook event.
@@ -75,7 +75,7 @@ would reject `PlayerController.cs`, which is the *correct* Unity name.
 Helper functions: `studio_find_sources`, `studio_count_sources`,
 `studio_count_design_docs`, `studio_design_doc_exists`, `studio_find_subdir`,
 `studio_is_engine_project`, `studio_path_has_ext`, `studio_asset_root_regex`,
-`studio_naming_violation`. Generated directories (`Library/`, `Temp/`,
+`studio_naming_violation`, `studio_find_design_docs`. Generated directories (`Library/`, `Temp/`,
 `node_modules/`, `Intermediate/`, …) are pruned from every walk — Unity's
 `Library/` alone would blow the SessionStart timeout.
 
