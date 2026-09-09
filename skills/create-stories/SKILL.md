@@ -10,8 +10,9 @@ description: "Break a single epic into implementable story files. Reads the epic
 > - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
 >   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
 >   the stack pinned in `.codex/studio/technical-preferences.md`. The epic's source document is its PRD (`product/prd/prd-<feature>.md`). TR-IDs come from the PRD's requirements table.
-> - **Unresolved** — ask which track this is before doing anything. A greenfield project
->   has no signal either way; do not infer one from the repository contents.
+> - **Unresolved** — ask once which track this is, write the answer to `production/track.txt`,
+>   then continue. A greenfield project has no signal either way; do not infer one from the
+>   repository contents.
 
 # Create Stories
 
@@ -34,14 +35,15 @@ then Core, and so on — matching the dependency order.
 
 Extract `--review [full|lean|solo]` if present and store as the review mode
 override for this run. If not provided, read `production/review-mode.txt`
-(default `full` if missing). This resolved mode applies to all gate spawns
+(default `lean` if missing). This resolved mode applies to all gate spawns
 in this skill — apply the check pattern from `../../docs/director-gates.md`
 before every gate invocation.
 
 - `$create-stories [epic-slug]` — e.g. `$create-stories combat`
 - `$create-stories production/epics/combat/EPIC.md` — full path also accepted
-- No argument — ask: "Which epic would you like to break into stories?"
-  Glob `production/epics/*/EPIC.md` and list available epics with their status.
+- No argument — glob `production/epics/*/EPIC.md`. If exactly one epic has no
+  stories yet, take it and name it in the report. Otherwise ask which epic (K2),
+  listing the epics with their status.
 
 ---
 
@@ -113,7 +115,7 @@ For each story, determine:
 - `lean` → skip (not a PHASE-GATE). Note: "QL-STORY-READY skipped — Lean mode." Proceed to Step 5 (present stories for review).
 - `full` → spawn as normal.
 
-After decomposing all stories (Step 4 complete) but before presenting them for write approval, spawn `qa-lead` as a Codex subagent using gate **QL-STORY-READY** (`../../docs/director-gates.md`).
+After decomposing all stories (Step 4 complete) but before presenting them, spawn `qa-lead` as a Codex subagent using gate **QL-STORY-READY** (`../../docs/director-gates.md`).
 
 Pass: the full story list with acceptance criteria, story types, and TR-IDs; the epic's GDD acceptance criteria for reference.
 
@@ -143,7 +145,7 @@ These test case specs are embedded directly into each story's `## QA Test Cases`
 
 ## 5. Present Stories for Review
 
-Before writing any files, present the full story list:
+Present the full story list, then write (Step 6):
 
 ```
 ## Stories for Epic: [name]
@@ -163,9 +165,8 @@ Story 003: [title] — Visual/Feel — ADR-NNNN
 [N stories total: N Logic, N Integration, N Visual/Feel, N UI, N Config/Data]
 ```
 
-Ask the user directly:
-- Prompt: "May I write these [N] stories to `production/epics/[epic-slug]/`?"
-- Options: `[A] Yes — write all [N] stories` / `[B] Not yet — I want to review or adjust first`
+Write all [N] stories to `production/epics/[epic-slug]/` and report the paths and
+the revert command (`git checkout -- production/epics/[epic-slug]/`). No question.
 
 ---
 
@@ -286,19 +287,11 @@ Replace the "Stories: Not yet created" line with a populated table:
 
 ## 7. After Writing
 
-Ask the user directly to close with context-aware next steps:
+Close with one recommended next skill — no question:
 
-Check:
-- Are there other epics in `production/epics/` without stories yet? List them.
-- Is this the last epic? If so, include `$sprint-plan` as an option.
-
-Widget:
-- Prompt: "[N] stories written to `production/epics/[epic-slug]/`. What next?"
-- Options (include all that apply):
-  - `[A] Start implementing — run $story-readiness [first-story-path]` (Recommended)
-  - `[B] Create stories for [next-epic-slug] — run $create-stories [slug]` (only if other epics have no stories yet)
-  - `[C] Plan the sprint — run $sprint-plan` (only if all epics have stories)
-  - `[D] Stop here for this session`
+- Other epics in `production/epics/` still without stories → recommend `$create-stories [next-epic-slug]` (list them).
+- All epics have stories → recommend `$sprint-plan new`.
+- Otherwise → recommend `$story-readiness [first-story-path]`.
 
 Note in output: "Work through stories in order — each story's `Depends on:` field tells you what must be DONE before you can start it."
 
@@ -307,13 +300,13 @@ Note in output: "Work through stories in order — each story's `Depends on:` fi
 ## Collaborative Protocol
 
 1. **Read before presenting** — load all inputs silently before showing the story list
-2. **Ask once** — present all stories for the epic in one summary, not one at a time
+2. **Present once** — all stories for the epic in one summary, not one at a time
 3. **Warn on blocked stories** — flag any story with a Proposed ADR before writing
-4. **Ask before writing** — get approval for the full story set before writing files
+4. **Write and report** — the story files are R-grade; report the paths and the revert command
 5. **No invention** — acceptance criteria come from GDDs, implementation notes from ADRs, rules from the manifest
 6. **Never start implementation** — this skill stops at the story file level
 
-After writing (or declining):
+After writing:
 
 - **Verdict: COMPLETE** — [N] stories written to `production/epics/[epic-slug]/`. Run `$story-readiness` → `$dev-story` to begin implementation.
-- **Verdict: BLOCKED** — user declined. No story files written.
+- **Verdict: BLOCKED** — a referenced ADR file is missing (Step 2, K2). No story files written.

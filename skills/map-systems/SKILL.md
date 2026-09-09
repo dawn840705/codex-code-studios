@@ -40,20 +40,17 @@ for systems decomposition.
 - Glob `design/gdd/*.md` — check which system GDDs already exist
 
 **If the systems index already exists:**
-- Read it and present current status to the user
-- Ask the user directly to ask:
-  "The systems index already exists with [N] systems ([M] designed, [K] not started).
-  What would you like to do?"
-  - Options: "Update the index with new systems", "Design the next undesigned system",
-    "Review and revise priorities"
+- Read it and report current status: "[N] systems ([M] designed, [K] not started)."
+- With no argument, update the index (Phases 2–5, resume mode). `next` goes to
+  Phase 6. Priorities are revised only where Phase 4 finds a reason; name it.
 
 ---
 
 ## Phase 2: Systems Enumeration (Collaborative)
 
 Extract and identify all systems the game needs. This is the creative core of the
-skill — it requires human judgment because concept docs rarely enumerate every
-system explicitly.
+skill — concept docs rarely enumerate every system explicitly, so the inference
+below is the work.
 
 ### Step 2a: Extract Explicit Systems
 
@@ -85,7 +82,7 @@ need more systems than the concept doc mentions. Use this inference pattern:
 
 Explain in conversation text why each implicit system is needed (with examples).
 
-### Step 2c: User Review
+### Step 2c: Self-Review
 
 Present the enumeration organized by category. For each system, show:
 - Name
@@ -93,12 +90,9 @@ Present the enumeration organized by category. For each system, show:
 - Brief description (1 sentence)
 - Whether it was explicit (from concept) or implicit (inferred)
 
-Then ask the user directly to capture feedback:
-- "Are there systems missing from this list?"
-- "Should any of these be combined or split?"
-- "Are there systems listed that this game does NOT need?"
-
-Iterate until the user approves the enumeration.
+Then check it against the concept's MVP Definition and anti-pillars: systems the
+MVP needs but the list lacks are added; systems an anti-pillar excludes are cut.
+Name each change. Continue — the user reviews the whole index once, in Phase 5b.
 
 ---
 
@@ -138,19 +132,18 @@ Show the dependency map as a layered list. Highlight:
 - Any "bottleneck" systems (many others depend on them — these are high-risk)
 - Any systems with no dependents (leaf nodes — lower risk, can be designed late)
 
-Ask the user directly to ask: "Does this dependency ordering look right? Any
-dependencies I'm missing or that should be removed?"
+Continue; the ordering is reviewed with the index in Phase 5b.
 
 **Review mode check** — apply before spawning TD-SYSTEM-BOUNDARY:
 - `solo` → skip. Note: "TD-SYSTEM-BOUNDARY skipped — Solo mode." Proceed to priority assignment.
 - `lean` → skip (not a PHASE-GATE). Note: "TD-SYSTEM-BOUNDARY skipped — Lean mode." Proceed to priority assignment.
 - `full` → spawn as normal.
 
-**After dependency mapping is approved, spawn `technical-director` as a Codex subagent using gate TD-SYSTEM-BOUNDARY (`../../docs/director-gates.md`) before proceeding to priority assignment.**
+**After dependency mapping is complete, spawn `technical-director` as a Codex subagent using gate TD-SYSTEM-BOUNDARY (`../../docs/director-gates.md`) before proceeding to priority assignment.**
 
 Pass: the dependency map summary, layer assignments, bottleneck systems list, any circular dependency resolutions.
 
-Present the assessment. If REJECT, revise the system boundaries with the user before moving to priority assignment. If CONCERNS, note them inline in the systems index and continue.
+Report the assessment. If REJECT, rework the boundaries via `$self-loop` where a defect ticket exists (`rules/self-loop.md` § 2.1) before priority assignment. If CONCERNS, fix the ticketed items, note the rest inline in the systems index, and continue.
 
 ---
 
@@ -167,16 +160,11 @@ Use these heuristics for initial assignment:
 - **Alpha**: All remaining gameplay systems
 - **Full Vision**: Polish, meta, and nice-to-have systems
 
-### Step 4b: User Review
+### Step 4b: Explain the Tiers
 
 Present the priority assignments in a table. For each tier, explain why systems
-were placed there.
-
-Ask the user directly to ask: "Do these priority assignments match your vision?
-Which systems should be higher or lower priority?"
-
-Explain reasoning in conversation: "I placed [system] in MVP because the core loop
-requires it — without [system], the 30-second loop can't function."
+were placed there, e.g. "I placed [system] in MVP because the core loop requires
+it — without [system], the 30-second loop can't function." Continue.
 
 **"Why" column guidance**: When explaining why each system was placed in a priority tier, mix technical necessity with player-experience reasoning. Do not use purely technical justifications like "Combat needs damage math" — connect to player experience where relevant. Examples of good "Why" entries:
 - "Required for the core loop — without it, placement decisions have no consequence (Pillar 2: Placement is the Puzzle)"
@@ -190,11 +178,11 @@ Pure technical necessity ("X depends on Y") is insufficient alone when the syste
 - `lean` → skip (not a PHASE-GATE). Note: "PR-SCOPE skipped — Lean mode." Proceed to writing the systems index.
 - `full` → spawn as normal.
 
-**After priorities are approved, spawn `producer` as a Codex subagent using gate PR-SCOPE (`../../docs/director-gates.md`) before writing the index.**
+**After priorities are assigned, spawn `producer` as a Codex subagent using gate PR-SCOPE (`../../docs/director-gates.md`) before writing the index.**
 
 Pass: total system count per milestone tier, estimated implementation volume per tier (system count × average complexity), team size, stated project timeline.
 
-Present the assessment. If UNREALISTIC, offer to revise priority tier assignments before writing the index. If CONCERNS, note them and continue.
+Report the assessment. If UNREALISTIC, move the lowest-value MVP systems down a tier until the producer's capacity arithmetic holds, and name each move. If CONCERNS, fix the ticketed items, note the rest, and continue.
 
 ### Step 4c: Determine Design Order
 
@@ -221,17 +209,16 @@ systems index with all data from Phases 2-4:
 - Fill the high-risk systems
 - Fill progress tracker (all systems "Not Started" initially, unless GDDs already exist)
 
-### Step 5b: Approval
+### Step 5b: Write and Report
 
-Present a summary of the document:
+Write the file to `design/gdd/systems-index.md`; report the path and the revert
+command (`git checkout -- design/gdd/systems-index.md`). Then present the summary
+— this is the user's single review point for the index:
 - Total systems count by category
 - MVP system count
 - First 3 systems in the design order
 - Any high-risk items
-
-Ask: "May I write the systems index to `design/gdd/systems-index.md`?"
-
-Wait for approval. Write the file only after "yes."
+- Changes made in Steps 2c and 4b, with reasons
 
 **Review mode check** — apply before spawning CD-SYSTEMS:
 - `solo` → skip. Note: "CD-SYSTEMS skipped — Solo mode." Proceed to Phase 7 next steps.
@@ -242,7 +229,7 @@ Wait for approval. Write the file only after "yes."
 
 Pass: systems index path, game pillars and core fantasy (from `design/gdd/game-concept.md`), MVP priority tier system list.
 
-Present the assessment. If REJECT, revise the system set with the user before GDD authoring begins. If CONCERNS, record them in the systems index as a `> **Creative Director Note**` at the top of the relevant tier section.
+Report the assessment. If REJECT, rework the system set via `$self-loop` where a defect ticket exists before GDD authoring begins. If CONCERNS, fix the ticketed items and record the rest in the systems index as a `> **Creative Director Note**` at the top of the relevant tier section.
 
 ### Step 5c: Update Session State
 
@@ -253,27 +240,22 @@ After writing, create `production/session-state/active.md` if it does not exist,
 - Next: Design individual system GDDs
 
 **Verdict: COMPLETE** — systems index written to `design/gdd/systems-index.md`.
-If the user declined: **Verdict: BLOCKED** — user did not approve the write.
+**Verdict: BLOCKED** only when `design/gdd/game-concept.md` is missing (Phase 1, K2).
 
 ---
 
 ## Phase 6: Design Individual Systems (Handoff to $design-system)
 
-This phase is entered when:
-- The user says "yes" to designing systems after creating the index
+This phase is entered only when:
 - The user invokes `$map-systems [system-name]`
 - The user invokes `$map-systems next`
+
+A run that just created the index does not enter it; it ends with Phase 7.
 
 ### Step 6a: Select the System
 
 - If a system name was provided, find it in the systems index
 - If `next` was used, pick the highest-priority undesigned system (by design order)
-- If the user just finished the index, ask:
-  "Would you like to start designing individual systems now? The first system in
-  the design order is [name]. Or would you prefer to stop here and come back later?"
-
-Ask the user directly for: "Start designing [system-name] now, pick a different
-system, or stop here?"
 
 ### Step 6b: Hand Off to $design-system
 
@@ -285,34 +267,27 @@ The `$design-system` skill handles the full GDD authoring process:
 - Walks through all 8 required sections one at a time (collaborative, incremental)
 - Cross-references existing docs to prevent contradictions
 - Routes to specialist agents for domain expertise
-- Writes each section to file as soon as it's approved
+- Writes each section to file as soon as it's drafted
 - Runs `$design-review` when complete
 - Updates the systems index
 
 **Do not duplicate the $design-system workflow here.** This skill owns the systems
 *index*; `$design-system` owns individual system *GDDs*.
 
-### Step 6c: Loop or Stop
+### Step 6c: Stop
 
-After `$design-system` completes, ask the user directly:
-- "Continue to the next system ([next system name])?"
-- "Pick a different system?"
-- "Stop here for this session?"
-
-If continuing, return to Step 6a.
+After `$design-system` completes, stop and name `$map-systems next` ([next system
+name]) as the next step. Do not loop automatically — each GDD is a session-sized
+unit and the user chooses when to spend the next one.
 
 ---
 
 ## Phase 7: Suggest Next Steps
 
-After the systems index is created (or after designing some systems), present next actions by asking the user directly:
+After the systems index is created (or after designing a system), recommend — do not ask:
 
-- "Systems index is written. What would you like to do next?"
-  - [A] Start designing GDDs — run `$design-system [first-system-in-order]`
-  - [B] Ask a director to review the index first — ask `creative-director` or `technical-director` to validate the system set before committing to 10+ GDD sessions
-  - [C] Stop here for this session
-
-**The director review option ([B]) is worth highlighting**: having a Creative Director or Technical Director review the completed systems index before starting GDD authoring catches scope issues, missing systems, and boundary problems before they're locked in across many documents. It is optional but recommended for new projects.
+- `$map-systems next` (or `$design-system [first-system-in-order]`) to start GDD authoring
+- In `lean` mode, `$map-systems --review full` re-runs the index with the director gates spawned — worth it on a new project before committing to 10+ GDD sessions, since scope issues, missing systems and boundary problems are cheapest to fix here
 
 After any individual GDD is completed:
 - "Run `$design-review design/gdd/[system].md` in a fresh session to validate quality"
@@ -324,23 +299,15 @@ After any individual GDD is completed:
 
 This skill follows the collaborative design principle at every phase:
 
-1. **Question -> Options -> Decision -> Draft -> Approval** at every step
-2. **direct user question** at every decision point (Explain -> Capture pattern):
-   - Phase 2: "Missing systems? Combine or split?"
-   - Phase 3: "Dependency ordering correct?"
-   - Phase 4: "Priority assignments match your vision?"
-   - Phase 5: "May I write the systems index?"
-   - Phase 6: "Start designing, pick different, or stop?" then hand off to `$design-system`
-3. **"May I write to [filepath]?"** before every file write
+1. **Explain -> Decide -> Draft -> Write -> Report** at every phase; each decision names its reason
+2. **One review point**: the Phase 5b summary, after the index is written — enumeration, dependencies and priorities are all visible there with the changes made
+3. **Write and report**: `design/gdd/systems-index.md` and `production/session-state/active.md` are R-grade writes; report the path and the revert command
 4. **Incremental writing**: Update the systems index after each system is designed
 5. **Handoff**: Individual GDD authoring is owned by `$design-system`, which handles
    incremental section writing, cross-referencing, design review, and index updates
-6. **Session state updates**: Write to `production/session-state/active.md` after
-   each milestone (index created, system designed, priorities changed)
+6. **Never start designing a system from this skill** unless invoked with `next` or a system name
 
-**Never** auto-generate the full systems list and write it without review.
-**Never** start designing a system without user confirmation.
-**Always** show the enumeration, dependencies, and priorities for user validation.
+**Always** show the enumeration, dependencies, and priorities with the reasons behind them.
 
 ## Context Window Awareness
 

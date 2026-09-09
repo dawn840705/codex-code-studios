@@ -7,8 +7,9 @@ description: "Run the critical path smoke test gate before QA hand-off. Executes
 
 This skill is the gate between "implementation done" and "ready for QA
 hand-off". It runs the automated test suite, checks for test coverage gaps,
-batch-verifies critical paths with the developer, and produces a PASS/FAIL
-report.
+asks the developer for the manual checks in one block, and produces a PASS/FAIL
+report. It writes only `production/qa/smoke-[date].md` (and DEFERRED items to
+`production/human-actions.md`); it never edits `src/` or `tests/`.
 
 The rule is simple: **a build that fails smoke check does not go to QA.**
 Handing a broken build to QA wastes their time and demoralises the team.
@@ -92,15 +93,15 @@ environments. Check for recent test result artifacts:
 ls -t test-results/ 2>/dev/null | head -5
 ```
 If test result files exist (XML or JSON), read the most recent one and parse
-PASS/FAIL counts. If no artifacts exist: "Unity tests must be run from the
-editor or CI pipeline. Please confirm test status manually before proceeding."
+PASS/FAIL counts. If no artifacts exist, record NOT RUN — the Phase 4 block asks
+for the editor/CI result.
 
 **Unreal Engine:**
 ```bash
 ls -t Saved/Logs/ 2>/dev/null | grep -i "test\|automation" | head -5
 ```
-If no matching log found: "UE automation tests must be run via the Session
-Frontend or CI pipeline. Please confirm test status manually."
+If no matching log found, record NOT RUN — the Phase 4 block asks for the Session
+Frontend/CI result.
 
 **Unknown engine / not configured:**
 "Engine not configured in `.codex/studio/technical-preferences.md`. Run
@@ -110,12 +111,11 @@ Frontend or CI pipeline. Please confirm test status manually."
 on PATH, runner script not found, etc.), report clearly:
 
 "Automated tests could not be executed — engine binary not found on PATH.
-Status will be recorded as NOT RUN. Confirm test results from your local IDE
-or CI pipeline. Unconfirmed NOT RUN is treated as PASS WITH WARNINGS, not
-FAIL — the developer must manually confirm results."
+Status recorded as NOT RUN. Unconfirmed NOT RUN is treated as PASS WITH WARNINGS,
+not FAIL."
 
-Do not treat NOT RUN as an automatic FAIL. Record it as a warning. The
-developer's manual confirmation in Phase 4 can resolve it.
+Do not treat NOT RUN as an automatic FAIL. Record it as a warning. The developer's
+answer in the Phase 4 block ("did the tests pass locally or in CI?") can resolve it.
 
 ### The exit code is the verdict
 
@@ -184,7 +184,7 @@ fully close those stories.
 
 ---
 
-## Phase 4: Run Manual Smoke Checks
+## Phase 4: Manual Smoke Checks (K3 — one question block)
 
 Draw the smoke test checklist from, in priority order:
 1. The QA plan's "Smoke Test Scope" section (if QA plan was found in Phase 1)
@@ -196,89 +196,34 @@ Tailor batches 2 and 3 to the actual systems identified from the sprint or QA
 plan. Replace bracketed placeholders with real mechanic names from the current
 sprint's stories.
 
-Ask the user directly to batch-verify. Keep to at most 3 calls.
+Finish Phases 1–3 first. Then ask **one question block** that lists every item
+below — the batches, the platform batches if `--platform` was given, and "Did the
+automated tests pass locally or in CI?" when Phase 2 recorded NOT RUN. Do not split
+it into several calls. Each item takes one of: `PASS` · `FAIL: [what broke]` · `N/A`
+· no answer.
 
-**Batch 1 — Core stability (always run):**
-```
-question: "Smoke check — Batch 1: Core stability. Please verify each:"
-options:
-  - "Game launches to main menu without crash — PASS"
-  - "Game launches to main menu without crash — FAIL"
-  - "New game / session starts successfully — PASS"
-  - "New game / session starts successfully — FAIL"
-  - "Main menu responds to all inputs — PASS"
-  - "Main menu responds to all inputs — FAIL"
-```
+**Batch 1 — Core stability (always):**
+- Game launches to main menu without crash
+- New game / session starts successfully
+- Main menu responds to all inputs
 
-**Batch 2 — Sprint mechanic and regression (always run):**
-```
-question: "Smoke check — Batch 2: This sprint's changes and regression check:"
-options:
-  - "[Primary mechanic this sprint] — PASS"
-  - "[Primary mechanic this sprint] — FAIL: [describe what broke]"
-  - "[Second notable change this sprint, if any] — PASS"
-  - "[Second notable change this sprint] — FAIL"
-  - "Previous sprint's features still work (no regressions) — PASS"
-  - "Previous sprint's features — regression found: [brief description]"
-```
+**Batch 2 — Sprint mechanic and regression (always):**
+- [Primary mechanic this sprint]
+- [Second notable change this sprint, if any]
+- Previous sprint's features still work (no regressions)
 
-**Batch 3 — Data integrity and performance (run unless `quick` argument):**
-```
-question: "Smoke check — Batch 3: Data integrity and performance:"
-options:
-  - "Save / load completes without data loss — PASS"
-  - "Save / load — FAIL: [describe what broke]"
-  - "Save / load — N/A (save system not yet implemented)"
-  - "No new frame rate drops or hitches observed — PASS"
-  - "Frame rate drops or hitches found — FAIL: [where]"
-  - "Performance — not checked in this session"
-```
+**Batch 3 — Data integrity and performance (skip on `quick`):**
+- Save / load completes without data loss (N/A if no save system yet)
+- No new frame rate drops or hitches
 
-Record each response verbatim for the Phase 5 report.
+**Platform batches** *(only with `--platform`)*:
+- PC: keyboard controls across menus and gameplay · mouse input and cursor visibility · windowed and fullscreen modes · resolution changes apply
+- Console: gamepad input for all actions · UI inside TV safe zone · no keyboard/mouse-only prompts shown to gamepad users · cold start with no prior save
+- Mobile: touch controls for primary actions · orientation change · background/foreground transitions · no thermal or performance issues on the target device
 
-**Platform Batches** *(run only if `--platform` argument was provided)*:
-
-**PC platform** (`--platform pc` or `--platform all`):
-```
-question: "Smoke check — PC Platform: Verify platform-specific behaviour:"
-options:
-  - "Keyboard controls work correctly across all menus and gameplay — PASS"
-  - "Keyboard controls — FAIL: [describe issue]"
-  - "Mouse input and cursor visibility correct in all states — PASS"
-  - "Mouse input — FAIL: [describe issue]"
-  - "Windowed and fullscreen modes function without graphical issues — PASS"
-  - "Windowed/fullscreen — FAIL: [describe issue]"
-  - "Resolution changes apply correctly — PASS"
-  - "Resolution changes — FAIL: [describe issue]"
-```
-
-**Console platform** (`--platform console` or `--platform all`):
-```
-question: "Smoke check — Console Platform: Verify platform-specific behaviour:"
-options:
-  - "Gamepad input works correctly for all actions — PASS"
-  - "Gamepad input — FAIL: [describe issue]"
-  - "UI fits within TV safe zone margins (no text clipped) — PASS"
-  - "TV safe zone — FAIL: [describe what is clipped]"
-  - "No keyboard/mouse-only fallbacks shown to gamepad user — PASS"
-  - "Input prompt inconsistency — FAIL: [describe]"
-  - "Game boots correctly from cold start (no prior save) — PASS"
-  - "Cold start — FAIL: [describe issue]"
-```
-
-**Mobile platform** (`--platform mobile` or `--platform all`):
-```
-question: "Smoke check — Mobile Platform: Verify platform-specific behaviour:"
-options:
-  - "Touch controls work correctly for all primary actions — PASS"
-  - "Touch controls — FAIL: [describe issue]"
-  - "Game handles orientation change (portrait ↔ landscape) correctly — PASS"
-  - "Orientation change — FAIL: [describe what breaks]"
-  - "Background / foreground transitions (home button) handled gracefully — PASS"
-  - "Background/foreground — FAIL: [describe issue]"
-  - "No visible performance issues on target device (no thermal throttling signs) — PASS"
-  - "Mobile performance — FAIL: [describe issue]"
-```
+Record each answer verbatim for the Phase 5 report. An unanswered item is
+**DEFERRED**: it appears in the report and in `production/human-actions.md`, and it
+never counts as FAIL. The Phase 5 verdict rules count only PASS and FAIL answers.
 
 ---
 
@@ -304,9 +249,7 @@ NOT RUN ([reason])]
 [If FAIL, list failing tests:]
 - `[test name]` — [brief failure description from runner output]
 
-[If NOT RUN:]
-"Manual confirmation required: did tests pass in your local IDE or CI? This
-will determine whether the automated test row contributes to a FAIL verdict."
+[If NOT RUN:] "Local/CI result: [answer from the Phase 4 block, or DEFERRED]."
 
 ---
 
@@ -330,7 +273,7 @@ will determine whether the automated test row contributes to a FAIL verdict."
 - [x] [Core mechanic] — PASS
 - [ ] [Other check] — FAIL: [user's description]
 - [x] Save / load — PASS
-- [-] Performance — not checked this session
+- [-] Performance — DEFERRED (no answer)
 
 ---
 
@@ -373,12 +316,12 @@ Any platform with one or more FAIL checks contributes to the overall FAIL verdic
 
 **PASS WITH WARNINGS** if ALL of:
 - Automated tests PASS or NOT RUN (developer has not yet confirmed)
-- All Batch 1 and Batch 2 smoke checks PASS
-- One or more Logic/Integration stories have MISSING test evidence
+- No Batch 1 or Batch 2 check returned FAIL (DEFERRED is allowed)
+- One or more Logic/Integration stories have MISSING test evidence, or any check is DEFERRED
 
 **PASS** if ALL of:
 - Automated tests PASS
-- All smoke checks in all batches PASS or N/A
+- All smoke checks in all batches PASS or N/A — none DEFERRED
 - No MISSING test evidence entries
 ````
 
@@ -386,13 +329,12 @@ Any platform with one or more FAIL checks contributes to the overall FAIL verdic
 
 ## Phase 6: Write and Gate
 
-Present the full report in conversation, then ask:
+Present the full report in conversation. Write it to
+`production/qa/smoke-[date].md` and report the path and the revert command
+(`git checkout -- production/qa/smoke-[date].md`). Append any DEFERRED items to
+`production/human-actions.md`.
 
-"May I write this smoke check report to `production/qa/smoke-[date].md`?"
-
-Write only after approval.
-
-After writing, deliver the gate verdict:
+Then deliver the gate verdict:
 
 **If verdict is FAIL:**
 
@@ -401,7 +343,9 @@ resolved:
 
 [List each failing automated test or smoke check with a one-line description]
 
-Fix the failures and run `$smoke-check` again to re-gate before QA hand-off."
+This skill does not fix them. For each failure with a defect ticket, run
+`$self-loop` (`rules/self-loop.md` § 2.1), then `$smoke-check` again to re-gate.
+BLOCKED is reported only on hard_error/blocked."
 
 **If verdict is PASS WITH WARNINGS:**
 
@@ -427,12 +371,14 @@ agent to begin manual verification."
 - **Never treat NOT RUN as automatic FAIL** — record it as NOT RUN and let
   the developer confirm status manually. Unconfirmed NOT RUN contributes to
   PASS WITH WARNINGS, not FAIL.
-- **Never auto-fix failures** — report them and state what must be resolved.
-  Do not attempt to edit source code or test files.
+- **This skill does not fix failures** — it is a read-only gate on `src/` and
+  `tests/`. On FAIL with a defect ticket, recommend `$self-loop`; report BLOCKED
+  only on hard_error/blocked.
 - **PASS WITH WARNINGS does not block QA hand-off** — it records advisory
   gaps for `$story-done` to follow up on.
 - **`quick` argument** skips Phase 3 (coverage scan) and Phase 4 Batch 3.
   Use it for rapid re-checks after fixing a specific failure.
-- Ask the user directly for all manual smoke check verification.
-- **Never write the report without asking** — Phase 6 requires explicit
-  approval before any file is created.
+- **Manual checks are one question block** after the automated phases;
+  unanswered items are DEFERRED, never FAIL.
+- **The report is written without asking** — it is an R-grade artifact; the path
+  and revert command are in the output.

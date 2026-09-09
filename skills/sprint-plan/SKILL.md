@@ -34,7 +34,7 @@ See `../../docs/director-gates.md` for the full check pattern.
 
 For `new`:
 
-**Generate a sprint plan** following this format and present it to the user. Do NOT ask to write yet — the producer feasibility gate (Phase 4) runs first and may require revisions before the file is written.
+**Generate a sprint plan** following this format and present it. Write it at Phase 4 — the producer feasibility gate runs first and may require revisions.
 
 ```markdown
 # Sprint [N] -- [Start Date] to [End Date]
@@ -121,11 +121,10 @@ For `status`:
 
 ## Phase 3: Write Sprint Status File
 
-After generating a new sprint plan, also write `production/sprint-status.yaml`.
-This is the machine-readable source of truth for story status — read by
-`$sprint-status`, `$story-done`, and `$help` without markdown parsing.
-
-Ask: "May I also write `production/sprint-status.yaml` to track story status?"
+After generating a new sprint plan, also prepare `production/sprint-status.yaml`
+(written at Phase 4 together with the plan). This is the machine-readable source of
+truth for story status — read by `$sprint-status`, `$story-done`, and `$help` without
+markdown parsing.
 
 Format:
 
@@ -173,9 +172,9 @@ Before finalising the sprint plan, spawn `producer` as a Codex subagent using ga
 
 Pass: proposed story list (titles, estimates, dependencies), total team capacity in hours/days, any carryover from the previous sprint, milestone constraints and deadline.
 
-Present the producer's assessment. If UNREALISTIC, revise the story selection (defer stories to Should Have or Nice to Have) before asking for write approval. If CONCERNS, surface them and let the user decide whether to adjust.
+Report the producer's assessment. If UNREALISTIC, revise the story selection (defer stories to Should Have or Nice to Have) before writing. If CONCERNS, fix the items that carry a defect ticket (`rules/self-loop.md` § 2.1), record the rest as accepted concerns, and proceed.
 
-After handling the producer's verdict, ask: "May I write this sprint plan to `production/sprints/sprint-[N].md`?" If yes, write the file, creating the directory if needed. Verdict: **COMPLETE** — sprint plan created. If no: Verdict: **BLOCKED** — user declined write.
+Then write `production/sprints/sprint-[N].md` and `production/sprint-status.yaml` in one step, creating the directory if needed. Report both paths and the revert command (`git checkout -- production/sprints/sprint-[N].md production/sprint-status.yaml`). Verdict: **COMPLETE** — sprint plan created.
 
 After writing, add:
 
@@ -191,20 +190,11 @@ Use `Glob` to look for `production/qa/qa-plan-sprint-[N].md` or any file in `pro
 
 **If a QA plan is found**: note it in the sprint plan output — "QA Plan: `[path]`" — and proceed.
 
-**If no QA plan exists**: do not silently proceed. Surface this explicitly:
+**If no QA plan exists**: do not silently proceed. Say so:
 
-> "This sprint has no QA plan. A sprint plan without a QA plan means test requirements are undefined — developers won't know what 'done' looks like from a QA perspective, and the sprint cannot pass the Production → Polish gate without one.
->
-> Run `$qa-plan sprint` now, before starting any implementation. It takes one session and produces the test case requirements each story needs."
+> "This sprint has no QA plan. Test requirements are undefined, and the sprint cannot pass the Production → Polish gate without one. Run `$qa-plan sprint` before starting implementation."
 
-Ask the user directly:
-- Prompt: "No QA plan found for this sprint. How do you want to proceed?"
-- Options:
-  - `[A] Run $qa-plan sprint now — I'll do that before starting implementation (Recommended)`
-  - `[B] Skip for now — I understand QA sign-off will be blocked at the Production → Polish gate`
-
-If [A]: close with "Sprint plan written. Run `$qa-plan sprint` next — then begin implementation."
-If [B]: add a warning block to the sprint plan document:
+Then take [A]: name `$qa-plan sprint` as the required next step and add this warning block to the sprint plan document (it stays until the QA plan exists). No question:
 
 ```markdown
 > ⚠️ **No QA Plan**: This sprint was started without a QA plan. Run `$qa-plan sprint`

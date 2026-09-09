@@ -10,8 +10,9 @@ description: "Read a story file and implement it. Loads the full context (story,
 > - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
 >   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
 >   the stack pinned in `.codex/studio/technical-preferences.md`. Read the PRD requirement in place of the GDD requirement, and use the **product** routing table in Phase 3 — the game table routes to `gameplay-programmer`, which this track must never spawn. There is no `Engine:` value; read the pinned stack instead.
-> - **Unresolved** — ask which track this is before doing anything. A greenfield project
->   has no signal either way; do not infer one from the repository contents.
+> - **Unresolved** — ask once which track this is, write the answer to `production/track.txt`,
+>   then continue. A greenfield project has no signal either way; do not infer one from the
+>   repository contents.
 
 # Dev Story
 
@@ -38,10 +39,9 @@ $story-done [path]        ← verify and close it
 
 **If a path is provided**: read that file directly.
 
-**If no argument**: check `production/session-state/active.md` for the active
-story. If found, confirm: "Continuing work on [story title] — is that correct?"
-If not found, ask: "Which story are we implementing?" Glob
-`production/epics/**/*.md` and list stories with Status: Ready.
+**If no argument**: read `production/session-state/active.md`. The active story it
+names is the story — continue it without asking. If it names none, ask: "Which story
+are we implementing?" Glob `production/epics/**/*.md` and list stories with Status: Ready.
 
 ---
 
@@ -90,16 +90,11 @@ Read `docs/architecture/control-manifest.md`. Extract the rules for this story's
 - Performance guardrails
 
 Check: does the story's embedded Manifest Version match the current manifest header date?
-If they differ, ask the user directly before proceeding:
-- Prompt: "Story was written against manifest v[story-date]. Current manifest is v[current-date]. New rules may apply. How do you want to proceed?"
-- Options:
-  - `[A] Update story manifest version and implement with current rules (Recommended)`
-  - `[B] Implement with old rules — I accept the risk of non-compliance`
-  - `[C] Stop here — I want to review the manifest diff first`
+If they differ, take [A] unless a rule the story's Implementation Notes rely on was removed
+or reversed in the diff. If you deviate, name the reason in the Phase 6 report.
 
-If [A]: edit the story file's `Manifest Version:` field to the current manifest date before spawning the programmer. Then read the manifest carefully for new rules.
-If [B]: read the manifest carefully for new rules anyway, and note the version mismatch in the Phase 6 summary under "Deviations".
-If [C]: stop. Do not spawn any agent. Let the user review and re-run `$dev-story`.
+- `[A]` Update the story's `Manifest Version:` field to the current date, read the manifest for new rules, and implement against them. Report the story path and the revert command (`git checkout -- [story-path]`).
+- `[B]` Implement with the old rules; record the version mismatch in the Phase 6 summary under "Deviations".
 
 ### Dependency validation
 
@@ -107,18 +102,14 @@ After extracting the **Dependencies** list from the story file, validate each:
 
 1. Glob `production/epics/**/*.md` to find each dependency story file.
 2. Read its `Status:` field.
-3. If any dependency has Status other than `Complete` or `Done`:
-   - Ask the user directly:
-     - Prompt: "Story '[current story]' depends on '[dependency title]' which is currently [status], not Complete. How do you want to proceed?"
-     - Options:
-       - `[A] Proceed anyway — I accept the dependency risk`
-       - `[B] Stop — I'll complete the dependency first`
-       - `[C] The dependency is done but status wasn't updated — mark it Complete and continue`
-   - If [B]: set story status to **BLOCKED** in session state and stop. Do not spawn any programmer agent.
-   - If [C]: ask "May I update [dependency path] Status to Complete?" before continuing.
-   - If [A]: note in Phase 6 summary under "Deviations": "Implemented with incomplete dependency: [dependency title] — [status]."
+3. If any dependency has Status other than `Complete` or `Done`, take [A] unless the
+   dependency's Completion Notes and test evidence show it is actually finished. If you
+   deviate, name the reason in the report.
+   - `[A]` Proceed. Record under "Deviations": "Implemented with incomplete dependency: [dependency title] — [status]."
+   - `[B]` The dependency is done but its status is stale — set its `Status:` to Complete, report the path and revert command, and continue.
 
-If a dependency file cannot be found: warn "Dependency story not found: [path]. Verify the path or create the story file."
+If a dependency story file cannot be found: **BLOCKED** — "Dependency story not found:
+[path]." Name the file that must exist to resume (K2). Do not spawn any programmer agent.
 
 ---
 
@@ -142,7 +133,8 @@ If the story's Type is `Config/Data`, no programmer agent or engine specialist i
 **Read the track first — the two tables below are not interchangeable.** Resolve
 `production/track.txt` (or the session's `PROJECT_TYPE`). On a product project the
 game table below routes to `gameplay-programmer`, a `game`-pack agent, which
-`AGENTS.md` forbids. If the track will not resolve, ask before spawning anything.
+`AGENTS.md` forbids. The header's track check resolved this once; never spawn from the
+other track's table.
 
 ### Primary agent routing table — `game` track
 
@@ -211,10 +203,11 @@ Provide the agent with:
 8. Explicit instruction: **implement this story and write the test**
 
 The agent should:
-- Create or modify files in `src/` following the ADR guidelines
+- Create or modify files in `src/` and `tests/` following the ADR guidelines — these are its owned paths; it writes there without asking
 - Respect all Required and Forbidden patterns from the control manifest
 - Stay within the story's Out of Scope boundaries (do not touch unrelated files)
 - Write clean, doc-commented public APIs
+- Return the paths written, their status, and any **decision items** (agenda, recommendation, alternatives, evidence, revert cost) — not questions (`rules/subagent-collaboration.md` § 3.1). The orchestrator decides them inside `rules/autonomy-contract.md` and records the decision in Phase 6
 
 ### Config/Data stories (no agent needed)
 
@@ -264,7 +257,7 @@ After the programmer agent(s) complete, collect:
 - Files created or modified (with paths)
 - Test file created (path and number of test functions written)
 - Any deviations from the story's Out of Scope boundary (flag these)
-- Any questions or blockers the agent surfaced
+- Decision items or blockers the agent returned, and how each was decided
 - Any engine-specific risks the specialist flagged
 
 Present a concise implementation summary:
@@ -282,8 +275,9 @@ Present a concise implementation summary:
 - [ ] [criterion] — DEFERRED: requires playtest (Visual/Feel)
 
 **Deviations from scope**: [None] or [list files touched outside story boundary]
+**Decisions taken**: [route · R-grade · defaults applied or deviated from, with reasons · assumptions where the ADR was silent]
 **Engine risks flagged**: [None] or [specialist finding]
-**Blockers**: [None] or [describe]
+**Blockers**: [None] or [describe — K1/K2 only]
 
 Ready for: `$code-review [file1] [file2]` then `$story-done [story-path]`
 ```
@@ -311,41 +305,39 @@ Create `active.md` if it does not exist. Confirm: "Session state updated."
 
 If any spawned agent (as a Codex subagent) returns BLOCKED, errors, or cannot complete:
 
-1. **Surface immediately**: Report "[AgentName]: BLOCKED — [reason]" to the user before continuing to dependent phases
-2. **Assess dependencies**: Check whether the blocked agent's output is required by subsequent phases. If yes, do not proceed past that dependency point without user input.
-3. **Offer options** via direct user question with choices:
-   - Skip this agent and note the gap in the final report
-   - Retry with narrower scope
-   - Stop here and resolve the blocker first
+1. **Surface immediately**: put "[AgentName]: BLOCKED — [reason]" in the report before continuing to dependent phases.
+2. **Choose the narrowest recovery yourself**: retry with a narrower scope first; if that fails, skip the agent and record the gap. Name the choice in the report.
+3. **BLOCKED only when** the missing output is required by a later phase and cannot be regenerated here (K1/K2). State what must exist to resume, and append it to `production/human-actions.md`.
 4. **Always produce a partial report** — output whatever was completed. Never discard work because one agent blocked.
 
 Common blockers:
-- Input file missing (story not found, GDD absent) → redirect to the skill that creates it
-- ADR status is Proposed → do not implement; run `$architecture-decision` first
+- Input file missing (story not found, GDD absent) → BLOCKED (K2); name the skill that creates it
+- ADR status is Proposed → do not implement; BLOCKED until `$architecture-decision` advances it
 - Scope too large → split into two stories via `$create-stories`
-- Conflicting instructions between ADR and story → surface the conflict, do not guess
-- Manifest version mismatch → show diff to user, ask whether to proceed with old rules or update story first
+- Conflicting instructions between ADR and story → the ADR wins; record the conflict under "Deviations"
+- Manifest version mismatch → Phase 2 default [A]
 
 ## Collaborative Protocol
 
-- **File writes are delegated** — all source code, test files, and evidence docs are written by sub-agents spawned as a Codex subagent. Each sub-agent enforces the "May I write to [path]?" protocol individually. This orchestrator does not write files directly.
+- **File writes are delegated** — source code, test files, and evidence docs are written by the spawned sub-agents inside their owned paths (`src/`, `tests/`, `production/qa/evidence/`); each returns the paths written and their status. This orchestrator writes only the story file (Phase 2), Config/Data files (Phase 4), and `production/session-state/active.md` (Phase 7).
 - **Load before implementing** — do not start coding until all context is loaded
   (story, TR-ID, ADR, manifest, engine prefs). Incomplete context produces code
   that drifts from design.
 - **The ADR is the law** — implementation must follow the ADR's Implementation
   Guidelines. If the guidelines conflict with what seems "better," flag it in the
   summary rather than silently deviating.
-- **Stay in scope** — the Out of Scope section is a contract. If implementing
-  the story requires touching an out-of-scope file, stop and surface it:
-  "Implementing [criterion] requires modifying [file], which is out of scope.
-  Shall I proceed or create a separate story?"
+- **Stay in scope** — the Out of Scope section is a contract. If a criterion
+  requires touching an out-of-scope file, make the smallest change that satisfies
+  the criterion and record the file under "Deviations". If that change would alter
+  another story's behaviour, leave it and record a follow-up story instead.
 - **Test is not optional for Logic/Integration** — do not mark implementation
   complete without the test file existing
 - **Visual/Feel criteria are deferred, not skipped** — mark them as DEFERRED
   in the summary; they will be manually verified in `$story-done`
-- **Ask before large structural decisions** — if the story requires an
-  architectural pattern not covered by the ADR, surface it before implementing:
-  "The ADR doesn't specify how to handle [case]. My plan is [X]. Proceed?"
+- **Decide structural gaps and report them** — if the story requires an
+  architectural pattern the ADR does not cover, state the assumption in the code
+  and under "Decisions taken": "ADR-NNNN does not specify [case]; assumed [X]."
+  Flag it for the ADR owner; do not stop.
 
 ---
 

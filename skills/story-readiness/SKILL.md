@@ -10,7 +10,7 @@ to begin implementation — no mid-sprint design interruptions, no guessing,
 no ambiguous acceptance criteria. Run it before assigning a story.
 
 **This skill is read-only.** It never edits story files. It reports findings
-and asks whether the user wants help filling gaps.
+with the exact fix text for each gap.
 
 **Output:** Verdict per story (READY / NEEDS WORK / BLOCKED) with a specific
 gap list for each non-ready story.
@@ -31,7 +31,7 @@ See `../../docs/director-gates.md` for the full check pattern and mode definitio
 
 ## 1. Parse Arguments
 
-**Scope:** `the first invocation argument` (blank = ask user via direct user question)
+**Scope:** `the first invocation argument` (blank = `sprint` if `production/sprints/` has a file, else `all`)
 
 - **Specific path** (e.g., `$story-readiness production/epics/combat/story-001-basic-attack.md`):
   validate that single story file.
@@ -39,12 +39,8 @@ See `../../docs/director-gates.md` for the full check pattern and mode definitio
   recent file), extract every story path it references, validate each one.
 - **`all`**: glob `production/epics/**/*.md`, exclude `EPIC.md` index files,
   validate every story file found.
-- **No argument**: ask the user which scope to validate.
-
-If no argument is given, ask the user directly:
-- "What would you like to validate?"
-  - Options: "A specific story file", "All stories in the current sprint",
-    "All stories in production/epics/", "Stories for a specific epic"
+- **No argument**: take `sprint` if `production/sprints/` contains a sprint file,
+  otherwise `all`. Name the chosen scope in the report; no question.
 
 Report the scope before proceeding: "Validating [N] story files."
 
@@ -263,16 +259,11 @@ Resolve these before the sprint begins or replan with `$sprint-plan update`.
 
 ## 6. Collaborative Protocol
 
-This skill is read-only. It never proposes edits or asks to write files.
+This skill is read-only. It never writes files.
 
-After reporting findings, offer:
-
-"Would you like help filling in the gaps for any of these stories? I can
-draft the missing sections for your approval."
-
-If the user says yes for a specific story, draft only the missing sections
-in conversation. Do not use Write or Edit tools — the user (or
-`$create-stories`) handles writing.
+For each non-ready story, the `Fix:` line under every gap carries the text that
+resolves it — draft missing sections inline there so they can be pasted. The user
+or `$create-stories` applies them; do not use Write or Edit tools here.
 
 **Redirect rules:**
 - If a story file does not exist at all: "This story file is missing entirely.
@@ -331,9 +322,9 @@ Pass the following context:
 
 Handle the verdict per standard rules in `director-gates.md`:
 - **ADEQUATE** → story is cleared. Proceed to close.
-- **GAPS [list]** → surface the specific gaps to the user by asking the user directly:
-  options: `Update story with suggested gaps` / `Accept and proceed anyway` / `Discuss further`.
-- **INADEQUATE** → surface the specific gaps; ask user whether to update the story or proceed anyway.
+- **GAPS [list]** → append each gap to the story's Gaps list with a `Fix:` line; the
+  verdict stays as assigned in Phase 4 unless a gap is a missing dependency (→ BLOCKED).
+- **INADEQUATE** → the verdict is at least NEEDS WORK; list the gaps. No question.
 
 ---
 

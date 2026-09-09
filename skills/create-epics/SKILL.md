@@ -10,8 +10,9 @@ description: "Translate approved GDDs + architecture into epics — one epic per
 > - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
 >   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
 >   the stack pinned in `.codex/studio/technical-preferences.md`. Read `product/prd/prd-*.md` in place of `design/gdd/*.md`. "Engine risk" becomes stack and dependency version risk.
-> - **Unresolved** — ask which track this is before doing anything. A greenfield project
->   has no signal either way; do not infer one from the repository contents.
+> - **Unresolved** — ask once which track this is, write the answer to `production/track.txt`,
+>   then continue. A greenfield project has no signal either way; do not infer one from the
+>   repository contents.
 
 # Create Epics
 
@@ -47,7 +48,7 @@ See `../../docs/director-gates.md` for the full check pattern.
 - `$create-epics layer: feature` — Feature layer only
 - `$create-epics layer: presentation` — Presentation layer only
 - `$create-epics [system-name]` — one specific system
-- No argument — ask: "Which layer or system would you like to create epics for?"
+- No argument — take the lowest layer (Foundation first) whose systems have no epic yet; name it in the report. No question.
 
 ---
 
@@ -102,7 +103,7 @@ Check ADR coverage against the TR registry:
 - **Traced requirements**: TR-IDs that have an Accepted ADR covering them
 - **Untraced requirements**: TR-IDs with no ADR — warn before proceeding
 
-Present to user before writing anything:
+Present each epic definition, then write it (Step 5):
 
 ```
 ## Epic: [System Name]
@@ -117,12 +118,11 @@ Present to user before writing anything:
 ```
 
 If there are untraced requirements:
-> "⚠️ [N] requirements in [system] have no ADR. The epic can be created, but
-> stories for these requirements will be marked Blocked until ADRs exist.
-> Run `$architecture-decision` first, or proceed with placeholders."
+> "⚠️ [N] requirements in [system] have no ADR. The epic is created; stories for
+> these requirements will be marked Blocked until ADRs exist. Run
+> `$architecture-decision` to cover them."
 
-Ask: "Shall I create Epic: [name]?"
-Options: "Yes, create it", "Skip", "Pause — I need to write ADRs first"
+The epic is written at Step 5. Skip a system only when it has no Approved/Designed GDD; name each skip in the report.
 
 ---
 
@@ -137,15 +137,13 @@ After all epics for the current layer are defined (Step 4 completed for all in-s
 
 Pass: the full epic structure summary (all epics, their scope summaries, governing ADR counts), the layer being processed, milestone timeline and team capacity.
 
-Present the producer's assessment. If UNREALISTIC, offer to revise epic boundaries (split overscoped or merge underscoped epics) before writing. If CONCERNS, surface them and let the user decide. Do not write epic files until the producer gate resolves.
+Report the producer's assessment. If UNREALISTIC, revise the epic boundaries (split overscoped or merge underscoped epics) before writing. If CONCERNS, fix the items that carry a defect ticket (`rules/self-loop.md` § 2.1), record the rest as accepted concerns, and proceed to Step 5.
 
 ---
 
 ## 5. Write Epic Files
 
-After approval, ask: "May I write the epic file to `production/epics/[epic-slug]/EPIC.md`?"
-
-After user confirms, write:
+Write each epic and report the path with the revert command (`git checkout -- production/epics/[epic-slug]/`):
 
 ### `production/epics/[epic-slug]/EPIC.md`
 
@@ -219,13 +217,13 @@ After writing all epics for the requested scope:
 
 ## Collaborative Protocol
 
-1. **One epic at a time** — present each epic definition before asking to create it
-2. **Warn on gaps** — flag untraced requirements before proceeding
-3. **Ask before writing** — per-epic approval before writing any file
+1. **One epic at a time** — present each epic definition, then write it
+2. **Warn on gaps** — flag untraced requirements in the report
+3. **Write and report** — epic files are R-grade; report each path and the revert command
 4. **No invention** — all content comes from GDDs, ADRs, and architecture docs
 5. **Never create stories** — this skill stops at the epic level
 
 After all requested epics are processed:
 
 - **Verdict: COMPLETE** — [N] epic(s) written. Run `$create-stories [epic-slug]` per epic.
-- **Verdict: BLOCKED** — user declined all epics, or no eligible systems found.
+- **Verdict: BLOCKED** — no eligible systems found (no Approved/Designed GDD in scope) — K2.

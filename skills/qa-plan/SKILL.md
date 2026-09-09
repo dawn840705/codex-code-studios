@@ -21,7 +21,7 @@ plan.
 
 ## Phase 1: Parse Scope
 
-**Argument:** `the invocation arguments` (blank = ask user via direct user question)
+**Argument:** `the invocation arguments` (blank = `sprint` when `production/sprints/` has a file)
 
 Determine scope from the argument:
 
@@ -33,10 +33,9 @@ Determine scope from the argument:
   to stories whose file path or title contains the system name. Also check the
   epic index file (`EPIC.md`) in that system's directory.
 - **`story: [path]`** — validate that the path exists and load that single file.
-- **No argument** — ask the user directly:
-  - "What is the scope for this QA plan?"
-  - Options: "Current sprint", "Specific feature (enter system name)",
-    "Specific story (enter path)", "Full epic"
+- **No argument** — take `sprint` if `production/sprints/` contains a sprint file
+  and name the scope in the report. Only if no sprint exists, ask for the scope
+  (K2): current sprint / feature / story / full epic.
 
 After resolving scope, report: "Building QA plan for [N] stories in [scope]."
 
@@ -222,9 +221,8 @@ test entry should reflect the real requirements of these specific stories.
 ## Phase 5: Write Output
 
 Show the complete plan in conversation (or a summary if the plan is very long),
-then ask:
-
-"May I write this QA plan to `production/qa/qa-plan-[sprint-slug]-[date].md`?"
+then write it to `production/qa/qa-plan-[sprint-slug]-[date].md` and report the
+path and the revert command (`git checkout -- production/qa/qa-plan-[sprint-slug]-[date].md`).
 
 Write the plan exactly as generated — do not truncate.
 
@@ -242,7 +240,8 @@ Next steps:
 
 ## Collaborative Protocol
 
-- **Never write the plan without asking** — Phase 5 requires explicit approval.
+- **Write and report** — the plan is an R-grade artifact; Phase 5 writes it and
+  names the path and revert command.
 - **Classify conservatively**: when a story is ambiguous between Logic and
   Integration, classify it as Integration — it requires both unit and
   integration tests.
@@ -250,6 +249,5 @@ Next steps:
   support. If a formula is absent from the GDD, flag it rather than guessing.
 - **Playtest requirements are advisory**: the user decides whether a playtest
   is warranted for borderline Visual/Feel stories. Flag the case; do not mandate.
-- Ask the user directly for scope selection when no argument is provided.
-  Keep all other phases non-interactive — present findings, then ask once to
-  approve the write.
+- Ask for the scope only when no argument is given and no sprint file exists (K2).
+  Keep every phase non-interactive — present findings, write, report.

@@ -15,7 +15,7 @@ This skill is prescriptive ("are we ready to advance?" with a formal verdict).
 
 **Resolve the track first.** The `detect-project-type.sh` hook prints
 `PROJECT_TYPE`. `game` → game track. `web`/`mobile`/`service` → product track.
-`unknown` → ask the user before running any gate. Phase names are **not
+`unknown` → ask once, write `production/track.txt`, then run. Phase names are **not
 interchangeable between tracks**, and the two tracks are not 1:1 — product
 `discovery` covers game `concept` + `systems-design`, and product `build` covers
 `pre-production` + `production`. Never translate a phase name by position.
@@ -44,8 +44,9 @@ interchangeable between tracks**, and the two tracks are not 1:1 — product
 returns it.
 
 **When a gate passes**, write the new stage name to `production/stage.txt`
-(single line, e.g. `Production` or `Hardening`). This updates the status line
-immediately.
+(single line, e.g. `Production` or `Hardening`) and the report to
+`production/gate-checks/gate-check-[target-phase].md`. Both are R-grade writes:
+report the paths and the revert command.
 
 ---
 
@@ -53,14 +54,15 @@ immediately.
 
 **Track first.** Read `PROJECT_TYPE` from the session-start hook output, or run
 `../../hooks/detect-project-type.sh`. `game` → game gates. `web`/`mobile`/
-`service` → product gates. `unknown` → ask which the project is with
-a direct user question before doing anything else, and do not guess from the
-directory layout — a product project that happens to have a `design/` folder
-would be misrouted into the game gates.
+`service` → product gates. `unknown` → ask once which the project is, write
+`production/track.txt`, then continue (K1). Do not guess from the directory
+layout — a product project that happens to have a `design/` folder would be
+misrouted into the game gates.
 
 If the target phase names a phase from the **other** track (e.g. `$gate-check
 polish` on a service project), do not translate it. Say which track the project
-is on, list that track's gate targets, and ask.
+is on, list that track's gate targets, and stop — the argument is not on this
+track (K2).
 
 **Target phase:** `the first invocation argument` (blank = auto-detect current stage, then validate next transition)
 
@@ -72,18 +74,12 @@ Also resolve the review mode (once, store for all gate spawns this run):
 Note: in `solo` mode, director spawns (CD-PHASE-GATE, TD-PHASE-GATE, PR-PHASE-GATE, AD-PHASE-GATE) are skipped — gate-check becomes artifact-existence checks only. In `lean` mode, all four directors still run (phase gates are the purpose of lean mode).
 
 - **With argument**: `$gate-check production` — validate readiness for that specific phase
-- **No argument**: Auto-detect current stage using the same heuristics as
-  `$project-stage-detect`, then **confirm with the user before running**:
-
-  Ask the user directly:
-  - Prompt: "Detected stage: **[current stage]**. Running gate for [Current] → [Next] transition. Is this correct?"
-  - Options:
-    - `[A] Yes — run this gate`
-    - `[B] No — pick a different gate` (if selected, show a second widget listing the gate options **for the resolved track only** —
-      game: Concept → Systems Design, Systems Design → Technical Setup, Technical Setup → Pre-Production, Pre-Production → Production, Production → Polish, Polish → Release;
-      product: Discovery → Architecture, Architecture → Build, Build → Hardening, Hardening → Ship, Ship → Growth)
-  
-  Do not skip this confirmation step when no argument is provided.
+- **No argument**: auto-detect the current stage with `scripts/check_phase.py`
+  (the source `$project-stage-detect` reads) and run the gate for
+  [Current] → [Next]. Take the detected stage unless `production/stage.txt` names
+  a later one; if you deviate, name the reason in the report. Put "Detected
+  stage: **[stage]** (check_phase.py → exit N)" on the report's first line. No
+  confirmation question.
 
 ---
 
@@ -216,7 +212,7 @@ A depends on B). If any cycle is detected (e.g. A→B→A, or A→B→C→A):
 - [ ] A human has played through the core loop without developer guidance
 - [ ] The game communicates what to do within the first 2 minutes of play
 - [ ] No critical "fun blocker" bugs exist in the Vertical Slice build
-- [ ] The core mechanic feels good to interact with (this is a subjective check — ask the user)
+- [ ] The core mechanic feels good to interact with (subjective — K3, goes into the Section 4 block)
 
 > **Note**: If any Vertical Slice Validation item is FAIL, the verdict is automatically FAIL
 > regardless of other checks. Advancing without a validated Vertical Slice is the #1 cause of
@@ -421,15 +417,17 @@ cross-GDD consistency check failed and must be resolved before advancing.
 
 ---
 
-## 4. Collaborative Assessment
+## 4. Collaborative Assessment (K3 — asked once)
 
-For items that can't be automatically verified, **ask the user**:
+Items only a person can observe (core loop feel, informal playtests, profiling
+that is not on disk) are **MANUAL CHECK NEEDED**. Collect them; finish sections
+3, 4b and 5a first; then ask them all in **one question block** beneath the
+verdict, e.g. "Has the core loop been playtested?", "Has informal testing been
+done?", "Is profiling data available?".
 
-- "I can't automatically verify that the core loop plays well. Has it been playtested?"
-- "No playtest report found. Has informal testing been done?"
-- "Performance profiling data isn't available. Would you like to run `$perf-profile`?"
-
-**Never assume PASS for unverifiable items.** Mark them as MANUAL CHECK NEEDED.
+**Never assume PASS for unverifiable items.** An unanswered item stays MANUAL
+CHECK NEEDED, is appended to `production/human-actions.md`, and caps the verdict
+at CONCERNS.
 
 ---
 
@@ -465,8 +463,8 @@ Art Director:       [READY / CONCERNS / NOT READY]
 ```
 
 **Apply to the verdict:**
-- Any director returns NOT READY → verdict is minimum FAIL (user may override with explicit acknowledgement)
-- Any director returns CONCERNS → verdict is minimum CONCERNS
+- Any director returns NOT READY → verdict is minimum FAIL. Director verdicts are advisory: the user may override with the risk recorded in the report; a deterministic gate exit `2` (`check_phase.py`, `verify_policy.py`) may not be overridden
+- Any director returns CONCERNS → fix the items that carry a defect ticket (`rules/self-loop.md` § 2.1), record the rest as accepted concerns; verdict is minimum CONCERNS
 - All four READY → eligible for PASS (still subject to artifact and quality checks from Section 3)
 
 ---
@@ -534,7 +532,7 @@ For a **FAIL** draft:
 - "Is the fail condition resolvable, or does it indicate a deeper design problem?"
 
 **Step 2 — Answer each question** independently.
-Do NOT reference the draft verdict text — re-check specific files or ask the user.
+Do NOT reference the draft verdict text — re-check specific files; human-only items go into the Section 4 block.
 
 **Step 3 — Revise if needed:**
 - If any answer reveals a missed blocker → upgrade verdict (PASS→CONCERNS or CONCERNS→FAIL)
@@ -546,47 +544,33 @@ Do NOT reference the draft verdict text — re-check specific files or ask the u
 
 ---
 
-## 6. Update Stage on PASS
+## 6. Write the Report and Update Stage
 
-When the verdict is **PASS** and the user confirms they want to advance:
+Write the report from section 5 to `production/gate-checks/gate-check-[target-phase].md`
+and report the path and the revert command.
 
-1. Write the new stage name to `production/stage.txt` (single line, no trailing newline)
-2. This immediately updates the status line for all future sessions
+- **PASS** → write the new stage name to `production/stage.txt` (single line, no
+  trailing newline) and report the path and revert command
+  (`git checkout -- production/stage.txt`). No confirmation question.
+- **CONCERNS / FAIL** → do not touch `stage.txt`. Report what blocks. Director
+  verdicts are advisory and the user may still advance with the risk recorded;
+  a deterministic gate exit `2` is the only verdict nobody overrides.
 
 Example: if passing the "Pre-Production → Production" gate:
 ```bash
 echo -n "Production" > production/stage.txt
 ```
 
-**Always ask before writing**: "Gate passed. May I update `production/stage.txt` to 'Production'?"
-
 ---
 
-## 7. Closing Next-Step Widget
+## 7. Closing Next Step
 
-After the verdict is presented and any stage.txt update is complete, close with a structured next-step prompt by asking the user directly.
+After the verdict and any `stage.txt` update, name the single recommended next
+skill for the gate that ran. Recommend only; do not ask and do not run it.
 
-**Tailor the options to the gate that just ran:**
-
-For **systems-design PASS**:
-```
-Gate passed. What would you like to do next?
-[A] Run $create-architecture — produce your master architecture blueprint and ADR work plan (recommended next step)
-[B] Design more GDDs first — return here when all MVP systems are complete
-[C] Stop here for this session
-```
-
-> **Note for systems-design PASS**: `$create-architecture` is the required next step before writing any ADRs. It produces the master architecture document and a prioritized list of ADRs to write. Running `$architecture-decision` without this step means writing ADRs without a blueprint — skip it at your own risk.
-
-For **technical-setup PASS**:
-```
-Gate passed. What would you like to do next?
-[A] Start Pre-Production — begin prototyping the Vertical Slice
-[B] Write more ADRs first — run $architecture-decision [next-system]
-[C] Stop here for this session
-```
-
-For all other gates, offer the two most logical next steps for that phase plus "Stop here".
+- **systems-design PASS** → `$create-architecture` (required before any ADR: it produces the master architecture document and the prioritized ADR list)
+- **technical-setup PASS** → begin Pre-Production prototyping of the Vertical Slice; `$architecture-decision [next-system]` if ADR gaps were listed
+- **any other gate** → the first item of section 8 that applies to the verdict
 
 ---
 
@@ -617,13 +601,7 @@ loses the user's trust.
 - **Small design change needed?** → `$quick-design` for changes under ~4 hours (bypasses full GDD pipeline)
 - **No UX specs?** → `$ux-design [screen name]` to author specs, or `$team-ui [feature]` for full pipeline
 - **UX specs not reviewed?** → `$ux-review [file]` or `$ux-review all` to validate
-- **No accessibility requirements doc?** → Ask the user directly to offer to create it now:
-  - Prompt: "The gate requires `design/accessibility-requirements.md`. Shall I create it from the template?"
-  - Options: `Create it now — I'll choose an accessibility tier`, `I'll create it myself`, `Skip for now`
-  - If "Create it now": use a second a direct user question to ask for the tier:
-    - Prompt: "Which accessibility tier fits this project?"
-    - Options: `Basic — remapping + subtitles only (lowest effort)`, `Standard — Basic + colorblind modes + scalable UI`, `Comprehensive — Standard + motor accessibility + full settings menu`, `Exemplary — Comprehensive + external audit + full customization`
-  - Then write `design/accessibility-requirements.md` using the template at `../../docs/templates/accessibility-requirements.md`, filling in the chosen tier. Confirm: "May I write `design/accessibility-requirements.md`?"
+- **No accessibility requirements doc?** → write `design/accessibility-requirements.md` from the template at `../../docs/templates/accessibility-requirements.md`. Take tier `Basic` (remapping + subtitles) unless the concept, PRD or platform target names a higher one (`Standard` adds colorblind modes + scalable UI; `Comprehensive` adds motor accessibility + full settings menu; `Exemplary` adds an external audit). Name the tier and the reason in the report, with the path and revert command; the user can raise the tier later
 - **No interaction pattern library?** → `$ux-design patterns` to initialize it
 - **GDDs not cross-reviewed?** → `$review-all-gdds` (run after all MVP GDDs are individually approved)
 - **Cross-GDD consistency issues?** → fix flagged GDDs, then re-run `$review-all-gdds`
@@ -653,11 +631,8 @@ loses the user's trust.
 
 This skill follows the collaborative design principle:
 
-1. **Scan first**: Check all artifacts and quality gates
-2. **Ask about unknowns**: Don't assume PASS for things you can't verify
-3. **Present findings**: Show the full checklist with status
-4. **User decides**: The verdict is a recommendation — the user makes the final call
-5. **Get approval**: "May I write this gate check report to production/gate-checks/?"
-
-**Never** block a user from advancing — the verdict is advisory. Document the risks
-and let the user decide whether to proceed despite concerns.
+1. **Scan first**: check all artifacts and quality gates
+2. **Ask about unknowns once**: one block after the checks; an unanswered item stays MANUAL CHECK NEEDED, never PASS
+3. **Present findings**: show the full checklist with status
+4. **Write and report**: the report goes to `production/gate-checks/`, `stage.txt` moves only on PASS; both paths come with a revert command
+5. **Advisory except the deterministic gates**: the verdict is a recommendation. The user may advance despite CONCERNS or a director NOT READY, with the risk recorded in the report. `check_phase.py` / `verify_policy.py` exit `2` is not overridable here.

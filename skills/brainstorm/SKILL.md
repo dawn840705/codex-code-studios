@@ -25,16 +25,12 @@ When this skill is invoked:
    - Read `design/gdd/game-concept.md` if it exists (resume, don't restart)
    - Read `design/gdd/game-pillars.md` if it exists (build on established pillars)
 
-3. **Run through ideation phases** interactively, asking the user questions at
-   each phase. Do NOT generate everything silently — the goal is **collaborative
-   exploration** where the AI acts as a creative facilitator, not a replacement
-   for the human's vision.
-
-   **Ask the user directly** at key decision points throughout brainstorming:
-   - Constrained taste questions (genre preferences, scope, team size)
-   - Concept selection ("Which 2-3 concepts resonate?") after presenting options
-   - Direction choices ("Develop further, explore more, or prototype?")
-   - Pillar ranking after concepts are refined
+3. **Run through the ideation phases.** The user's taste and vision are the input
+   — the AI is a creative facilitator, not a replacement for them. Stop for the
+   user only at these K1 points; everything else is decided, written and reported:
+   - Phase 1 taste and constraint questions (only the person knows them)
+   - Concept selection (Phase 2)
+   - Target platform and engine (Phase 6)
    Write full creative analysis in conversation text first, then use
    a direct user question to capture the decision with concise labels.
 
@@ -76,7 +72,7 @@ Use exactly these tab names — do not rename or duplicate them.
 
 **Synthesize** the answers into a **Creative Brief** — a 3-5 sentence
 summary of the person's emotional goals, taste profile, and constraints.
-Read the brief back and confirm it captures their intent.
+Read the brief back and proceed; corrections the user makes later are applied to the document.
 
 ---
 
@@ -141,13 +137,13 @@ isolation, no amount of content or polish will save the game.
 
 **30-Second Loop** (moment-to-moment):
 
-Ask these as a direct user question calls — derive the options from the chosen concept, don't hardcode them:
+Derive these from the chosen concept and the creative brief; do not ask:
 
-1. **Core action feel** — prompt: "What's the primary feel of the core action?" Generate 3-4 options that fit the concept's genre and tone, plus a free-text escape (`I'll describe it`).
+1. **Core action feel** — pick the feel that fits the concept's genre, tone and the brief's "Experience" answer from 3-4 candidates; name the candidates and the choice as an `Assumption:` in the Core Loop section.
 
-2. **Key design dimension** — identify the most important design variable for this specific concept (e.g., world reactivity, pacing, player agency) and ask about it. Generate options that match the concept. Always include a free-text escape.
+2. **Key design dimension** — identify the most important design variable for this specific concept (e.g., world reactivity, pacing, player agency), choose a position on it the same way, and record it as an `Assumption:`.
 
-After capturing answers, analyze: Is this action intrinsically satisfying? What makes it feel good? (Audio feedback, visual juice, timing satisfaction, tactical depth?)
+Then analyze: Is this action intrinsically satisfying? What makes it feel good? (Audio feedback, visual juice, timing satisfaction, tactical depth?)
 
 **5-Minute Loop** (short-term goals):
 - What structures the moment-to-moment play into cycles?
@@ -190,15 +186,9 @@ Then define **3+ anti-pillars** (what this game is NOT):
   be cool if..." features that don't serve the core vision
 - Frame as: "We will NOT do [thing] because it would compromise [pillar]"
 
-**Pillar confirmation**: After presenting the full pillar set, ask the user directly:
-- Prompt: "Do these pillars feel right for your game?"
-- Options: `[A] Lock these in` / `[B] Rename or reframe one` / `[C] Swap a pillar out` / `[D] Something else`
-
-If the user selects B, C, or D, make the revision, then ask the user directly again:
-- Prompt: "Pillars updated. Ready to lock these in?"
-- Options: `[A] Lock these in` / `[B] Revise another pillar` / `[C] Something else`
-
-Repeat until the user selects [A] Lock these in.
+**Pillar set**: present the full set once with each pillar's design test, then proceed
+with it. Pillars are R — a rename or swap later is an edit to the concept document,
+not a reason to stop here.
 
 **Review mode check** — apply before spawning CD-PILLARS and AD-CONCEPT-VISUAL:
 - `solo` → skip both. Note: "CD-PILLARS skipped — Solo mode. AD-CONCEPT-VISUAL skipped — Solo mode." Proceed to Phase 5.
@@ -213,13 +203,11 @@ Repeat until the user selects [A] Lock these in.
 - **`art-director`** — gate **AD-CONCEPT-VISUAL** (`../../docs/director-gates.md`)
   Pass: game concept elevator pitch, full pillar set with design tests, target platform (if known), any reference games or visual touchstones the user mentioned.
 
-Collect both verdicts, then present them together using a two-tab a direct user question:
-- Tab **"Pillars"**: present creative-director feedback. Options mirror the standard CD-PILLARS handling — `Lock in as-is` / `Revise [specific pillar]` / `Discuss further`.
-- Tab **"Visual anchor"**: present the art-director's 2-3 named visual direction options. Options: each named direction (one per option) + `Combine elements across directions` + `Describe my own direction`.
+Collect both verdicts, then:
+- **Pillars**: on CONCERNS, fix the items that carry a defect ticket (`rules/self-loop.md` § 2.1) and record the rest as accepted concerns; on REJECT, rework the pillar set with the ticketed defects. Report the outcome.
+- **Visual anchor**: take the direction the art-director recommends (or the first named one) as the **provisional Visual Identity Anchor**. It is written into the game-concept document marked `(provisional)` and becomes the foundation of the art bible. Visual adoption is a K3 choice — list the 2-3 named directions in the closing summary (step 7) so the user can swap it; do not stop here.
 
-The user's selected visual anchor (the named direction or their custom description) is stored as the **Visual Identity Anchor** — it will be written into the game-concept document and becomes the foundation of the art bible.
-
-If the creative-director returns CONCERNS or REJECT on pillars, resolve pillar issues before asking for the visual anchor selection — visual direction should flow from confirmed pillars.
+Resolve pillar issues before choosing the anchor — visual direction flows from confirmed pillars.
 
 ---
 
@@ -267,7 +255,7 @@ Ground the concept in reality:
 
 Pass: core loop description, platform target, engine choice (or "undecided"), list of identified technical risks.
 
-Present the assessment to the user. If HIGH RISK, offer to revisit scope before finalising. If CONCERNS, note them and continue.
+Report the assessment. If HIGH RISK, move the risky element out of the MVP tier into a later scope tier and name the move. If CONCERNS, fix the ticketed items, note the rest, and continue.
 
 **Review mode check** — apply before spawning PR-SCOPE:
 - `solo` → skip. Note: "PR-SCOPE skipped — Solo mode." Proceed to document generation.
@@ -278,7 +266,7 @@ Present the assessment to the user. If HIGH RISK, offer to revisit scope before 
 
 Pass: full vision scope, MVP definition, timeline estimate, team size.
 
-Present the assessment to the user. If UNREALISTIC, offer to adjust the MVP definition or scope tiers before writing the document.
+Report the assessment. If UNREALISTIC, trim the MVP definition or scope tiers until the producer's capacity arithmetic holds, and name each cut, before writing the document.
 
 ---
 
@@ -296,17 +284,9 @@ Present the assessment to the user. If UNREALISTIC, offer to adjust the MVP defi
    This section is the seed of the art bible — it captures the "everything must
    move" decision before it can be forgotten between sessions.
 
-5. Ask the user directly for write approval:
-- Prompt: "Game concept is ready. May I write it to `design/gdd/game-concept.md`?"
-- Options: `[A] Yes — write it` / `[B] Not yet — revise a section first`
-
-If [B]: ask which section to revise by asking the user directly with options: `Elevator Pitch` / `Core Fantasy & Unique Hook` / `Pillars` / `Core Loop` / `MVP Definition` / `Scope Tiers` / `Risks` / `Something else — I'll describe`
-
-After revising, show the updated section as a diff or clear before/after, then ask the user directly — "Ready to write the updated concept document?"
-Options: `[A] Yes — write it` / `[B] Revise another section`
-Repeat until the user selects [A].
-
-If yes, generate the document using the template at `../../docs/templates/game-concept.md`, fill in ALL sections from the brainstorm conversation, and write the file, creating directories as needed.
+5. Write it to `design/gdd/game-concept.md`, creating directories as needed.
+   Report the path and the revert command (`git checkout -- design/gdd/game-concept.md`).
+   Revisions the user asks for afterwards are section edits shown as before/after.
 
 **Scope consistency rule**: The "Estimated Scope" field in the Core Identity table must match the full-vision timeline from the Scope Tiers section — not just say "Large (9+ months)". Write it as "Large (X–Y months, solo)" or "Large (X–Y months, team of N)" so the summary table is accurate.
 
@@ -326,7 +306,9 @@ If yes, generate the document using the template at `../../docs/templates/game-c
    11. "If validated, plan the first sprint with `$sprint-plan new`"
 
 7. **Output a summary** with the chosen concept's elevator pitch, pillars,
-   primary player type, engine recommendation, biggest risk, and file path.
+   primary player type, engine recommendation, biggest risk, the `Assumption:`
+   lines from Phase 3, the provisional visual anchor with its alternatives (K3 —
+   the one question in this summary), and the file path.
 
 Verdict: **COMPLETE** — game concept created and handed off for next steps.
 

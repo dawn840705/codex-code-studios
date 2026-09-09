@@ -10,8 +10,9 @@ description: "End-of-story completion review. Reads the story file, verifies eac
 > - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
 >   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
 >   the stack pinned in `.codex/studio/technical-preferences.md`. Check deviations against the PRD and the ADRs, not a GDD.
-> - **Unresolved** — ask which track this is before doing anything. A greenfield project
->   has no signal either way; do not infer one from the repository contents.
+> - **Unresolved** — ask once which track this is, write the answer to `production/track.txt`,
+>   then continue. A greenfield project has no signal either way; do not infer one from the
+>   repository contents.
 
 # Story Done
 
@@ -39,13 +40,12 @@ read that file directly.
 
 **If no argument is provided:**
 
-1. Check `production/session-state/active.md` for the currently active story.
-2. If not found there, read the most recent file in `production/sprints/` and
-   look for stories marked IN PROGRESS.
-3. If multiple in-progress stories are found, ask the user directly:
-   - "Which story are we completing?"
-   - Options: list the in-progress story file names.
-4. If no story can be found, ask the user to provide the path.
+1. Read `production/session-state/active.md`; the active story it names is the story.
+2. Else read `production/sprint-status.yaml` (or the most recent file in
+   `production/sprints/`) and take the story marked IN PROGRESS. If several are in
+   progress, take the most recently modified story file.
+3. Only if that leaves nothing (no active story, no in-progress story) or two files
+   share a timestamp, ask for the path (K2).
 
 ---
 
@@ -92,18 +92,16 @@ three methods:
   that should be in localization files.
 - **Dependency check**: if a criterion says "depends on X", check that X exists.
 
-### Manual verification with confirmation (ask the user directly)
+### Manual verification (K3 — only a person can observe)
 
 - Criteria about subjective qualities ("feels responsive", "animations play correctly")
 - Criteria about gameplay behaviour ("player takes damage when...", "enemy responds to...")
-- Performance criteria ("completes within Xms") — ask if profiled or accept as assumed
+- Performance criteria ("completes within Xms") — unless a profile is on disk
 
-Batch up to 4 manual verification questions into a single a direct user question call:
-
-```
-question: "Does [criterion]?"
-options: "Yes — passes", "No — fails", "Not tested yet"
-```
+Collect these; do not ask yet. After Phases 3–5b, ask them all in **one question
+block** beneath the Phase 6 report (`Does [criterion]?` — Yes / No / Not tested yet).
+Unanswered or "Not tested yet" → `DEFERRED — manual check pending`; it never blocks
+the verdict (only "No" does) and is appended to `production/human-actions.md`.
 
 ### Unverifiable (flag without blocking)
 
@@ -122,8 +120,8 @@ For each acceptance criterion in the story:
    - **Unit test**: check `tests/unit/` for a test file or function name that
      matches the criterion's subject (use `Glob` and `Grep`)
    - **Integration test**: check `tests/integration/` similarly
-   - **Manual confirmation**: if the criterion was verified by asking the user directly
-     above with a "Yes — passes" answer, count that as a manual test
+   - **Manual confirmation**: a "Yes" in the Phase 6 block counts as a manual test;
+     a DEFERRED item is `PENDING (manual)` and is excluded from the UNTESTED percentage
 
 2. Produce a traceability table:
 
@@ -226,7 +224,7 @@ For each deviation found, categorize:
 - **BLOCKING** — implementation contradicts the GDD or ADR (must fix before
   marking complete)
 - **ADVISORY** — implementation drifts slightly from spec but is functionally
-  equivalent (document, user decides)
+  equivalent (document; goes to the tech-debt register in Phase 7)
 - **OUT OF SCOPE** — additional files were touched beyond the story's stated
   boundary (flag for awareness — may be valid or scope creep)
 
@@ -269,9 +267,10 @@ Spawn `lead-programmer` as a Codex subagent using gate **LP-CODE-REVIEW** (`../.
 
 Pass: implementation file paths, story file path, relevant GDD section, governing ADR.
 
-Present the verdict to the user. If CONCERNS, surface them by asking the user directly:
-- Options: `Revise flagged issues` / `Accept and proceed` / `Discuss further`
-If REJECT, do not proceed to Phase 6 verdict until the issues are resolved.
+Report the verdict. If CONCERNS, fix the items that carry a defect ticket
+(`rules/self-loop.md` § 2.1), record the rest as accepted concerns, and proceed.
+If REJECT, rework via `$self-loop` when a defect ticket exists; otherwise the Phase 6
+verdict is BLOCKED with the blockers listed. Director verdicts are advisory.
 
 If the story has no implementation files yet (verdict is being run before coding is done), skip this phase and note: "LP-CODE-REVIEW skipped — no implementation files found. Run after implementation is complete."
 
@@ -304,7 +303,7 @@ committed mid-story. If you do not know the commit: `--base $(git merge-base HEA
 | Exit | Meaning | What to do |
 |---|---|---|
 | `0` | Compliant | Proceed to Phase 6 |
-| `1` | Warning (P3 track mixing / P4 path convention) | Report it in Phase 6 and let the user decide |
+| `1` | Warning (P3 track mixing / P4 path convention) | Report it in Phase 6 as WARN; it does not block |
 | `2` | Abort (P1 missing evidence / P2 skip marker added) | **Verdict is BLOCKED.** Do not proceed to Phase 7 |
 | `3` | Cannot judge (not a git repo, diff failed) | Say so. **Never record this as a pass** |
 
@@ -315,7 +314,8 @@ Carry the exit code into the Phase 6 report verbatim, naming the gate:
 
 ## Phase 6: Present the Completion Report
 
-Before updating any files, present the full report:
+Present the full report with the K3 question block (Phase 3) beneath it. Apply the
+answers: Yes → `[x]`, No → FAILS, none → `[?] DEFERRED`. Then write Phase 7.
 
 ```markdown
 ## Story Done: [Story Name]
@@ -360,8 +360,8 @@ Before updating any files, present the full report:
 
 **Verdict definitions:**
 - **COMPLETE**: all criteria pass, no blocking deviations, policy axis exit `0`
-- **COMPLETE WITH NOTES**: all criteria pass; advisory deviations and/or a policy
-  exit `1` documented
+- **COMPLETE WITH NOTES**: all criteria pass or are DEFERRED; advisory deviations
+  and/or a policy exit `1` documented
 - **BLOCKED**: failing criteria, blocking deviations, **or a policy exit `2`**
 
 **The two axes never cancel each other.** A completion PASS beside a policy FAIL
@@ -369,17 +369,17 @@ is still BLOCKED — that combination is precisely the case this gate exists to
 catch, and reporting only the completion half is how it goes unrecorded. If the
 policy gate exited `3`, write "policy: NOT RUN" and never "policy: PASS".
 
-If the verdict is **BLOCKED**: do not proceed to Phase 7. List what must be
-fixed. Offer to help fix the blocking items.
+If the verdict is **BLOCKED**: do not proceed to Phase 7. On failing criteria or
+blocking deviations with a defect ticket, enter `$self-loop` (`rules/self-loop.md`
+§ 2.1) and re-run from Phase 3 each round. Report BLOCKED only on hard_error/blocked
+(§ 4.1); a policy exit `2` is hard_error and nobody overrides it.
 
 ---
 
 ## Phase 7: Update Story Status
 
-Ask before writing: "May I update the story file to mark it Complete and log
-the completion notes?"
-
-If yes, edit the story file:
+Edit the story file. Report the path and the revert command
+(`git checkout -- [story-path]`).
 
 1. Update the status field: `Status: Complete`
 2. Add a `## Completion Notes` section at the bottom:
@@ -393,14 +393,13 @@ If yes, edit the story file:
 **Code Review**: [Pending / Complete / Skipped]
 ```
 
-3. If advisory deviations exist, ask: "Should I log these as tech debt in
-   `docs/tech-debt-register.md`?"
+3. If advisory deviations exist, append them to `docs/tech-debt-register.md`
+   (create it if absent) and report the path.
 
 4. **Update `production/sprint-status.yaml`** (if it exists):
    - Find the entry matching this story's file path or ID
    - Set `status: done` and `completed: [today's date]`
    - Update the top-level `updated` field
-   - This is a silent update — no extra approval needed (already approved in step above)
 
 ### Session State Update
 
@@ -450,9 +449,7 @@ Run these in order:
 
 1. `$smoke-check sprint` — verify the critical path still works end-to-end
 2. `$team-qa sprint` — full QA cycle: test case execution, bug triage, sign-off report
-3. `$gate-check` — advance to the next phase once QA approves
-
-Do not run `$gate-check` until `$team-qa` returns APPROVED or APPROVED WITH CONDITIONS.
+3. `$gate-check` — advance to the next phase; its gate lists the `$team-qa` sign-off (APPROVED or APPROVED WITH CONDITIONS) as a required artifact
 ```
 
 If there are Should Have stories still unstarted, surface them alongside the close-out sequence so the user can choose: close the sprint now, or pull in more work first.
@@ -464,15 +461,15 @@ If no more stories are ready but Must Have stories are still In Progress (not Co
 
 ## Collaborative Protocol
 
-- **Never mark a story complete without user approval** — Phase 7 requires an
-  explicit "yes" before any file is edited.
-- **Never auto-fix failing criteria** — report them and ask what to do.
-- **Deviations are facts, not judgments** — present them neutrally; the user
-  decides if they are acceptable.
-- **BLOCKED verdict is advisory** — the user can override and mark complete
-  anyway; document the risk explicitly if they do.
-- Ask the user directly for the code review prompt and for batching manual
-  criteria confirmations.
+- **Phase 7 writes and reports** — story file, `sprint-status.yaml`, tech-debt
+  register and session state are R-grade writes; each path comes with a revert command.
+- **On FAIL with a defect ticket, enter `$self-loop`** (`rules/self-loop.md` § 2.1);
+  report BLOCKED only on hard_error/blocked.
+- **Deviations are facts, not judgments** — present them neutrally with the GDD/ADR
+  reference; advisory ones go to the tech-debt register.
+- **BLOCKED on the policy axis is final** — `verify_policy.py` exit `2` is not
+  overridable here. BLOCKED on the completion axis is advisory: the user may close
+  the story anyway; record the accepted risk in Completion Notes.
 
 ---
 
