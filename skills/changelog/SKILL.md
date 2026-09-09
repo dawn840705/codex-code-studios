@@ -136,28 +136,21 @@ Output both changelogs to the user. The internal changelog is the primary workin
 
 ---
 
-## Phase 7: Offer File Write
+## Phase 7: Write
 
-After presenting the changelogs, ask the user:
+Write the internal changelog to `docs/CHANGELOG.md`:
 
-> "May I write this changelog to `docs/CHANGELOG.md`?
-> [A] Yes, append this entry (recommended if the file already exists)
-> [B] Yes, overwrite the file entirely
-> [C] No — I'll copy it manually"
+- If the file exists: append the new entry at the top (newest entries first).
+  Never overwrite it — the file exists to keep history.
+- If it does not exist: create it with this entry.
 
-- Check whether `docs/CHANGELOG.md` exists before asking. If it does, default the
-  recommendation to **[A] append**.
-- If the user selects [A]: append the new internal changelog entry to the top of
-  the existing file (newest entries first).
-- If the user selects [B]: overwrite the file with the new changelog.
-- If the user selects [C]: stop here without writing.
+Report the path and the revert command (`git checkout -- docs/CHANGELOG.md`).
 
-After a successful write: Verdict: **CHANGELOG WRITTEN** — changelog saved to `docs/CHANGELOG.md`.
-If the user declines: Verdict: **COMPLETE** — changelog generated.
+Verdict: **COMPLETE** — changelog written to `docs/CHANGELOG.md`.
 
 ---
 
-## Phase 7: Next Steps
+## Phase 8: Next Steps
 
 - Use `$patch-notes [version]` to generate a styled, saved version for public release.
 - Use `$release-checklist` before publishing the changelog externally.

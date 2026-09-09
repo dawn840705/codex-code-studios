@@ -221,17 +221,18 @@ Verdict: PASS | CONFLICTS FOUND
 
 ## Phase 6: Registry Corrections
 
-If stale registry entries were found, ask:
-> "May I update `design/registry/entities.yaml` to fix the [N] stale entries?"
+If stale registry entries were found, update `design/registry/entities.yaml` to
+fix the [N] stale entries. Report the path and the revert command
+(`git checkout -- design/registry/entities.yaml`).
 
 For each stale entry:
 - Update the `value` / attribute field
 - Set `revised:` to today's date
 - Add a YAML comment with the old value: `# was: [old_value] before [date]`
 
-If new entries were found in GDDs that are not in the registry, ask:
-> "Found [N] entities/items mentioned in GDDs that aren't in the registry yet.
-> May I add them to `design/registry/entities.yaml`?"
+If new entries were found in GDDs that are not in the registry, add them to
+`design/registry/entities.yaml` in the same pass and list them in the report
+("Added [N] entities/items mentioned in GDDs that were not in the registry").
 
 Only add entries that appear in more than one GDD (true cross-system facts).
 

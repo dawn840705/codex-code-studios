@@ -4,15 +4,14 @@ description: "Orchestrate the release team: coordinates release-manager, qa-lead
 ---
 **Argument check:** If no version number is provided:
 1. Read `production/session-state/active.md` and the most recent file in `production/milestones/` (if they exist) to infer the target version.
-2. If a version is found: report "No version argument provided — inferred [version] from milestone data. Proceeding." Then confirm with a direct user question: "Releasing [version]. Is this correct?"
-3. If no version is discoverable: ask the user directly to ask "What version number should be released? (e.g., v1.0.0)" and wait for user input before proceeding. Do NOT default to a hardcoded version string.
+2. If a version is found: report "No version argument provided — inferred [version] from milestone data. Proceeding." The version is confirmed at the Phase 6 stop, before anything irreversible runs.
+3. If no version is discoverable (K2): stop with Verdict: **BLOCKED** — version unresolved; re-run `$team-release <version>` (e.g., v1.0.0). Do NOT default to a hardcoded version string.
 
 When this skill is invoked, orchestrate the release team through a structured pipeline.
 
-**Decision Points:** At each phase transition, ask the user directly to present
-the user with the subagent's proposals as selectable options. Write the agent's
-full analysis in conversation, then capture the decision with concise labels.
-The user must approve before moving to the next phase.
+**Decision Points:** Proceed through phases autonomously. Record each phase's
+decision and the alternatives rejected in the final report; stop only on K1/K2
+or a gate exit 2 (`rules/autonomy-contract.md`).
 
 ## Team Composition
 - **release-manager** — Release branch, versioning, changelog, deployment
@@ -76,28 +75,25 @@ Delegate to **producer**:
 - Output: release decision with rationale
 
 **If producer declares NO-GO:**
-- Surface the decision immediately: "PRODUCER: NO-GO — [rationale, e.g., S1 bug found in Phase 3]."
-- Ask the user directly with options:
-  - Fix the blocker and re-run the affected phase
-  - Defer the release to a later date
-  - Override NO-GO with documented rationale (user must provide written justification)
+- Surface the decision: "PRODUCER: NO-GO — [rationale, e.g., S1 bug found in Phase 3]."
 - **Skip Phase 6 entirely** — do not tag, deploy to staging, deploy to production, or spawn community-manager.
-- Produce a partial report summarizing Phases 1–5 and what was skipped (Phase 6) and why.
+- Produce a partial report summarizing Phases 1–5, what was skipped (Phase 6) and why, and the fix that would unblock re-running the affected phase. Overriding a NO-GO is a K1 decision: it needs the user's written justification and a re-run.
 - Verdict: **BLOCKED** — release not deployed.
 
+A GO from the producer is a decision item, not deployment authorization. Deployment is R4 (`rules/verify-route.md`): it never runs unattended.
+
 ### Phase 6: Deployment (if GO)
-Delegate to **release-manager** + **devops-engineer**:
+Write the reversible artifacts first, without asking:
+- **release-manager**: generate the changelog using `$changelog`
+- **community-manager** (in parallel): finalize patch notes using `$patch-notes [version]`; prepare the launch announcement (store page updates, social media, community post); draft a known-issues post if any S3+ issues shipped. Output: all player-facing release communication, ready to publish on deploy confirmation
+
+Then **stop (K1, R4)** before anything irreversible. Present the go decision, the release checklist, the changelog, the patch notes, and the exact commands that would tag, deploy, and submit. Wait for the user's explicit approval; until it arrives, end with Verdict: **BLOCKED** — awaiting release approval for [version].
+
+After approval, delegate to **release-manager** + **devops-engineer**:
 - Tag the release in version control
-- Generate changelog using `$changelog`
 - Deploy to staging for final smoke test
 - Deploy to production
 - Monitor for 48 hours post-release
-
-Delegate to **community-manager** (in parallel with deployment):
-- Finalize patch notes using `$patch-notes [version]`
-- Prepare launch announcement (store page updates, social media, community post)
-- Draft known issues post if any S3+ issues shipped
-- Output: all player-facing release communication, ready to publish on deploy confirmation
 
 ### Phase 7: Post-Release
 - **release-manager**: Generate release report (what shipped, what was deferred, metrics)
@@ -111,12 +107,9 @@ Delegate to **community-manager** (in parallel with deployment):
 
 If any spawned agent (as a Codex subagent) returns BLOCKED, errors, or cannot complete:
 
-1. **Surface immediately**: Report "[AgentName]: BLOCKED — [reason]" to the user before continuing to dependent phases
-2. **Assess dependencies**: Check whether the blocked agent's output is required by subsequent phases. If yes, do not proceed past that dependency point without user input.
-3. **Offer options** via direct user question with choices:
-   - Skip this agent and note the gap in the final report
-   - Retry with narrower scope
-   - Stop here and resolve the blocker first
+1. **Record it**: "[AgentName]: BLOCKED — [reason]" and the phase it interrupted, in the final report
+2. **Choose the narrowest recovery yourself and report it**: retry with narrower scope, or skip the agent and note the gap
+3. **BLOCKED only when the missing output is required by a later phase and cannot be reproduced** (K1/K2). Name what is needed to resume
 4. **Always produce a partial report** — output whatever was completed. Never discard work because one agent blocked.
 
 Common blockers:
@@ -127,16 +120,19 @@ Common blockers:
 
 ## File Write Protocol
 
-All file writes (release checklists, changelogs, patch notes, deployment scripts) are
-delegated to sub-agents and sub-skills. Each enforces the "May I write to [path]?"
-protocol. This orchestrator does not write files directly.
+All file writes (release checklists, changelogs, patch notes, deployment
+scripts) are delegated to sub-agents and sub-skills. This orchestrator does not
+write files directly. Each sub-agent writes only within its owned paths
+(`rules/subagent-collaboration.md` § 3) and returns the paths written; list
+every path with its revert command (`git checkout -- <path>`) in the final
+report.
 
 ## Output
 
 A summary report covering: release version, scope, quality gate results, go/no-go decision, deployment status, and monitoring plan.
 
 Verdict: **COMPLETE** — release executed and deployed.
-Verdict: **BLOCKED** — release halted; go/no-go was NO or a hard blocker is unresolved.
+Verdict: **BLOCKED** — release halted; go/no-go was NO, deployment approval is pending, or a hard blocker is unresolved.
 
 ## Next Steps
 

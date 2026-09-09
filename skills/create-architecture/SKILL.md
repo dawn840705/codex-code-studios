@@ -123,8 +123,8 @@ Post-Cutoff Versions: [list]
 - [GDD system name] → [domain] → [risk level]
 ```
 
-Ask: "This inventory identifies [N] systems in HIGH RISK engine domains. Shall I
-continue building the architecture with these warnings flagged throughout?"
+Record the inventory in the report ("[N] systems in HIGH RISK engine domains")
+and continue building the architecture with these warnings flagged throughout.
 
 ---
 
@@ -153,8 +153,9 @@ For each GDD system, ask:
 - What are its module boundaries?
 - What does it own exclusively? (data, state, behaviour)
 
-Present the proposed layer assignment and ask for approval before proceeding to
-the next section. Write the approved layer map immediately to the skeleton file.
+Write the layer map immediately to the skeleton file. Record the assignments in
+the report, with the rejected alternative for any system that could sit in two
+layers, marked `[확인 필요]`.
 
 **Engine awareness check**: For each system assigned to the Core and Foundation
 layers, flag if it touches a HIGH or MEDIUM risk engine domain. Show the relevant
@@ -183,7 +184,8 @@ relevant module reference doc. If an API is post-cutoff, flag it:
     Behaviour confirmed: [yes / NEEDS VERIFICATION]
 ```
 
-Get user approval on the ownership map before writing.
+Write the ownership map to the skeleton file. Mark any ownership that could go
+either way `[확인 필요]` and name the alternative owner.
 
 ---
 
@@ -202,7 +204,7 @@ Use ASCII sequence diagrams where helpful. For each data flow:
 - State whether this is synchronous call, signal/event, or shared state
 - Flag any data flows that cross thread boundaries
 
-Get user approval per scenario before writing.
+Write each scenario to the skeleton file as it is completed.
 
 ---
 
@@ -289,10 +291,11 @@ but don't yet. Group by priority:
 
 ## Phase 7: Write the Master Architecture Document
 
-Once all sections are approved, write the complete document to
-`docs/architecture/architecture.md`.
-
-Ask: "May I write the master architecture document to `docs/architecture/architecture.md`?"
+Once all sections are written, assemble the complete document at
+`docs/architecture/architecture.md`. Report the path and the revert command
+(`git checkout -- docs/architecture/architecture.md`). This is the one
+document-level review point: the report shows the section list and every
+`[확인 필요]` item.
 
 The document structure:
 
@@ -354,12 +357,12 @@ Apply gate **TD-ARCHITECTURE** (`../../docs/director-gates.md`) as a self-review
 
 Pass: architecture document path, technical requirements baseline summary, ADR list.
 
-**Step 3 — Present both assessments to the user:**
+**Step 3 — Apply both assessments:**
 
-Show the Technical Director assessment and Lead Programmer verdict side by side.
-
-Ask the user directly — "Technical Director and Lead Programmer have reviewed the architecture. How would you like to proceed?"
-Options: `Accept — proceed to handoff` / `Revise flagged items first` / `Discuss specific concerns`
+Show the Technical Director assessment and Lead Programmer verdict side by side in the report, then:
+- APPROVE / FEASIBLE → proceed to handoff.
+- CONCERNS → fix every flagged item that names a section and evidence (a defect ticket), record each fix, and proceed. The remainder is advisory and stays listed in the report.
+- REJECT / INFEASIBLE → revise the flagged sections and re-spawn the gate within the `$self-loop` limits (`rules/self-loop.md`). If it still rejects: Verdict: **BLOCKED** — list the open items.
 
 **Step 4 — Record sign-off in the architecture document:**
 
@@ -369,7 +372,7 @@ Update the Document Status section:
 - Lead Programmer Feasibility: FEASIBLE / CONCERNS ACCEPTED / REVISED
 ```
 
-Ask: "May I update the Document Status section in `docs/architecture/architecture.md` with the sign-off?"
+Update the Document Status section in `docs/architecture/architecture.md` with the sign-off and report it with the document path.
 
 ---
 
@@ -389,15 +392,18 @@ After writing the document, provide a clear handoff:
 This skill follows the collaborative design principle at every phase:
 
 1. **Load context silently** — do not narrate file reads
-2. **Present findings** — show the knowledge gap inventory and layer proposals
-3. **Ask before deciding** — present options for each architectural choice
-4. **Get approval before writing** — each phase section is written only after
-   user approves the content
-5. **Incremental writing** — write each approved section immediately; do not
-   accumulate everything and write at the end. This survives session crashes.
+2. **Show findings** — the knowledge gap inventory and layer proposals go in the report
+3. **Decide and record** — for each architectural choice take the option the
+   engine reference and existing ADRs support; record the alternatives with
+   pros/cons. A tie that is hard to reverse (R3+) is marked `[확인 필요]`
+4. **Write, then report** — every section lands in the file; the report lists
+   the path, the revert command, and every `[확인 필요]` item
+5. **Incremental writing** — write each section immediately; do not accumulate
+   everything and write at the end. This survives session crashes.
 
-Never make a binding architectural decision without user input. If the user is
-unsure, present 2-4 options with pros/cons before asking them to decide.
+Binding architectural decisions are made in ADRs (`$architecture-decision`), not
+here: this document proposes, the ADR decides. Where two options tie, record both
+with pros/cons and mark the choice `[확인 필요]`.
 
 ---
 

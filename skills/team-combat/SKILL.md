@@ -8,10 +8,9 @@ Then stop immediately without spawning any subagents or reading any files.
 
 When this skill is invoked with a valid argument, orchestrate the combat team through a structured pipeline.
 
-**Decision Points:** At each phase transition, ask the user directly to present
-the user with the subagent's proposals as selectable options. Write the agent's
-full analysis in conversation, then capture the decision with concise labels.
-The user must approve before moving to the next phase.
+**Decision Points:** Proceed through phases autonomously. Record each phase's
+decision and the alternatives rejected in the final report; stop only on K1/K2
+or a gate exit 2 (`rules/autonomy-contract.md`).
 
 ## Team Composition
 - **game-designer** — Design the mechanic, define formulas and edge cases
@@ -83,12 +82,9 @@ Delegate to **qa-tester**:
 
 If any spawned agent (as a Codex subagent) returns BLOCKED, errors, or cannot complete:
 
-1. **Surface immediately**: Report "[AgentName]: BLOCKED — [reason]" to the user before continuing to dependent phases
-2. **Assess dependencies**: Check whether the blocked agent's output is required by subsequent phases. If yes, do not proceed past that dependency point without user input.
-3. **Offer options** via direct user question with choices:
-   - Skip this agent and note the gap in the final report
-   - Retry with narrower scope
-   - Stop here and resolve the blocker first
+1. **Record it**: "[AgentName]: BLOCKED — [reason]" and the phase it interrupted, in the final report
+2. **Choose the narrowest recovery yourself and report it**: retry with narrower scope, or skip the agent and note the gap
+3. **BLOCKED only when the missing output is required by a later phase and cannot be reproduced** (K1/K2). Name what is needed to resume
 4. **Always produce a partial report** — output whatever was completed. Never discard work because one agent blocked.
 
 Common blockers:
@@ -100,8 +96,11 @@ Common blockers:
 ## File Write Protocol
 
 All file writes (design documents, implementation files, test cases) are
-delegated to sub-agents spawned as a Codex subagent. Each sub-agent enforces the
-"May I write to [path]?" protocol. This orchestrator does not write files directly.
+delegated to sub-agents spawned as a Codex subagent. This orchestrator does not
+write files directly. Each sub-agent writes only within its owned paths
+(`rules/subagent-collaboration.md` § 3) and returns the paths written; list
+every path with its revert command (`git checkout -- <path>`) in the final
+report.
 
 ## Output
 

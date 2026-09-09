@@ -5,10 +5,9 @@ description: "Orchestrate level design team: level-designer + narrative-director
 
 When this skill is invoked:
 
-**Decision Points:** At each step transition, ask the user directly to present
-the user with the subagent's proposals as selectable options. Write the agent's
-full analysis in conversation, then capture the decision with concise labels.
-The user must approve before moving to the next step.
+**Decision Points:** Proceed through phases autonomously. Record each phase's
+decision and the alternatives rejected in the final report; stop only on K1/K2
+or a gate exit 2 (`rules/autonomy-contract.md`).
 
 1. **Read the argument** for the target level or area (e.g., `tutorial`,
    `forest dungeon`, `hub town`, `final boss arena`).
@@ -58,7 +57,7 @@ Spawn the `art-director` agent to:
 
 **The art-director's visual targets from Step 1 must be passed to the level-designer in Step 2** as explicit constraints. Layout decisions happen within the visual direction, not before it.
 
-**Gate**: Ask the user directly to present all three Step 1 outputs (narrative brief, lore foundation, visual direction targets) and confirm before proceeding to Step 2.
+**Checkpoint**: Record all three Step 1 outputs (narrative brief, lore foundation, visual direction targets) in the final report. Continue to Step 2.
 
 ### Step 2: Layout and Encounter Design (level-designer)
 Spawn the `level-designer` agent with the full Step 1 output as context:
@@ -77,13 +76,9 @@ The level-designer should:
 **Adjacent area dependency check**: After the layout is produced, check `design/levels/` for each adjacent area referenced by the level-designer. If any referenced area's `.md` file does not exist, surface the gap:
 > "Level references [area-name] as an adjacent area but `design/levels/[area-name].md` does not exist."
 
-Ask the user directly with options:
-- (a) Proceed with a placeholder reference — mark the connection as UNRESOLVED in the level doc and list it in the open cross-level dependencies section of the summary report
-- (b) Pause and run `$team-level [area-name]` first to establish that area
+Proceed with a placeholder reference: mark the connection UNRESOLVED in the level doc, list it in the open cross-level dependencies section of the summary report, and add `$team-level [area-name]` to Next Steps. Do NOT invent content for the missing adjacent area.
 
-Do NOT invent content for the missing adjacent area.
-
-**Gate**: Ask the user directly to present Step 2 layout (including any unresolved adjacent area dependencies) and confirm before proceeding to Step 3.
+**Checkpoint**: Record the Step 2 layout (including unresolved adjacent-area dependencies) in the final report. Continue to Step 3.
 
 ### Step 3: Systems Integration (systems-designer)
 Spawn the `systems-designer` agent to:
@@ -93,7 +88,7 @@ Spawn the `systems-designer` agent to:
 - Design any area-specific mechanics or environmental hazards
 - Specify resource distribution (health pickups, save points, shops)
 
-**Gate**: Ask the user directly to present Step 3 outputs and confirm before proceeding to Step 4.
+**Checkpoint**: Record the Step 3 outputs in the final report. Continue to Step 4.
 
 ### Step 4: Production Concepts + Accessibility (art-director + accessibility-specialist, parallel)
 
@@ -115,11 +110,7 @@ Spawn the `accessibility-specialist` agent in parallel to:
 
 Wait for both agents to return before proceeding.
 
-**Gate**: Ask the user directly to present both Step 4 results. If the accessibility-specialist returned any BLOCKING concerns, highlight them prominently and offer:
-- (a) Return to level-designer and art-director to redesign the flagged elements before Step 5
-- (b) Document as a known accessibility gap and proceed to Step 5 with the concern explicitly logged in the final report
-
-Do NOT proceed to Step 5 without the user acknowledging any BLOCKING accessibility concerns.
+**Checkpoint**: Record both Step 4 results in the final report. If the accessibility-specialist returned any BLOCKING concern, send the flagged elements back to level-designer and art-director for one redesign pass before Step 5. If a BLOCKING concern survives that pass, log it as a known accessibility gap in the level doc and the final report and proceed; name the reason in the report.
 
 ### Step 5: QA Planning (qa-tester)
 Spawn the `qa-tester` agent to:
@@ -140,9 +131,12 @@ Spawn the `qa-tester` agent to:
 
 ## File Write Protocol
 
-All file writes (level design docs, narrative docs, test checklists) are delegated
-to sub-agents spawned as a Codex subagent. Each sub-agent enforces the "May I write to [path]?"
-protocol. This orchestrator does not write files directly.
+All file writes (level design docs, narrative docs, test checklists) are
+delegated to sub-agents spawned as a Codex subagent. This orchestrator does not
+write files directly. Each sub-agent writes only within its owned paths
+(`rules/subagent-collaboration.md` § 3) and returns the paths written; list
+every path with its revert command (`git checkout -- <path>`) in the final
+report.
 
 Verdict: **COMPLETE** — level design document produced and all team outputs compiled.
 Verdict: **BLOCKED** — one or more agents blocked; partial report produced with unresolved items listed.
@@ -157,12 +151,9 @@ Verdict: **BLOCKED** — one or more agents blocked; partial report produced wit
 
 If any spawned agent (as a Codex subagent) returns BLOCKED, errors, or cannot complete:
 
-1. **Surface immediately**: Report "[AgentName]: BLOCKED — [reason]" to the user before continuing to dependent phases
-2. **Assess dependencies**: Check whether the blocked agent's output is required by subsequent phases. If yes, do not proceed past that dependency point without user input.
-3. **Offer options** via direct user question with choices:
-   - Skip this agent and note the gap in the final report
-   - Retry with narrower scope
-   - Stop here and resolve the blocker first
+1. **Record it**: "[AgentName]: BLOCKED — [reason]" and the phase it interrupted, in the final report
+2. **Choose the narrowest recovery yourself and report it**: retry with narrower scope, or skip the agent and note the gap
+3. **BLOCKED only when the missing output is required by a later phase and cannot be reproduced** (K1/K2). Name what is needed to resume
 4. **Always produce a partial report** — output whatever was completed. Never discard work because one agent blocked.
 
 Common blockers:

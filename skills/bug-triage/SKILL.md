@@ -211,30 +211,25 @@ After classifying all bugs, generate trend metrics:
 
 ## 6. Write and Gate
 
-Present the report in conversation, then ask:
+Write the triage report to `production/qa/bug-triage-[date].md`. Report the path and the revert command (`git checkout -- <path>`).
 
-"May I write this triage report to `production/qa/bug-triage-[date].md`?"
-
-Write only after approval.
-
-After writing:
+After writing, close with the recommended next step:
 - If any S1 bugs are unassigned: "S1 bugs must be assigned before the sprint
   can be considered healthy. Run `$sprint-status` to see current capacity."
 - If regression bugs exist: "Regressions found — consider re-opening the
   affected stories in sprint tracking and running `$smoke-check` to re-gate."
 - If no P1 bugs exist: "No P1 bugs — build is in good shape for QA hand-off." Verdict: **COMPLETE** — triage report written.
 
-If user declined write: Verdict: **BLOCKED** — user declined write.
-
 ---
 
 ## Collaborative Protocol
 
-- **Never close or mark bugs Won't Fix without user approval** — surface them
-  as P4 candidates and ask: "Are these acceptable as Won't Fix?"
-- **Never auto-assign to a sprint at capacity** — flag overflow and let the
-  sprint owner decide what to pull
-- **Severity is objective; priority is a team decision** — present severity
-  classifications as recommendations, not mandates
+- **This skill never closes bugs or marks them Won't Fix** — list them as P4
+  Won't-Fix candidates in the report; closing goes through `$bug-report close`
+  after a verified fix
+- **Never auto-assign to a sprint at capacity** — flag the overflow in the report
+  and leave those bugs unassigned for the sprint owner
+- **Severity is objective; priority is a team decision** — priorities in the
+  report are recommendations with the reasoning shown, not mandates
 - **Trend data is informational** — do not block work on trend findings alone;
   surface them as observations

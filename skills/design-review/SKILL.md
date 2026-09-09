@@ -137,7 +137,7 @@ After all specialists respond, spawn `creative-director` as the **senior reviewe
 
 ### Step 4 — Surface disagreements
 
-If specialists disagree with each other or with the creative-director, do NOT silently pick one view. Present the disagreement explicitly in Phase 4 so the user can adjudicate.
+If specialists disagree with each other or with the creative-director, do NOT silently pick one view. Present the disagreement explicitly in Phase 4; the creative-director synthesis sets the verdict, and the dissent stays on record for the user.
 
 Mark every finding with its source: `[game-designer]`, `[economy-designer]`, `[creative-director]` etc.
 
@@ -192,46 +192,25 @@ This skill is read-only — no files are written during Phase 4.
 
 ## Phase 5: Next Steps
 
-Ask the user directly for ALL closing interactions. Never plain text.
+Close with a report; the verdict decides what happens next.
 
-**First widget — what to do next:**
+**If APPROVED** (first-pass, no revision needed): go straight to the systems-index update and the review log below.
 
-If APPROVED (first-pass, no revision needed), proceed directly to the systems-index widget, review-log widget, then the final closing widget. Do not show a separate "what to do" widget — the final closing widget covers next steps.
+**If NEEDS REVISION or MAJOR REVISION NEEDED — revise now:**
 
-If NEEDS REVISION or MAJOR REVISION NEEDED, options:
-- `[A] Revise the GDD now — address blocking items together`
-- `[B] Stop here — revise in a separate session`
-- `[C] Accept as-is and move on (only if all items are advisory)`
+Work through every blocking item that has a defect ticket (the finding cites the section and the evidence). Where a fix needs a design decision you cannot resolve from the GDD and existing docs alone, do not guess and do not stop: add it to the GDD's Open Questions marked `[확인 필요]` and leave that item open. Record each fix in a summary table (blocker → fix applied) and report the GDD path with its revert command (`git checkout -- <path>`).
 
-**If user selects [A] — Revise now:**
+A revised GDD is not Approved by this run: the systems index gets `In Review`, and the recommended next step is a fresh `$design-review [doc-path]` in a new session (a full re-review runs 5 agents and needs clean context — note current context usage and recommend `/clear` above ~50%). Marking the revisions Approved without re-review is the user's call; say so in the report.
 
-Work through all blocking items, asking for design decisions only where you cannot resolve the issue from the GDD and existing docs alone. Group all design-decision questions into a single multi-tab a direct user question before making any edits — do not interrupt mid-revision for each blocker individually.
+**Systems index update (always):**
 
-After all revisions are complete, show a summary table (blocker → fix applied) and ask the user directly for a **post-revision closing widget**:
+Update `design/gdd/systems-index.md` to mark [system] as `Approved` (verdict APPROVED) or `In Review` (any other verdict). Report the path and the revert command.
 
-- Prompt: "Revisions complete — [N] blockers resolved. What next?"
-- Note current context usage: if context is above ~50%, add: "(Recommended: /clear before re-review — this session has used X% context. A full re-review runs 5 agents and needs clean context.)"
-- Options:
-  - `[A] Re-review in a new session — run $design-review [doc-path] after /clear`
-  - `[B] Accept revisions and mark Approved — update systems index, skip re-review`
-  - `[C] Move to next system — $design-system [next-system] (#N in design order)`
-  - `[D] Stop here`
+**Review log (always):**
 
-Never end the revision flow with plain text. Always close with this widget.
+Append the review summary to `design/gdd/reviews/[doc-name]-review-log.md` — a revision history so future re-reviews can track what changed. Report the path.
 
-**Second widget — systems index update (always show this separately):**
-
-Use a second a direct user question:
-- Prompt: "May I update `design/gdd/systems-index.md` to mark [system] as [In Review / Approved]?"
-- Options: `[A] Yes — update it` / `[B] No — leave it as-is`
-
-**Third widget — review log (always offer):**
-
-Use a third a direct user question:
-- Prompt: "May I append this review summary to `design/gdd/reviews/[doc-name]-review-log.md`? This creates a revision history so future re-reviews can track what changed."
-- Options: `[A] Yes — append to review log` / `[B] No — skip`
-
-If yes, append an entry in this format:
+Entry format:
 ```
 ## Review — [YYYY-MM-DD] — Verdict: [APPROVED / NEEDS REVISION / MAJOR REVISION NEEDED]
 Scope signal: [S/M/L/XL]
@@ -243,22 +222,20 @@ Prior verdict resolved: [Yes / No / First review]
 
 ---
 
-**Final closing widget — always show after all file writes complete:**
+**Recommended next — always after all file writes complete:**
 
-Once the systems-index and review-log widgets are answered, check project state and show one final a direct user question:
+Check project state and close with one recommended next step plus the alternatives that apply:
 
-Before building options, read:
+Before building the list, read:
 - `design/gdd/systems-index.md` — find any system with Status: In Review or NEEDS REVISION (other than the one just reviewed)
 - Count `.md` files in `design/gdd/` (excluding game-concept.md, systems-index.md) to determine if `$review-all-gdds` is worth offering (≥2 GDDs)
 - Find the next system with Status: Not Started in design order
 
-Build the option list dynamically — only include options that are genuinely next:
+Build the list dynamically — only include steps that are genuinely next:
 - `[_] Run $design-review [other-gdd-path] — [system name] is still [In Review / NEEDS REVISION]` (include if another GDD needs review)
 - `[_] Run $consistency-check — verify this GDD's values don't conflict with existing GDDs` (always include if ≥1 other GDD exists)
 - `[_] Run $review-all-gdds — holistic design-theory review across all designed systems` (include if ≥2 GDDs exist)
 - `[_] Run $design-system [next-system] — next in design order` (always include, name the actual system)
 - `[_] Stop here`
 
-Assign letters A, B, C… only to included options. Mark the most pipeline-advancing option as `(recommended)`.
-
-Never end the skill with plain text after file writes. Always close with this widget.
+Put the most pipeline-advancing step first as `Recommended next`; list the others under it. End the report with the paths written and their revert commands.

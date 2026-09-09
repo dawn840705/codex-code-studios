@@ -231,7 +231,7 @@ For each affected GDD, list which sections are missing and the fix:
 
 ---
 
-## Phase 5: Present Summary and Ask to Write
+## Phase 5: Present Summary
 
 Present a compact summary before writing:
 
@@ -252,32 +252,27 @@ Gap counts:
 Estimated remediation: [X blocking items × ~Y min each = roughly Z hours]
 ```
 
-Before asking to write, show a **Gap Preview**:
+Before writing, show a **Gap Preview**:
 - List every BLOCKING gap as a one-line bullet describing the actual problem
   (e.g. `systems-index.md: 3 rows have parenthetical status values`,
   `adr-0002.md: missing ## Status section`). No counts — show the actual items.
 - Show HIGH / MEDIUM / LOW as counts only (e.g. `HIGH: 4, MEDIUM: 2, LOW: 1`).
 
-This gives the user enough context to judge scope before committing to writing the file.
+This gives the user enough context to judge the scope of the plan that follows.
 
 If a prior adoption plan was detected in Phase 1, add a note:
 > "A previous plan exists at `docs/adoption-plan-[prior-date].md`. The new plan will
 > reflect current project state — it does not diff against the prior run."
 
-Ask the user directly:
-- "Ready to write the migration plan?"
-  - "Yes — write `docs/adoption-plan-[date].md`"
-  - "Show me the full plan preview first (don't write yet)"
-  - "Cancel — I'll handle migration manually"
-
-If the user picks "Show me the full plan preview", output the complete plan as a
-fenced markdown block. Then ask again with the same three options.
+Then write the plan (Phase 6). The plan is advisory: writing it changes nothing
+else in the project, and `git checkout -- docs/adoption-plan-[date].md` removes it.
 
 ---
 
 ## Phase 6: Write the Adoption Plan
 
-If approved, write `docs/adoption-plan-[date].md` with this structure:
+Write `docs/adoption-plan-[date].md` with this structure. Report the path and the
+revert command.
 
 ```markdown
 # Adoption Plan
@@ -360,8 +355,7 @@ are resolved. The new run will reflect the current state of the project.
 
 ## Phase 6b: Set Review Mode
 
-After writing the adoption plan (or if the user cancels writing), check whether
-`production/review-mode.txt` exists.
+After writing the adoption plan, check whether `production/review-mode.txt` exists.
 
 **If it exists**: Read it and note the current mode — "Review mode is already set to `[current]`." — skip the prompt.
 
@@ -373,7 +367,7 @@ After writing the adoption plan (or if the user cancels writing), check whether
   - `Lean (recommended)` — Directors only at phase gate transitions ($gate-check). Skips per-skill reviews. Balanced for solo devs and small teams.
   - `Solo` — No director reviews at all. Maximum speed. Best for game jams, prototypes, or if reviews feel like overhead.
 
-Write the choice to `production/review-mode.txt` immediately after selection — no separate "May I write?" needed:
+Write the choice to `production/review-mode.txt` immediately after selection — no separate confirmation needed:
 - `Full` → write `full`
 - `Lean (recommended)` → write `lean`
 - `Solo` → write `solo`
@@ -382,55 +376,48 @@ Create the `production/` directory if it does not exist.
 
 ---
 
-## Phase 7: Offer First Action
+## Phase 7: First Action
 
-After writing the plan, don't stop there. Pick the single highest-priority gap
-and offer to handle it immediately by asking the user directly. Choose the first
-branch that applies:
+After writing the plan, don't stop there. Take the single highest-priority gap
+yourself when one edit fixes it, and hand off the rest with a named command.
+Choose the first branch that applies:
 
 **If there are parenthetical status values in systems-index.md:**
-Ask the user directly:
-- "The most urgent fix is `systems-index.md` — [N] rows have parenthetical status
-  values (e.g. `Needs Revision (see notes)`) that break $gate-check,
-  $create-stories, and $architecture-review right now. I can fix these in-place."
-  - "Fix it now — edit systems-index.md"
-  - "I'll fix it myself"
-  - "Done — leave me with the plan"
+Fix them in place — [N] rows with values like `Needs Revision (see notes)` break
+$gate-check, $create-stories, and $architecture-review right now. Rewrite each to
+the bare status value and move the parenthetical into the Notes column. Report
+the rows changed and the revert command.
 
 **If ADRs are missing `## Status` (and no parenthetical issue):**
-Ask the user directly:
-- "The most urgent fix is adding `## Status` to [N] ADR(s): [list filenames].
-  Without it, $story-readiness silently passes all ADR checks. Start with
-  [first affected filename]?"
-  - "Yes — retrofit [first affected filename] now"
-  - "Retrofit all [N] ADRs one by one"
-  - "I'll handle ADRs myself"
+Run `$architecture-decision retrofit [file]` for each affected ADR, first affected
+file first. Without `## Status`, $story-readiness silently passes all ADR checks.
+Retrofit derives the Status value from evidence and marks it `[확인 필요]`; carry
+those confirmation items into the closing report.
 
 **If GDDs are missing Acceptance Criteria (and no blocking issues above):**
-Ask the user directly:
-- "The most urgent gap is missing Acceptance Criteria in [N] GDD(s):
-  [list filenames]. Without them, $create-stories can't generate stories.
-  Start with [highest-priority GDD filename]?"
-  - "Yes — add Acceptance Criteria to [GDD filename] now"
-  - "Do all [N] GDDs one by one"
-  - "I'll handle GDDs myself"
+Do not write design content here. Report: "[N] GDD(s) lack Acceptance Criteria:
+[list filenames] — $create-stories cannot generate stories from them." Recommended
+next: `$design-system [highest-priority GDD]`.
 
 **If no BLOCKING or HIGH gaps exist:**
-Ask the user directly:
-- "No blocking gaps — this project is template-compatible. What next?"
-  - "Walk me through the medium-priority improvements"
-  - "Run $project-stage-detect for a broader health check"
-  - "Done — I'll work through the plan at my own pace"
+Report: "No blocking gaps — this project is template-compatible." Recommended
+next: `$project-stage-detect` for a broader health check; the medium-priority
+improvements stay in the plan.
+
+Verdict: **COMPLETE** — adoption plan written to `docs/adoption-plan-[date].md`;
+first action taken or handed off with a named command.
 
 ---
 
 ## Collaborative Protocol
 
 1. **Read silently** — complete the full audit before presenting anything
-2. **Show the summary first** — let the user see scope before asking to write
-3. **Ask before writing** — always confirm before creating the adoption plan file
-4. **Offer, don't force** — the plan is advisory; the user decides what to fix and when
-5. **One action at a time** — after handing off the plan, offer one specific next step,
-   not a list of six things to do simultaneously
+2. **Show the summary first** — the user sees scope before the plan lands
+3. **Write, then report** — the plan is a reversible file; report its path and
+   the revert command instead of asking first
+4. **Advisory, not forced** — the plan lists what to fix and why; only one-edit
+   fixes are applied here, everything else is handed off with a named command
+5. **One action at a time** — after handing off the plan, take or name one
+   specific next step, not a list of six things to do simultaneously
 6. **Never regenerate existing artifacts** — only fill gaps in what exists;
    do not rewrite GDDs, ADRs, or stories that already have content

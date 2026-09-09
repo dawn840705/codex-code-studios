@@ -12,7 +12,7 @@ Determine the mode from the argument:
 - `verify [BUG-ID]` → **Verify Mode**: confirm a reported fix actually resolved the bug
 - `close [BUG-ID]` → **Close Mode**: mark a verified bug as closed with resolution record
 
-If no argument is provided, ask the user for a bug description before proceeding.
+If no argument is provided, stop (K2): "Usage: `$bug-report <description>` — or `analyze <log>`, `verify [BUG-ID]`, `close [BUG-ID]`." Verdict: **BLOCKED** — no bug description.
 
 ---
 
@@ -100,7 +100,7 @@ Produce a verification verdict:
 - **STILL PRESENT** — bug reproduces as described; fix did not resolve the issue
 - **CANNOT VERIFY** — automated checks inconclusive; manual playtest required
 
-Ask: "May I update `production/qa/bugs/[BUG-ID].md` to set Status: Verified Fixed / Still Present / Cannot Verify?"
+Update `production/qa/bugs/[BUG-ID].md` to set Status: Verified Fixed / Still Present / Cannot Verify. Report the path and the revert command (`git checkout -- <path>`).
 
 If STILL PRESENT: reopen the bug, set Status back to Open, and suggest re-running `$hotfix [BUG-ID]`.
 
@@ -125,7 +125,7 @@ Append a closure record to the bug file:
 
 Update the top-level `**Status**: Open` field to `**Status**: Closed`.
 
-Ask: "May I update `production/qa/bugs/[BUG-ID].md` to mark it Closed?"
+Update `production/qa/bugs/[BUG-ID].md` to mark it Closed. Report the path and the revert command.
 
 After closing, check `production/qa/bug-triage-*.md` — if the bug appears in an open triage report, note: "Bug [ID] is referenced in the triage report. Run `$bug-triage` to refresh the open bug count."
 
@@ -133,13 +133,7 @@ After closing, check `production/qa/bug-triage-*.md` — if the bug appears in a
 
 ## Phase 3: Save Report
 
-Present the completed bug report(s) to the user.
-
-Ask: "May I write this to `production/qa/bugs/BUG-[NNNN].md`?"
-
-If yes, write the file, creating the directory if needed. Verdict: **COMPLETE** — bug report filed.
-
-If no, stop here. Verdict: **BLOCKED** — user declined write.
+Write the completed bug report(s) to `production/qa/bugs/BUG-[NNNN].md`, creating the directory if needed. Report the path and the revert command (`git checkout -- <path>`). Verdict: **COMPLETE** — bug report filed.
 
 ---
 

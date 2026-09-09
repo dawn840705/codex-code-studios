@@ -4,9 +4,7 @@ description: "Generate per-asset visual specifications and AI generation prompts
 ---
 
 If no argument is provided, check whether `design/assets/asset-manifest.md` exists:
-- If it exists: read it, find the first context (system/level/character) with any asset at status "Needed" but no spec file written yet, and ask the user directly:
-  - Prompt: "The next unspecced context is **[target]**. Generate asset specs for it?"
-  - Options: `[A] Yes — spec [target]` / `[B] Pick a different target` / `[C] Stop here`
+- If it exists: read it, find the first context (system/level/character) with any asset at status "Needed" but no spec file written yet, report "No argument — speccing the next unspecced context: **[target]**", and proceed with it.
 - If no manifest: fail with:
   > "Usage: `$asset-spec system:<name>` — e.g., `$asset-spec system:tower-defense`
   > Or: `$asset-spec level:iron-gate-fortress` / `$asset-spec character:frost-warden`
@@ -41,8 +39,8 @@ Read all source material **before** asking the user anything.
 
 ### Source doc reads (by target type):
 - **system**: Read `design/gdd/[target-name].md`. Extract the **Visual/Audio Requirements** section. If it doesn't exist or reads `[To be designed]`:
-  > "The Visual/Audio section of `design/gdd/[target-name].md` is empty. Either run `$design-system [target-name]` to complete the GDD, or describe the visual needs manually."
-  Ask the user directly: `[A] Describe needs manually` / `[B] Stop — complete the GDD first`
+  > "The Visual/Audio section of `design/gdd/[target-name].md` is empty. Run `$design-system [target-name]` to complete the GDD first."
+  Stop: Verdict: **BLOCKED** — source requirements missing (K2).
 - **level**: Read `design/levels/[target-name].md`. Extract art requirements, asset list, VFX needs, and the art-director's production concept specs from Step 4.
 - **character**: Read `design/narrative/characters/[target-name].md` or search `design/narrative/` for the character profile. Extract visual description, role, and any specified distinguishing features.
 
@@ -77,12 +75,7 @@ Group assets into categories:
 - **Audio** — SFX, music tracks, ambient loops *(note: audio specs are descriptions only — no generation prompts)*
 - **3D Assets** — meshes, materials (if applicable per engine)
 
-Present the full identified list to the user. Ask the user directly:
-- Prompt: "I identified [N] assets across [N] categories for **[target]**. Review before speccing:"
-- Show the grouped list in conversation text first
-- Options: `[A] Proceed — spec all of these` / `[B] Remove some assets` / `[C] Add assets I didn't catch` / `[D] Adjust categories`
-
-Do NOT proceed to Phase 3 without user confirmation of the asset list.
+Record the full grouped list in the report ("Identified [N] assets across [N] categories for **[target]**") and proceed to Phase 3 with all of them. An asset the user later removes or adds is one edit to the spec file and the manifest.
 
 ---
 
@@ -110,7 +103,7 @@ Spawn specialist agents based on review mode. **Issue all Codex subagent calls s
 
 ## Phase 4: Compile and Review
 
-Combine the agent outputs into a draft spec per asset. Present all specs in conversation text using this format:
+Combine the agent outputs into a draft spec per asset, in this format:
 
 ```
 ## ASSET-[NNN] — [Asset Name]
@@ -137,19 +130,13 @@ Combine the agent outputs into a draft spec per asset. Present all specs in conv
 **Status:** Needed
 ```
 
-After presenting all specs, ask the user directly:
-- Prompt: "Asset specs for **[target]** — [N] assets. Review complete?"
-- Options: `[A] Approve all — write to file` / `[B] Revise a specific asset` / `[C] Regenerate with different direction`
-
-If [B]: ask which asset and what to change. Revise inline and re-present. Do NOT re-spawn agents for minor text revisions — only re-spawn if the visual direction itself needs to change.
-
-If [C]: ask what direction to change. Re-spawn the relevant agent with the updated brief.
+Self-review every spec against the art bible before writing. Revise inline only where a specific art bible rule is violated (cite the section) — do NOT re-spawn agents for text revisions; re-spawn only if the visual direction itself contradicts the art bible. Record each revision and its rule in the report. The written file is the single document-level review point.
 
 ---
 
 ## Phase 5: Write Spec File
 
-After approval, ask: "May I write the spec to `design/assets/specs/[target-name]-assets.md`?"
+Write the spec to `design/assets/specs/[target-name]-assets.md`. Report the path and the revert command (`git checkout -- <path>`).
 
 Write the file with:
 
@@ -187,7 +174,7 @@ Then update `design/assets/asset-manifest.md`. If it doesn't exist, create it:
 
 If the manifest already exists, append the new context block and update the Progress Summary counts.
 
-Ask: "May I update `design/assets/asset-manifest.md`?"
+Update `design/assets/asset-manifest.md` in the same pass and report it with the spec path.
 
 ---
 
@@ -199,14 +186,7 @@ When production is requested, route through `$studio-orchestrator` and
 [`../../docs/anchor-to-3d-workflow.md`](../../docs/anchor-to-3d-workflow.md).
 Speccing an asset does not itself authorize generation, paid calls or retries.
 
-Ask the user directly:
-- Prompt: "Asset specs complete for **[target]**. What's next?"
-- Options:
-  - `[A] Spec another system — $asset-spec system:[next-system]`
-  - `[B] Spec a level — $asset-spec level:[level-name]`
-  - `[C] Spec a character — $asset-spec character:[character-name]`
-  - `[D] Run $asset-audit — validate delivered assets against specs`
-  - `[E] Stop here`
+Close with: "Asset specs complete for **[target]** — [N] assets, [paths]." Recommended next: `$asset-spec [next unspecced context from the manifest]`, or `$asset-audit` once assets are delivered.
 
 ---
 
@@ -242,7 +222,7 @@ If a match is found: reference the existing ASSET-ID rather than creating a dupl
 
 If any spawned agent returns BLOCKED or cannot complete:
 
-1. Surface immediately: "[AgentName]: BLOCKED — [reason]"
+1. Record it in the report: "[AgentName]: BLOCKED — [reason]"
 2. In `lean` mode or if `technical-artist` blocks: proceed with art-director output only — note that technical constraints were not validated
 3. In `solo` mode or if `art-director` blocks: derive descriptions from art bible rules — flag as "Art director not consulted — verify against art bible before production"
 4. Always produce a partial spec — never discard work because one agent blocked
@@ -251,13 +231,14 @@ If any spawned agent returns BLOCKED or cannot complete:
 
 ## Collaborative Protocol
 
-Every phase follows: **Identify → Confirm → Generate → Review → Approve → Write**
+Every phase follows: **Identify → Generate → Self-review → Write → Report**
 
-- Never spec assets without first confirming the asset list with the user
+- Record the identified asset list before speccing — it is the report's first table
 - Always anchor specs to the art bible — a spec that contradicts the art bible is wrong
-- Surface all agent disagreements — do not silently pick one
-- Write the spec file only after explicit approval
+- Surface all agent disagreements in the report — pick the art-bible-compliant one and name the other
+- Write the spec file, then report its path and revert command
 - Update the manifest immediately after writing the spec
+- Speccing never authorizes generation: paid calls go through `$api-cost-gate`
 
 ---
 

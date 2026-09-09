@@ -8,10 +8,9 @@ Then stop immediately without spawning any subagents or reading any files.
 
 When this skill is invoked with a valid argument, orchestrate the live-ops team through a structured planning pipeline.
 
-**Decision Points:** At each phase transition, ask the user directly to present
-the user with the subagent's proposals as selectable options. Write the agent's
-full analysis in conversation, then capture the decision with concise labels.
-The user must approve before moving to the next phase.
+**Decision Points:** Proceed through phases autonomously. Record each phase's
+decision and the alternatives rejected in the final report; stop only on K1/K2
+or a gate exit 2 (`rules/autonomy-contract.md`).
 
 ## Team Composition
 - **live-ops-designer** — Season structure, event cadence, retention mechanics, battle pass
@@ -97,10 +96,10 @@ Present a summary to the user with:
 - **Analytics readiness**: are success criteria defined and instrumented?
 - **Ethics review**: check the Phase 3 economy design against `design/live-ops/ethics-policy.md`
   - If the file does not exist: flag "ETHICS REVIEW SKIPPED: `design/live-ops/ethics-policy.md` not found. Economy design was not reviewed against an ethics policy. Recommend creating one before production begins." Include this flag in the season design output document. Add to next steps: create `design/live-ops/ethics-policy.md`.
-  - If the file exists and a violation is found: flag "ETHICS FLAG: [element] in Phase 3 economy design violates [policy rule]. Approval is blocked until this is resolved." Do NOT issue a COMPLETE verdict or write output documents. Ask the user directly with options: revise economy design / override with documented rationale / cancel. If user chooses to revise: re-spawn economy-designer to produce a corrected design, then return to Phase 7 review.
+  - If the file exists and a violation is found: flag "ETHICS FLAG: [element] in Phase 3 economy design violates [policy rule]." Re-spawn economy-designer once to produce a corrected design, then return to Phase 7 review. If a violation survives the correction, do NOT issue COMPLETE or write the output documents: end with Verdict: **BLOCKED** — [element] violates [rule]. Overriding a written ethics policy is a K1 decision; name it in the report.
 - **Open questions**: decisions still needed before production begins
 
-Ask the user to approve the season plan before delegating to production teams. Issue the COMPLETE verdict only after the user approves and no unresolved ethics violations remain. If an ethics violation is unresolved, end with Verdict: **BLOCKED**.
+Write the output documents (below) and report each path with its revert command. Issue the COMPLETE verdict when no unresolved ethics violation remains; list the open questions in the report.
 
 ## Output Documents
 
@@ -113,25 +112,25 @@ All documents save to `design/live-ops/`:
 
 If any spawned agent (as a Codex subagent) returns BLOCKED, errors, or cannot complete:
 
-1. **Surface immediately**: Report "[AgentName]: BLOCKED — [reason]" to the user before continuing to dependent phases
-2. **Assess dependencies**: Check whether the blocked agent's output is required by subsequent phases. If yes, do not proceed past that dependency point without user input.
-3. **Offer options** via direct user question with choices:
-   - Skip this agent and note the gap in the final report
-   - Retry with narrower scope
-   - Stop here and resolve the blocker first
+1. **Record it**: "[AgentName]: BLOCKED — [reason]" and the phase it interrupted, in the final report
+2. **Choose the narrowest recovery yourself and report it**: retry with narrower scope, or skip the agent and note the gap
+3. **BLOCKED only when the missing output is required by a later phase and cannot be reproduced** (K1/K2). Name what is needed to resume
 4. **Always produce a partial report** — output whatever was completed. Never discard work because one agent blocked.
 
 If a BLOCKED state is unresolvable, end with Verdict: **BLOCKED** instead of COMPLETE.
 
 ## File Write Protocol
 
-All file writes (season design docs, analytics plans, communication calendars) are
-delegated to sub-agents spawned as a Codex subagent. Each sub-agent enforces the
-"May I write to [path]?" protocol. This orchestrator does not write files directly.
+All file writes (season design docs, analytics plans, communication calendars)
+are delegated to sub-agents spawned as a Codex subagent. This orchestrator does
+not write files directly. Each sub-agent writes only within its owned paths
+(`rules/subagent-collaboration.md` § 3) and returns the paths written; list
+every path with its revert command (`git checkout -- <path>`) in the final
+report.
 
 ## Output
 
-A summary covering: season theme and scope, economy design highlights, success metrics, content list, communication plan, and any open decisions needing user input before production.
+A summary covering: season theme and scope, economy design highlights, success metrics, content list, communication plan, and any open decisions (with the default taken) before production.
 
 Verdict: **COMPLETE** — season plan produced and handed off for production.
 

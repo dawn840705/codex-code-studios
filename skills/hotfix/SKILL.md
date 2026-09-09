@@ -47,9 +47,7 @@ Status: IN PROGRESS
 [How to revert if the fix causes new issues]
 ```
 
-Ask: "May I write this to `production/hotfixes/hotfix-[date]-[short-name].md`?"
-
-If yes, write the file, creating the directory if needed.
+Write the record to `production/hotfixes/hotfix-[date]-[short-name].md`, creating the directory if needed. Report the path and the revert command (`git checkout -- <path>`).
 
 ---
 
@@ -132,6 +130,8 @@ Merge to: release branch AND development branch
 Next: $bug-report verify [BUG-ID] after deploy to confirm resolution
 ```
 
+**Deploying is K1 (R4).** The subagent approvals above are decision items, not deployment authorization. Stop here with the deployment summary and the exact merge and deploy commands, and wait for the user's explicit approval. Until it arrives: Verdict: **BLOCKED** — awaiting hotfix deployment approval. After approval and deploy: Verdict: **COMPLETE** — hotfix deployed; continue to Phase 7.
+
 ### Rules
 - Hotfixes must be the MINIMUM change to fix the issue — no cleanup, no refactoring
 - Every hotfix must have a rollback plan documented before deployment
@@ -143,7 +143,7 @@ Next: $bug-report verify [BUG-ID] after deploy to confirm resolution
 
 ## Phase 7: Post-Deploy Verification
 
-After deploying, run `$bug-report verify [BUG-ID]` to confirm the fix resolved the issue in the deployed build.
+Recommended next step after deploying: run `$bug-report verify [BUG-ID]` to confirm the fix resolved the issue in the deployed build.
 
 If VERIFIED FIXED: run `$bug-report close [BUG-ID]` to formally close it.
 If STILL PRESENT: the hotfix failed — immediately re-open, assess rollback, and escalate.

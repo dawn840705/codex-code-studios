@@ -57,22 +57,20 @@ For each open bug, evaluate:
 | Cert feedback requirement | Yes — required for platform approval |
 | S3/S4 severity | Only if trivial config fix; otherwise defer |
 
-### Step 2b — Present patch scope to user
+### Step 2b — Record patch scope
 
-Ask the user directly:
-- Prompt: "Based on open bugs and cert feedback, here is the proposed day-one patch scope. Does this look right?"
-- Show: table of included bugs (ID, severity, description, estimated effort)
-- Show: table of deferred bugs (ID, severity, reason deferred)
-- Options: `[A] Approve this scope` / `[B] Adjust — I want to add or remove items` / `[C] No day-one patch needed`
+Record in the report, under "Proposed day-one patch scope (from open bugs and cert feedback)":
+- Table of included bugs (ID, severity, description, estimated effort)
+- Table of deferred bugs (ID, severity, reason deferred)
 
-If [C]: output "No day-one patch required. Proceed to `$launch-checklist`." Stop.
+Take the scope the Step 2a rules produce; an item the user adds or removes is one edit to the patch record. If nothing qualifies: output "No day-one patch required. Proceed to `$launch-checklist`." Stop.
 
 ### Step 2c — Check total scope
 
 Sum estimated effort. If total exceeds 1 day of work:
 > "⚠️ Patch scope is [N hours] — this exceeds a safe day-one window. Consider deferring lower-priority items to patch 1.1. A bloated day-one patch introduces more risk than it removes."
 
-Ask the user directly to confirm proceeding or reduce scope.
+Defer the lowest-priority items until the scope fits one day, and list each deferral with its reason. If you keep an over-size scope, name the reason in the report.
 
 ---
 
@@ -86,7 +84,7 @@ Spawn `release-manager` as a Codex subagent. Ask them to produce a rollback plan
 - Who is responsible for triggering the rollback
 - What player communication is required if a rollback occurs
 
-Present the rollback plan. Ask: "May I write this rollback plan to `production/releases/rollback-plan-[version].md`?"
+Write the rollback plan to `production/releases/rollback-plan-[version].md` and report the path with its revert command. Writing the plan is R; **executing** a rollback is R4 and never runs unattended.
 
 Do not proceed to Phase 4 until the rollback plan is written.
 
@@ -189,7 +187,9 @@ See: `production/releases/rollback-plan-[version].md`
 [list player-facing changes in plain language]
 ```
 
-Ask: "May I write this patch record to `production/releases/day-one-patch-[version].md`?"
+Write the patch record to `production/releases/day-one-patch-[version].md` and report the path with its revert command (`git checkout -- <path>`).
+
+**Deployment is K1 (R4).** The record's "Approvals Required Before Deploy" checklist is filled by the named subagents, but platform submission and the deploy itself wait for the user's explicit approval. Stop here with the record, the rollback plan, and the exact submission steps; until approval arrives, Verdict: **BLOCKED** — awaiting deployment approval for v[version]. After approval: Verdict: **COMPLETE** — day-one patch prepared and deployed.
 
 ---
 

@@ -108,7 +108,7 @@ Total rules extracted:
   - Global: [N] naming conventions, [M] forbidden APIs, [P] approved libraries
 ```
 
-Ask: "Does this look complete? Any rules to add or remove before I write the manifest?"
+Record the preview in the report. A rule the user adds or removes later is one edit to the manifest.
 
 ---
 
@@ -131,14 +131,14 @@ The technical-director reviews whether:
 
 Apply the verdict:
 - **APPROVE** → proceed to Phase 5
-- **CONCERNS** → surface by asking the user directly with options: `Revise flagged rules` / `Accept and proceed` / `Discuss further`
-- **REJECT** → do not write the manifest; fix the flagged rules and re-present the summary
+- **CONCERNS** → fix each flagged rule that cites a source (ADR, preference, engine reference), record the fix in the report, and proceed; the rest is advisory and stays listed
+- **REJECT** → do not write the manifest; fix the flagged rules and re-spawn the gate within the `$self-loop` limits. Still rejected: Verdict: **BLOCKED** — list the open rules
 
 ---
 
 ## 5. Write the Control Manifest
 
-Ask: "May I write this to `docs/architecture/control-manifest.md`?"
+Write the manifest to `docs/architecture/control-manifest.md`. Report the path and the revert command (`git checkout -- docs/architecture/control-manifest.md`).
 
 Format:
 
@@ -264,8 +264,8 @@ After writing the manifest:
 ## Collaborative Protocol
 
 1. **Load silently** — read all inputs before presenting anything
-2. **Show the summary first** — let the user see the scope before writing
-3. **Ask before writing** — always confirm before creating or overwriting the manifest. On write: Verdict: **COMPLETE** — control manifest written. On decline: Verdict: **BLOCKED** — user declined write.
+2. **Show the summary first** — the preview goes in the report before the file lands
+3. **Write, then report** — the manifest is reversible; report the path and the revert command. Verdict: **COMPLETE** — control manifest written.
 4. **Source every rule** — never add a rule that doesn't trace to an ADR, a
    technical preference, or an engine reference doc
 5. **No interpretation** — extract rules as stated in ADRs; do not paraphrase

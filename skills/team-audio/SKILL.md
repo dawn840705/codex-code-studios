@@ -8,10 +8,9 @@ If no argument is provided, output usage guidance and exit without spawning any 
 
 When this skill is invoked with an argument, orchestrate the audio team through a structured pipeline.
 
-**Decision Points:** At each step transition, ask the user directly to present
-the user with the subagent's proposals as selectable options. Write the agent's
-full analysis in conversation, then capture the decision with concise labels.
-The user must approve before moving to the next step.
+**Decision Points:** Proceed through phases autonomously. Record each phase's
+decision and the alternatives rejected in the final report; stop only on K1/K2
+or a gate exit 2 (`rules/autonomy-contract.md`).
 
 1. **Read the argument** for the target feature or area (e.g., `combat`,
    `main menu`, `forest biome`, `boss encounter`).
@@ -91,15 +90,18 @@ Spawn the `gameplay-programmer` agent to:
 
 Verdict: **COMPLETE** — audio design document produced and team pipeline finished.
 
-If the pipeline stops because a dependency is unresolved (e.g., critical accessibility gap or missing GDD not resolved by the user):
+If the pipeline stops on K1/K2 (e.g., the feature's GDD is missing and no skill in the repo produces it, or a critical accessibility gap the team cannot design around):
 
 Verdict: **BLOCKED** — [reason]
 
 ## File Write Protocol
 
-All file writes (audio design docs, SFX specs, implementation files) are delegated
-to sub-agents spawned as a Codex subagent. Each sub-agent enforces the "May I write to [path]?"
-protocol. This orchestrator does not write files directly.
+All file writes (audio design docs, SFX specs, implementation files) are
+delegated to sub-agents spawned as a Codex subagent. This orchestrator does not
+write files directly. Each sub-agent writes only within its owned paths
+(`rules/subagent-collaboration.md` § 3) and returns the paths written; list
+every path with its revert command (`git checkout -- <path>`) in the final
+report.
 
 ## Next Steps
 
@@ -111,12 +113,9 @@ protocol. This orchestrator does not write files directly.
 
 If any spawned agent (as a Codex subagent) returns BLOCKED, errors, or cannot complete:
 
-1. **Surface immediately**: Report "[AgentName]: BLOCKED — [reason]" to the user before continuing to dependent phases
-2. **Assess dependencies**: Check whether the blocked agent's output is required by subsequent phases. If yes, do not proceed past that dependency point without user input.
-3. **Offer options** via direct user question with choices:
-   - Skip this agent and note the gap in the final report
-   - Retry with narrower scope
-   - Stop here and resolve the blocker first
+1. **Record it**: "[AgentName]: BLOCKED — [reason]" and the phase it interrupted, in the final report
+2. **Choose the narrowest recovery yourself and report it**: retry with narrower scope, or skip the agent and note the gap
+3. **BLOCKED only when the missing output is required by a later phase and cannot be reproduced** (K1/K2). Name what is needed to resume
 4. **Always produce a partial report** — output whatever was completed. Never discard work because one agent blocked.
 
 Common blockers:

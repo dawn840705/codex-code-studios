@@ -39,31 +39,35 @@ Enter **retrofit mode**:
    ✗ ADR Dependencies — HIGH
    ✗ Engine Compatibility — HIGH
    ```
-4. Ask: "Shall I add the [N] missing sections? I will not modify any existing content."
-5. If yes:
-   - For **Status**: ask the user — "What is the current status of this decision?"
-     Options: "Proposed", "Accepted", "Deprecated", "Superseded by ADR-XXXX"
-   - For **ADR Dependencies**: ask — "Does this decision depend on any other ADR?
-     Does it enable or block any other ADR or epic?" Accept "None" for each field.
-   - For **Engine Compatibility**: read the engine reference docs (same as Step 0 below)
-     and ask the user to confirm the domain. Then generate the table with verified data.
-   - For **GDD Requirements Addressed**: ask — "Which GDD systems motivated this decision?
-     What specific requirement in each GDD does this ADR address?"
+4. Add the [N] missing sections without modifying any existing content:
+   - For **Status**: derive it. `Accepted` if the decision's named interfaces,
+     classes or signals exist in the codebase; otherwise `Proposed`. Mark the
+     value `[확인 필요]` in the report — never `Deprecated` or `Superseded` from
+     evidence alone.
+   - For **ADR Dependencies**: scan the other ADRs for references to this one
+     and this one's references to them; write "None" for a field with no evidence.
+   - For **Engine Compatibility**: read the engine reference docs (same as Step 0
+     below), derive the domain from the Decision text, and generate the table
+     with verified data.
+   - For **GDD Requirements Addressed**: grep `design/gdd/` for the systems and
+     interfaces the ADR names; list each hit with the requirement it satisfies.
+     If nothing matches, write "None found `[확인 필요]`".
    - Append each missing section to the ADR file using the Edit tool.
    - **Never modify any existing section.** Only append or fill absent sections.
-6. After adding all missing sections, update the ADR's `## Date` field if it is absent.
-7. Suggest: "Run `$architecture-review` to re-validate coverage now that this ADR
-   has its Status and Dependencies fields."
+5. After adding all missing sections, update the ADR's `## Date` field if it is absent.
+6. Report the path, the revert command (`git checkout -- <path>`), and every
+   `[확인 필요]` value. Suggest: "Run `$architecture-review` to re-validate
+   coverage now that this ADR has its Status and Dependencies fields."
 
 If NOT in retrofit mode, proceed to Step 0 below (normal ADR authoring).
 
-**No-argument guard**: If no argument was provided (title is empty), ask before
-running Phase 0:
+**No-argument guard**: If no argument was provided (title is empty), stop before
+Phase 0 (K2 — the title cannot be derived from the repository):
 
-> "What technical decision are you documenting? Please provide a short title
-> (e.g., `event-system-architecture`, `physics-engine-choice`)."
+> "Usage: `$architecture-decision <title>` — e.g., `event-system-architecture`,
+> `physics-engine-choice`."
 
-Use the user's response as the title, then proceed to Step 0.
+Verdict: **BLOCKED** — no decision title.
 
 ---
 
@@ -148,25 +152,25 @@ Forbidden Patterns:
   → The proposed approach must not use these patterns.
 ```
 
-If the user's proposed decision would contradict any registered stance, surface
-the conflict immediately:
+If the proposed decision would contradict any registered stance, surface the
+conflict immediately:
 
 > "⚠️ Conflict: This ADR proposes [X], but ADR-[NNNN] established that [Y] is
 > the accepted pattern for this purpose. Proceeding without resolving this will
-> produce contradictory ADRs and inconsistent stories.
-> Options: (1) Align with the existing stance, (2) Supersede ADR-[NNNN] with
-> an explicit replacement, (3) Explain why this case is an exception."
+> produce contradictory ADRs and inconsistent stories."
 
-Do not proceed to Step 3 (collaborative design) until any conflict is resolved
-or explicitly accepted as an intentional exception.
+Take (1) — align with the existing stance — unless the GDD requirement cannot be
+met under it. Superseding an Accepted ADR (2) or declaring an exception (3)
+reverses a settled decision (`rules/decision-lifecycle.md` § 4): that is K1.
+Stop with Verdict: **BLOCKED** — conflict with ADR-[NNNN]; state both options,
+the GDD evidence, and the cost of reverting each.
 
 ---
 
 ## 3. Guide the decision collaboratively
 
-Before asking anything, derive the skill's best guesses from the context already
-gathered (GDDs read, engine reference loaded, existing ADRs scanned). Then present
-a **confirm/adjust** prompt by asking the user directly — not open-ended questions.
+Derive the draft's assumptions from the context already gathered (GDDs read,
+engine reference loaded, existing ADRs scanned). Record them; do not ask.
 
 **Derive assumptions first:**
 - **Problem**: Infer from the title + GDD context what decision needs to be made
@@ -175,45 +179,30 @@ a **confirm/adjust** prompt by asking the user directly — not open-ended quest
 - **GDD linkage**: Extract which GDD systems the title directly relates to
 - **Status**: Always `Proposed` for new ADRs — never ask the user what the status is
 
-**Scope of assumptions tab**: Assumptions cover only: problem framing, alternative approaches, upstream dependencies, GDD linkage, and status. Schema design questions (e.g., "How should spawn timing work?", "Should data be inline or external?") are NOT assumptions — they are design decisions belonging to a separate step after the assumptions are confirmed. Do not include schema design questions in the assumptions direct user question widget.
+**Scope of assumptions**: Assumptions cover only: problem framing, alternative approaches, upstream dependencies, GDD linkage, and status. Schema design questions (e.g., "How should spawn timing work?", "Should data be inline or external?") are NOT assumptions — they are design decisions, made separately after the assumptions are recorded.
 
-**After assumptions are confirmed**, if the ADR involves schema or data design choices, use a separate multi-tab a direct user question to ask each design question independently before drafting.
-
-**Present assumptions with a direct user question:**
+**Record the assumptions block** in the report and as an `Assumptions` note under the ADR's Context section:
 
 ```
-Here's what I'm assuming before drafting:
+Assumptions behind this draft:
 
 Problem: [one-sentence problem statement derived from context]
-Alternatives I'll consider:
+Alternatives considered:
   A) [option derived from engine reference]
   B) [option derived from GDD requirements]
   C) [option from common patterns]
 GDD systems driving this: [list derived from context]
 Dependencies: [upstream ADRs if any, otherwise "None"]
 Status: Proposed
-
-[A] Proceed — draft with these assumptions
-[B] Change the alternatives list
-[C] Adjust the GDD linkage
-[D] Add a performance budget constraint
-[E] Something else needs changing first
 ```
 
-Do not generate the ADR until the user confirms assumptions or provides corrections.
+An assumption that could go either way gets `[확인 필요]` next to it; the closing report lists them together.
 
-**After engine specialist and TD reviews return** (Step 4.5/4.6), if unresolved
-decisions remain, present each one as a separate a direct user question with the proposed
-options as choices plus a free-text escape:
+**Schema and data design choices**: decide each one — take the option the engine reference recommends, else the one the GDD requirement implies. Record the decision and the rejected option in the Alternatives section.
 
-```
-Decision: [specific unresolved point]
-[A] [option from specialist review]
-[B] [alternative option]
-[C] Different approach — I'll describe it
-```
+**After engine specialist and TD reviews return** (Step 4.5/4.6), decide any unresolved point by the same rule. If two options tie and the choice is hard to reverse (R3+, `rules/verify-route.md`), pick the one closer to the existing registry stances, mark it `[확인 필요]` in the ADR, and list it in the closing report.
 
-**ADR Dependencies** — derive from existing ADRs, then confirm:
+**ADR Dependencies** — derive from existing ADRs and record:
 - Does this decision depend on any other ADR not yet Accepted?
 - Does it unlock or unblock any other ADR or epic?
 - Does it block any specific epic from starting?
@@ -338,7 +327,7 @@ to implement it.]
      1. Confirm the proposed approach is idiomatic for the pinned engine version
      2. Flag any APIs or patterns that are deprecated or changed post-training-cutoff
      3. Identify engine-specific risks or gotchas not captured in the current ADR draft
-   - If the specialist identifies a **blocking issue** (wrong API, deprecated approach, engine version incompatibility): revise the Decision and Engine Compatibility sections accordingly, then confirm the changes with the user before proceeding
+   - If the specialist identifies a **blocking issue** (wrong API, deprecated approach, engine version incompatibility): revise the Decision and Engine Compatibility sections accordingly and record the revision, with the specialist's evidence, in the report
    - If the specialist finds **minor notes** only: incorporate them into the ADR's Risks subsection
 
 **Review mode check** — apply before spawning TD-ADR:
@@ -351,11 +340,11 @@ to implement it.]
    - The TD validates architectural coherence (is this decision consistent with the whole system?) — distinct from the engine specialist's API-level check
    - If CONCERNS or REJECT: revise the Decision or Alternatives sections accordingly before proceeding
 
-4.7. **GDD Sync Check** — Before presenting the write approval, scan all GDDs
+4.7. **GDD Sync Check** — Before writing, scan all GDDs
 referenced in the "GDD Requirements Addressed" section for naming inconsistencies
 with the ADR's Key Interfaces and Decision sections (renamed signals, API methods,
 or data types). If any are found, surface them as a **prominent warning block**
-immediately before the write approval — not as a footnote:
+immediately before writing — not as a footnote:
 
 ```
 ⚠️ GDD SYNC REQUIRED
@@ -368,21 +357,11 @@ developers reading the GDD from implementing the wrong interface.
 
 If no inconsistencies: skip this block silently.
 
-5. **Write approval** — Ask the user directly:
-
-If GDD sync issues were found:
-- "ADR draft is complete. How would you like to proceed?"
-  - [A] Write ADR + update GDD in the same pass
-  - [B] Write ADR only — I'll update the GDD manually
-  - [C] Not yet — I need to review further
-
-If no GDD sync issues:
-- "ADR draft is complete. May I write it?"
-  - [A] Write ADR to `docs/architecture/adr-[NNNN]-[slug].md`
-  - [B] Not yet — I need to review further
-
-If yes to any write option, write the file, creating the directory if needed.
-For option [A] with GDD update: also update the GDD file(s) to use the new names.
+5. **Write** the ADR to `docs/architecture/adr-[NNNN]-[slug].md`, creating the
+directory if needed. If GDD sync issues were found, update the GDD file(s) to use
+the new names in the same pass. Report every path written and its revert command
+(`git checkout -- <path>`). This is the one document-level review point: the
+report shows the full draft.
 
 6. **Update Architecture Registry**
 
@@ -409,36 +388,32 @@ Registry candidates from this ADR:
 3. Append the new entry AFTER the last existing entry in that section — do not try to replace a `[]` placeholder that may no longer exist
 4. If the section has entries already, use the closing content of the last entry as the `old_string` anchor, and append the new entry after it
 
-**BLOCKING — do not write to `docs/registry/architecture.yaml` without explicit user approval.**
-
-Ask by asking the user directly:
-- "May I update `docs/registry/architecture.yaml` with these [N] new stances?"
-  - Options: "Yes — update the registry", "Not yet — I want to review the candidates", "Skip registry update"
-
-Only proceed if the user selects yes. If yes: append new entries. Never modify existing entries — if a stance is
-changing, set the old entry to `status: superseded_by: ADR-[NNNN]` and add the new entry.
+Append the new entries to `docs/registry/architecture.yaml` and report the path
+with its revert command. Never modify existing entries — a stance that changes
+was resolved as a K1 conflict in Step 2; only then set the old entry to
+`status: superseded_by: ADR-[NNNN]` and add the new entry.
 
 ---
 
 ## 7. Closing Next Steps
 
-After the ADR is written (and registry optionally updated), close with a direct user question.
+After the ADR is written and the registry updated, close with a report.
 
-Before generating the widget:
+Before writing the closing block:
 1. Read `docs/registry/architecture.yaml` — check if any priority ADRs are still unwritten (look for ADRs flagged in technical-preferences.md or systems-index.md as prerequisites)
-2. Check if all prerequisite ADRs are now written. If yes, include a "Start writing GDDs" option.
-3. List ALL remaining priority ADRs as individual options — not just the next one or two.
+2. Check if all prerequisite ADRs are now written. If yes, name `$design-system [first-undesigned-system]` as the recommended next step.
+3. List ALL remaining priority ADRs — not just the next one or two.
 
-Widget format:
+Closing block:
 ```
-ADR-[NNNN] written and registry updated. What would you like to do next?
-[1] Write [next-priority-adr-name] — [brief description from prerequisites list]
-[2] Write [another-priority-adr] — [brief description]  (include ALL remaining ones)
-[N] Start writing GDDs — run `$design-system [first-undesigned-system]` (only show if all prerequisite ADRs are written)
-[N+1] Stop here for this session
+ADR-[NNNN] written and registry updated.
+Paths: [each path — revert: git checkout -- <path>]
+Confirm items ([확인 필요]): [list, or "None"]
+Recommended next: `$architecture-decision [next-priority-adr-name]` — [brief description]
+Remaining priority ADRs: [all of them, with one line each]
 ```
 
-If there are no remaining priority ADRs and no undesigned GDD systems, offer only "Stop here" and suggest running `$architecture-review` in a fresh session.
+If there are no remaining priority ADRs and no undesigned GDD systems, recommend `$architecture-review` in a fresh session.
 
 **Always include this fixed notice in the closing output (do NOT omit it):**
 

@@ -16,10 +16,9 @@ A feature name is **required**. If missing:
 
 1. Check if `product/prd/product-concept.md` exists.
 2. If it exists: read its scope/feature list, find the highest-priority feature
-   without a PRD (`product/prd/prd-<feature>.md` does not exist), and use
-   a direct user question:
-   - Prompt: "The next feature without a PRD is **[feature-name]**. Author its PRD?"
-   - Options: `[A] Yes — write the PRD for [feature-name]` / `[B] Pick a different feature` / `[C] Stop here`
+   without a PRD (`product/prd/prd-<feature>.md` does not exist), report
+   "No argument — authoring the PRD for the next feature without one:
+   **[feature-name]**", and proceed with it.
 3. If no product concept exists, fail with:
    > "Usage: `$create-prd <feature-name>` — e.g., `$create-prd onboarding`
    > No product concept found. Run `$product-concept` first — it writes
@@ -53,9 +52,11 @@ Read all relevant context **before** asking the user anything:
 
 ## 3. Author Section by Section (Write Phase)
 
-Walk the user through each required section **in order, one at a time**:
-propose a draft from the context you read, ask for corrections, then move on.
-Do not fabricate business facts (pricing, launch dates, user counts) — ask.
+Draft each required section **in order, one at a time** from the context you
+read. Do not fabricate business facts (pricing, launch dates, user counts): a
+fact the user could supply is asked for (`rules/claim-confidence.md` § 3), but
+the draft does not wait — write the best-supported value marked `[확인 필요]`
+and collect every such question in the closing report.
 
 Required sections (all 8 must exist for the PRD to pass review):
 
@@ -74,12 +75,10 @@ Required sections (all 8 must exist for the PRD to pass review):
 8. **Acceptance Criteria** — checkable list a QA agent can verify; each
    criterion maps to at least one FR
 
-After drafting all sections, show the user a compact summary of what will be
-written and ask for approval before writing the file:
-
-> "May I write this PRD to `product/prd/prd-<feature>.md`?"
-
-Only write after explicit approval. Write the full document with frontmatter:
+After drafting all sections, write the PRD to `product/prd/prd-<feature>.md`
+and report the path with its revert command (`git checkout -- <path>`). The
+report carries a compact summary of the document and every `[확인 필요]` item —
+the one document-level review point. Write the full document with frontmatter:
 
 ```yaml
 ---
@@ -100,8 +99,9 @@ Self-check before closing (all must hold, else fix before reporting):
 - Won't list is non-empty
 
 Report the verdict:
-- **COMPLETE** — PRD written, all checks hold. Set `status: In Review`.
-- **BLOCKED** — a business fact is missing and the user must decide (name it).
+- **COMPLETE** — PRD written, all checks hold. Set `status: In Review`. List
+  the `[확인 필요]` business facts the user should confirm.
+- **BLOCKED** — no feature name and no product concept to derive one from (K2).
 
 ### Recommended next steps
 

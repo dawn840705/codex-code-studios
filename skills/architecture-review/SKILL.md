@@ -89,10 +89,10 @@ For each requirement you extract, the matching rule is:
    add a `revised: [date]` field.
 2. **No match** → assign a new ID: next available `TR-[system]-NNN` for that
    system, starting from the highest existing sequence + 1.
-3. **Ambiguous** (partial match, intent unclear) → ask the user:
-   > "Does '[new requirement text]' refer to the same requirement as
-   > `TR-[system]-NNN: [existing text]'`, or is it a new requirement?"
-   User answers: "Same requirement" (reuse ID) or "New requirement" (new ID).
+3. **Ambiguous** (partial match, intent unclear) → assign a new ID and add
+   `candidate_duplicate_of: TR-[system]-NNN` to the entry. List every such pair
+   in the report under `[확인 필요]`; a wrong split is undone by deprecating the
+   new ID, a wrong merge is not.
 
 For any requirement with `status: deprecated` in the registry — skip it.
 It was removed from the GDD intentionally.
@@ -364,10 +364,10 @@ The GDD should be revised before its system enters implementation.
 If no revision flags are found, write: "No GDD revision flags — all GDD assumptions
 are consistent with verified engine behaviour."
 
-Ask: "Should I flag these GDDs for revision in the systems index?"
-- If yes: update the relevant systems' Status field to "Needs Revision"
-  and add a short inline note in the adjacent Notes/Description column explaining the conflict.
-  Ask for approval before writing.
+Flag these GDDs for revision in the systems index: update the relevant systems'
+Status field to "Needs Revision" and add a short inline note in the adjacent
+Notes/Description column explaining the conflict. Report the path and the revert
+command.
   (Do NOT use parentheticals like "Needs Revision (Architecture Feedback)" — other skills
   match the exact string "Needs Revision" and parentheticals break that match.)
 
@@ -446,16 +446,15 @@ FAIL: Critical gaps (Foundation/Core layer requirements uncovered),
 
 ## Phase 8: Write and Update Traceability Index
 
-Ask the user directly for the write approval:
-- "Review complete. What would you like to write?"
-  - [A] Write all three files (review report + traceability index + TR registry)
-  - [B] Write review report only — `docs/architecture/architecture-review-[date].md`
-  - [C] Don't write anything yet — I need to review the findings first
+Write all three files — the review report
+(`docs/architecture/architecture-review-[date].md`), the traceability index, and
+the TR registry. Report each path with its revert command
+(`git checkout -- <path>`).
 
 ### RTM Output (rtm mode only)
 
-For `rtm` mode, additionally ask: "May I write the full Requirements Traceability
-Matrix to `docs/architecture/requirements-traceability.md`?"
+For `rtm` mode, additionally write the full Requirements Traceability Matrix to
+`docs/architecture/requirements-traceability.md`.
 
 RTM file format:
 
@@ -515,15 +514,13 @@ Requirements where the full chain is broken, prioritised by layer:
 
 ### TR Registry Update
 
-Also ask: "May I update `docs/architecture/tr-registry.yaml` with new requirement
-IDs from this review?"
-
-If yes:
+Update `docs/architecture/tr-registry.yaml` with the new requirement IDs from
+this review:
 - **Append** any new TR-IDs that weren't in the registry before this review
 - **Update** `requirement` text and `revised` date for any entries whose GDD
   wording changed (ID stays the same)
 - **Mark** `status: deprecated` for any registry entries whose GDD requirement
-  no longer exists (confirm with user before marking deprecated)
+  no longer exists (list each one in the report with the GDD evidence)
 - **Never** renumber or delete existing entries
 - Update the `last_updated` and `version` fields at the top
 
@@ -550,7 +547,7 @@ append when it already exists.
 
 ### Session State Update
 
-After writing all approved files, silently append to
+After writing all files, silently append to
 `production/session-state/active.md`:
 
     ## Session Extract — $architecture-review [date]
@@ -591,7 +588,7 @@ Engine: [name + version]
 
 ## Phase 9: Handoff
 
-After completing the review and writing approved files, present:
+After completing the review and writing the files, present:
 
 1. **Immediate actions**: List the top 3 ADRs to create (highest-impact gaps first,
    Foundation layer before Feature layer)
@@ -600,11 +597,9 @@ After completing the review and writing approved files, present:
 3. **Rerun trigger**: "Re-run `$architecture-review` after each new ADR is written
    to verify coverage improves"
 
-Then close with a direct user question:
-- "Architecture review complete. What would you like to do next?"
-  - [A] Write a missing ADR — open a fresh session and run `$architecture-decision [system]`
-  - [B] Run `$gate-check pre-production` — if all blocking gaps are resolved
-  - [C] Stop here for this session
+Then close with the recommended next step: `$architecture-decision [system]` in
+a fresh session when blocking gaps remain; `$gate-check pre-production` when they
+are all resolved.
 
 ---
 
@@ -612,12 +607,9 @@ Then close with a direct user question:
 
 If any spawned agent returns BLOCKED, errors, or fails to complete:
 
-1. **Surface immediately**: Report "[AgentName]: BLOCKED — [reason]" before continuing
-2. **Assess dependencies**: If the blocked agent's output is required by a later phase, do not proceed past that phase without user input
-3. **Offer options** via direct user question with three choices:
-   - Skip this agent and note the gap in the final report
-   - Retry with narrower scope (fewer GDDs, single-system focus)
-   - Stop here and resolve the blocker first
+1. **Record it**: "[AgentName]: BLOCKED — [reason]" and the phase it interrupted, in the final report
+2. **Choose the narrowest recovery yourself and report it**: retry with narrower scope (fewer GDDs, single-system focus), or skip the agent and note the gap
+3. **BLOCKED only when the missing output is required by a later phase and cannot be reproduced** (K1/K2). Name what is needed to resume
 4. **Always produce a partial report** — output whatever was completed so work is not lost
 
 ---
@@ -625,10 +617,11 @@ If any spawned agent returns BLOCKED, errors, or fails to complete:
 ## Collaborative Protocol
 
 1. **Read silently** — do not narrate every file read
-2. **Show the matrix** — present the full traceability matrix before asking for
-   anything; let the user see the state
-3. **Don't guess** — if a requirement is ambiguous, ask: "Is [X] a technical
-   requirement or a design preference?"
-4. **Ask before writing** — always confirm before writing the report file
+2. **Show the matrix** — present the full traceability matrix in the report; let
+   the user see the state
+3. **Don't guess silently** — if a requirement could be a design preference rather
+   than a technical requirement, keep it as a requirement and mark it
+   `[확인 필요]` in the report
+4. **Write, then report** — every file written is listed with its revert command
 5. **Non-blocking** — the verdict is advisory; the user decides whether to continue
    despite CONCERNS or even FAIL findings

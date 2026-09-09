@@ -4,10 +4,9 @@ description: "Orchestrate the UI team through the full UX pipeline: from UX spec
 ---
 When this skill is invoked, orchestrate the UI team through a structured pipeline.
 
-**Decision Points:** At each phase transition, ask the user directly to present
-the user with the subagent's proposals as selectable options. Write the agent's
-full analysis in conversation, then capture the decision with concise labels.
-The user must approve before moving to the next phase.
+**Decision Points:** Proceed through phases autonomously. Record each phase's
+decision and the alternatives rejected in the final report; stop only on K1/K2
+or a gate exit 2 (`rules/autonomy-contract.md`).
 
 ## Team Composition
 - **ux-designer** — User flows, wireframes, accessibility, input handling
@@ -47,11 +46,11 @@ Before designing anything, read and synthesize:
 **If `design/ux/interaction-patterns.md` does not exist**, surface the gap immediately:
 > "interaction-patterns.md does not exist — no existing patterns to reuse."
 
-Then ask the user directly with options:
+Take (a) unless the argument scopes the run to a single small screen; then (b). If you deviate, name the reason in the report.
 - (a) Run `$ux-design patterns` first to establish the pattern library, then continue
-- (b) Proceed without the pattern library — ui-programmer will treat all patterns created as new and add each to a new `design/ux/interaction-patterns.md` at completion
+- (b) Proceed without the pattern library — instruct ui-programmer in Phase 3 to treat all patterns as new and add each to a new `design/ux/interaction-patterns.md` when implementation is complete
 
-Do NOT invent or assume patterns from the feature name or GDD alone. If the user chooses (b), explicitly instruct ui-programmer in Phase 3 to treat all patterns as new and document them in `design/ux/interaction-patterns.md` when implementation is complete. Note the pattern library status (created / absent / updated) in the final summary report.
+Do NOT invent or assume patterns from the feature name or GDD alone. Note the pattern library status (created / absent / updated) in the final summary report.
 
 Summarize the context in a brief for the ux-designer: what the player is doing, what they need, what constraints apply, and which existing patterns are relevant.
 
@@ -71,7 +70,7 @@ Output: `design/ux/[feature-name].md` with all required spec sections filled.
 
 After the spec is complete, invoke `$ux-review design/ux/[feature-name].md`.
 
-**Gate**: Do not proceed to Phase 2 until the verdict is APPROVED. If the verdict is NEEDS REVISION, the ux-designer must address the flagged issues and re-run the review. The user may explicitly accept a NEEDS REVISION risk and proceed, but this must be a conscious decision — present the specific concerns by asking the user directly before asking whether to proceed.
+**Gate**: The `$ux-review` verdict decides. On NEEDS REVISION, the ux-designer addresses the flagged issues and the review is re-run within the `$self-loop` limits (`rules/self-loop.md`). If it still fails, stop: Verdict: **BLOCKED** — ux-review NEEDS REVISION; list the specific concerns. Accepting that risk and proceeding is a K1 decision for the user.
 
 ### Phase 2: Visual Design
 
@@ -133,12 +132,9 @@ All three review streams must report before proceeding to Phase 5.
 
 If any spawned agent (as a Codex subagent) returns BLOCKED, errors, or cannot complete:
 
-1. **Surface immediately**: Report "[AgentName]: BLOCKED — [reason]" to the user before continuing to dependent phases
-2. **Assess dependencies**: Check whether the blocked agent's output is required by subsequent phases. If yes, do not proceed past that dependency point without user input.
-3. **Offer options** via direct user question with choices:
-   - Skip this agent and note the gap in the final report
-   - Retry with narrower scope
-   - Stop here and resolve the blocker first
+1. **Record it**: "[AgentName]: BLOCKED — [reason]" and the phase it interrupted, in the final report
+2. **Choose the narrowest recovery yourself and report it**: retry with narrower scope, or skip the agent and note the gap
+3. **BLOCKED only when the missing output is required by a later phase and cannot be reproduced** (K1/K2). Name what is needed to resume
 4. **Always produce a partial report** — output whatever was completed. Never discard work because one agent blocked.
 
 Common blockers:
@@ -149,9 +145,12 @@ Common blockers:
 
 ## File Write Protocol
 
-All file writes (UX specs, interaction pattern library updates, implementation files) are
-delegated to sub-agents and sub-skills (`$ux-design`, `ui-programmer`). Each enforces the
-"May I write to [path]?" protocol. This orchestrator does not write files directly.
+All file writes (UX specs, interaction pattern library updates, implementation
+files) are delegated to sub-agents and sub-skills (`$ux-design`, `ui-
+programmer`). This orchestrator does not write files directly. Each sub-agent
+writes only within its owned paths (`rules/subagent-collaboration.md` § 3) and
+returns the paths written; list every path with its revert command (`git
+checkout -- <path>`) in the final report.
 
 ## Output
 

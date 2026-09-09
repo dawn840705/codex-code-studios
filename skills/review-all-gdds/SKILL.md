@@ -540,20 +540,17 @@ FAIL: One or more blocking issues must be resolved before architecture begins.
 
 ## Phase 6: Write Report and Flag GDDs
 
-Ask the user directly for write permission:
-- Prompt: "May I write this review to `design/gdd/gdd-cross-review-[date].md`?"
-- Options: `[A] Yes — write the report` / `[B] No — skip`
+Write the review to `design/gdd/gdd-cross-review-[date].md`. Report the path and the revert command (`git checkout -- <path>`).
 
-If any GDDs are flagged for revision, use a second a direct user question:
-- Prompt: "Should I update the systems index to mark these GDDs as needing revision? ([list of flagged GDDs])"
-- Options: `[A] Yes — update systems index` / `[B] No — leave as-is`
-- If yes: update each flagged GDD's Status field in systems-index.md to "Needs Revision".
+If any GDDs are flagged for revision, update each flagged GDD's Status field in
+`design/gdd/systems-index.md` to "Needs Revision" and report the path with the
+list of flagged GDDs.
   (Do NOT append parentheticals to the status value — other skills match "Needs Revision"
   as an exact string and parentheticals break that match.)
 
 ### Session State Update
 
-After writing the report (and updating systems index if approved), silently
+After writing the report (and updating the systems index), silently
 append to `production/session-state/active.md`:
 
     ## Session Extract — $review-all-gdds [date]
@@ -571,27 +568,17 @@ Confirm in conversation: "Session state updated."
 
 ## Phase 7: Handoff
 
-After all file writes are complete, ask the user directly for a closing widget.
+After all file writes are complete, apply the quick fixes and close with a recommended next step.
 
-Before building options, check project state:
-- Are there any Warning-level items that are simple edits (flagged with "30-second edit", "brief addition", or similar)? → offer inline quick-fix option
-- Are any GDDs in the "Flagged for Revision" table? → offer $design-review option for each
-- Read systems-index.md for the next system with Status: Not Started → offer $design-system option
-- Is the verdict PASS or CONCERNS? → offer $gate-check or $create-architecture
+**Quick fixes**: every Warning-level item flagged as a simple edit ("30-second edit", "brief addition", or similar) is applied now — one edit per item, citing `W-XX` — and reported with the GDD path and its revert command. Blocking items, and anything that picks one GDD's value over another's, are never edited here.
 
-Build the option list dynamically — only include options that apply:
+Then check project state and build the next-step list — only include steps that apply:
+- `Run $design-review [flagged-gdd-path] — address flagged warnings` (one per flagged GDD, if any)
+- `Run $design-system [next-system] — next in design order` (always include, name the actual system)
+- `Run $create-architecture — begin architecture` (include if verdict is not FAIL)
+- `Run $gate-check — validate Systems Design phase gate` (include if verdict is PASS)
 
-**Option pool:**
-- `[_] Apply quick fix: [W-XX description] in [gdd-name].md — [effort estimate]` (one option per simple-edit warning; only for Warning-level, not Blocking)
-- `[_] Run $design-review [flagged-gdd-path] — address flagged warnings` (one per flagged GDD, if any)
-- `[_] Run $design-system [next-system] — next in design order` (always include, name the actual system)
-- `[_] Run $create-architecture — begin architecture (verdict is PASS/CONCERNS)` (include if verdict is not FAIL)
-- `[_] Run $gate-check — validate Systems Design phase gate` (include if verdict is PASS)
-- `[_] Stop here`
-
-Assign letters A, B, C… only to included options. Mark the most pipeline-advancing option as `(recommended)`.
-
-Never end the skill with plain text. Always close with this widget.
+Put the most pipeline-advancing step first as `Recommended next`. End the report with every path written and its revert command.
 
 ---
 
@@ -599,12 +586,9 @@ Never end the skill with plain text. Always close with this widget.
 
 If any spawned agent returns BLOCKED, errors, or fails to complete:
 
-1. **Surface immediately**: Report "[AgentName]: BLOCKED — [reason]" before continuing
-2. **Assess dependencies**: If the blocked agent's output is required by a later phase, do not proceed past that phase without user input
-3. **Offer options** via direct user question with three choices:
-   - Skip this agent and note the gap in the final report
-   - Retry with narrower scope (fewer GDDs, single-system focus)
-   - Stop here and resolve the blocker first
+1. **Record it**: "[AgentName]: BLOCKED — [reason]" and the phase it interrupted, in the final report
+2. **Choose the narrowest recovery yourself and report it**: retry with narrower scope (fewer GDDs, single-system focus), or skip the agent and note the gap
+3. **BLOCKED only when the missing output is required by a later phase and cannot be reproduced** (K1/K2). Name what is needed to resume
 4. **Always produce a partial report** — output whatever was completed so work is not lost
 
 ---
@@ -612,13 +596,13 @@ If any spawned agent returns BLOCKED, errors, or fails to complete:
 ## Collaborative Protocol
 
 1. **Read silently** — load all GDDs before presenting anything
-2. **Show everything** — present the full consistency and design theory analysis
-   before asking for any action
+2. **Show everything** — the full consistency and design theory analysis goes in
+   the report before any file lands
 3. **Distinguish blocking from advisory** — not every issue needs to block
    architecture; be clear about which do
 4. **Don't make design decisions** — flag contradictions and options, but never
    unilaterally decide which GDD is "right"
-5. **Ask before writing** — confirm before writing the report or updating the
-   systems index
+5. **Write, then report** — the report, the systems index update, and the quick
+   fixes are reversible; list each path with its revert command
 6. **Be specific** — every issue must cite the exact GDD, section, and text
    involved; no vague warnings

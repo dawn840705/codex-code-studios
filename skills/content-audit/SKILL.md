@@ -126,9 +126,9 @@ Flag a system as `HIGH PRIORITY` in the report if:
 
 ### Full audit and single-system modes
 
-Present the gap table and summary to the user. Ask: "May I write the full report to `docs/content-audit-[YYYY-MM-DD].md`?"
+Write the full report to `docs/content-audit-[YYYY-MM-DD].md` and report the path with its revert command (`git checkout -- <path>`). The gap table and summary also go in the closing report.
 
-If yes, write the file:
+File format:
 
 ```markdown
 # Content Audit — [Date]
@@ -173,12 +173,10 @@ Consider adding counts to improve auditability:
 [List of GDDs and content types with "Unspecified"]
 ```
 
-After writing the report, ask:
-
-> "Would you like to create backlog stories for any of the content gaps?"
-
-If yes: for each system the user selects, suggest a story title and point them
-to `$create-stories [epic-slug]` or `$quick-design` depending on the size of the gap.
+After writing the report, close with a recommended next step: for each HIGH
+PRIORITY gap, suggest a story title and the command that creates it —
+`$create-stories [epic-slug]` or `$quick-design` depending on the size of the
+gap. Do not create stories here.
 
 ### --summary mode
 
