@@ -291,8 +291,12 @@ Run the policy axis. It is independent of the completion axis — neither
 overrides the other, and both are reported.
 
 ```bash
-python3 ../../scripts/verify_policy.py --story [story-file-path]
+python3 ../../scripts/verify_policy.py --story [story-file-path] --base [story-start-commit]
 ```
+
+Pass the commit the story started from (or the branch fork point) as `--base`;
+without it the gate diffs against `HEAD` only and sees nothing that was already
+committed mid-story. If you do not know the commit: `--base $(git merge-base HEAD main)`.
 
 **Read the exit code. Do not re-derive the verdict from the output** — see
 `../../docs/deterministic-gates.md`.

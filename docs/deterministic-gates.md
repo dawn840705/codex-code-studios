@@ -70,7 +70,10 @@ Every gate above judges *completion*. This one judges *compliance* — whether t
 work was done the way we said — and exits `0` (compliant) / `1` (warning: track
 mixing, off-convention paths) / `2` (abort: a story is Complete with missing
 evidence, or the diff adds a test-skip marker) / `3` (not a git repo). `$story-done`
-runs it in Phase 5b and reports both axes side by side.
+runs it in Phase 5b and reports both axes side by side. Its diff is the working
+tree against `HEAD` by default — empty right after a commit — so callers pass the
+story's starting commit as `--base <rev>`, which judges everything since
+`merge-base(rev, HEAD)`: committed, staged and unstaged alike.
 
 The two must not be collapsed. Work that finished *by breaking a rule* records
 the same `exit 0` on the completion axis as work that finished properly — that

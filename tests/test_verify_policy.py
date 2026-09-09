@@ -275,6 +275,108 @@ class TestP4PathConventions(RepoCase):
         git(self.root, "add", "-A")
         self.assertEqual(vp.check_p4_path_conventions(self.root, None), [])
 
+    def test_paths_the_plugin_itself_writes_pass(self):
+        """플러그인이 자기 스킬·훅의 산출물에 경고를 내면 게이트가 통째로 꺼진다.
+
+        각 경로의 근거: CLAUDE.md 가 쓰라는 track.txt, gate-check 가 쓰는
+        stage.txt, 훅(log-agent.sh 등)이 만드는 session-logs/, 카탈로그의
+        accessibility-requirements.md, directory-structure.md 의 archive/
+        narrative/ ui/, 그리고 스킬이 Output 으로 선언한 나머지.
+        """
+        for p in (
+            "production/track.txt",
+            "production/stage.txt",
+            "production/session-logs/session-2026-01-01.md",
+            "design/accessibility-requirements.md",
+            "design/archive/old-gdd.md",
+            "design/narrative/characters/hero.md",
+            "design/ui/hud-flow.md",
+            "design/registry/entities.yaml",
+            "design/levels/forest-01.md",
+            "design/live-ops/ethics-policy.md",
+            "design/quick-specs/dash-2026-01-01.md",
+            "design/balance/balance-check-combat-2026-01-01.md",
+            "design/concepts/proto-a.md",
+            "design/community/tone-guide.md",
+            "production/releases/launch-checklist-2026-01-01.md",
+            "production/localization/translator-brief-ko-2026-01-01.md",
+            "production/security/security-audit-2026-01-01.md",
+            "production/gate-checks/gate-check-production.md",
+            "production/onboarding/onboard-artist-2026-01-01.md",
+            "production/hotfixes/hotfix-2026-01-01-crash.md",
+            "production/risk-register/risks.md",
+        ):
+            write(self.root, p, "x\n")
+        git(self.root, "add", "-A")
+        findings = vp.check_p4_path_conventions(self.root, None)
+        self.assertEqual([f.path for f in findings], [])
+
+    def test_stray_file_under_production_still_warns(self):
+        """허용 목록이 넓어져도 루트 바로 아래 임의 파일은 여전히 규약 밖이다."""
+        write(self.root, "production/notes.md", "x\n")
+        write(self.root, "production/misc/thing.md", "x\n")
+        git(self.root, "add", "-A")
+        findings = vp.check_p4_path_conventions(self.root, None)
+        self.assertEqual(sorted(f.path for f in findings),
+                         ["production/misc/thing.md", "production/notes.md"])
+
+
+class TestBaseRef(RepoCase):
+    """--base: 커밋 직후에도 스토리가 한 일이 보여야 한다.
+
+    기본 기준(HEAD)은 작업 트리+인덱스만 보므로 스토리 중간에 커밋하면 P2·P4 가
+    조용히 exit 0 을 낸다. --base <스토리 시작 커밋> 은 그 맹점을 닫는다.
+    """
+
+    def _head(self) -> str:
+        return subprocess.run(["git", "rev-parse", "HEAD"], cwd=self.root, check=True,
+                              capture_output=True, encoding="utf-8").stdout.strip()
+
+    def test_committed_off_convention_file_is_seen_only_with_base(self):
+        start = self._head()
+        write(self.root, "design/random-notes.md", "x\n")
+        git(self.root, "add", "-A")
+        git(self.root, "commit", "-qm", "mid-story")
+        self.assertEqual(vp.check_p4_path_conventions(self.root, None), [])
+        findings = vp.check_p4_path_conventions(self.root, start)
+        self.assertEqual([f.path for f in findings], ["design/random-notes.md"])
+
+    def test_committed_skip_marker_is_seen_only_with_base(self):
+        start = self._head()
+        write(self.root, "tests/sample_test.py",
+              "import pytest\n\n@pytest.mark.skip\ndef test_a():\n    assert True\n")
+        git(self.root, "add", "-A")
+        git(self.root, "commit", "-qm", "mid-story")
+        self.assertEqual(vp.check_p2_skip_markers(self.root, None), [])
+        self.assertEqual(vp.verdict(vp.run_checks(self.root, None, start)), vp.EXIT_ABORT)
+
+    def test_base_covers_committed_and_uncommitted_work_together(self):
+        """커밋한 절반과 아직 스테이징만 한 절반이 한 판정에 같이 들어와야 한다."""
+        start = self._head()
+        write(self.root, "design/committed.md", "x\n")
+        git(self.root, "add", "-A")
+        git(self.root, "commit", "-qm", "half")
+        write(self.root, "design/staged.md", "x\n")
+        git(self.root, "add", "-A")
+        findings = vp.check_p4_path_conventions(self.root, start)
+        self.assertEqual(sorted(f.path for f in findings),
+                         ["design/committed.md", "design/staged.md"])
+
+    def test_base_equal_to_head_matches_the_default(self):
+        write(self.root, "design/stray.md", "x\n")
+        git(self.root, "add", "-A")
+        self.assertEqual(
+            [f.path for f in vp.check_p4_path_conventions(self.root, "HEAD")],
+            [f.path for f in vp.check_p4_path_conventions(self.root, None)],
+        )
+
+    def test_unresolvable_base_cannot_judge(self):
+        """모르는 ref 를 통과로 읽으면 안 된다 — exit 3 이다."""
+        with self.assertRaises(vp.GitUnavailable):
+            vp.run_checks(self.root, None, "no-such-ref")
+        self.assertEqual(vp.main(["--project-root", self.root, "--base", "no-such-ref"]),
+                         vp.EXIT_CANNOT_JUDGE)
+
 
 class TestVerdictContract(RepoCase):
     """docs/deterministic-gates.md 의 4코드 계약."""

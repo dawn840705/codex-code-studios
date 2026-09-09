@@ -52,8 +52,16 @@ Standard library only.
 Usage:
     python3 scripts/verify_policy.py                          # repo-wide, vs HEAD
     python3 scripts/verify_policy.py --story production/epics/core/story-001-x.md
-    python3 scripts/verify_policy.py --base origin/main       # diff against a ref
+    python3 scripts/verify_policy.py --base <story-start-commit>  # everything since
     python3 scripts/verify_policy.py --self-test              # built-in smoke test
+
+Without --base the diff is the working tree plus the index against HEAD — the
+shape of a story in progress, and *empty right after a commit*. A story that
+commits mid-way therefore hides its committed half from P2 and P4. Pass the
+commit the story started from (or the branch fork point) as --base: the diff
+then runs from merge-base(<base>, HEAD) to the working tree, so committed,
+staged and unstaged work are all judged. Callers that do not know the commit
+can use `--base $(git merge-base HEAD main)`.
 """
 
 from __future__ import annotations
@@ -140,16 +148,28 @@ PRODUCT_TRACK_GLOB = ("product/prd", ".md")
 
 # --- P4: path conventions (Code Studios policy "File conventions the plugin expects") ---
 
-# Kept in sync with the artifact globs in docs/workflow-catalog.yaml. A path the
-# catalog declares as a canonical artifact location must not warn here — a gate
-# that fires on its own conventions is the false-positive case this file's
-# docstring says gets gates disabled wholesale.
+# Derived from three sources, and a path must be in one of them to be listed:
+# the artifact globs in docs/workflow-catalog.yaml, the tree in
+# docs/directory-structure.md, and the output paths the skills and hooks in
+# this plugin actually write. A path the plugin itself declares as a canonical
+# location must not warn here — a gate that fires on its own conventions is the
+# false-positive case this file's docstring says gets gates disabled wholesale.
 CONVENTION_PREFIXES = (
     "design/gdd/",
     "design/adr/",
     "design/art/",
     "design/assets/",
     "design/ux/",
+    "design/archive/",
+    "design/narrative/",
+    "design/ui/",
+    "design/registry/",
+    "design/levels/",
+    "design/live-ops/",
+    "design/quick-specs/",
+    "design/balance/",
+    "design/concepts/",
+    "design/community/",
     "product/prd/",
     "production/sprints/",
     "production/milestones/",
@@ -160,12 +180,23 @@ CONVENTION_PREFIXES = (
     "production/playtests/",
     "production/marketing/",
     "production/session-state/",
+    "production/session-logs/",
     "production/retrospectives/",
+    "production/releases/",
+    "production/localization/",
+    "production/security/",
+    "production/gate-checks/",
+    "production/onboarding/",
+    "production/hotfixes/",
+    "production/risk-register/",
 )
 CONVENTION_FILES = (
     "design/architecture.md",
+    "design/accessibility-requirements.md",
     "production/review-mode.txt",
     "production/human-actions.md",
+    "production/track.txt",
+    "production/stage.txt",
 )
 # Only these two roots are policed. Everything else in a user project is the
 # user's business, and a linter with an opinion about `src/` would be wrong more
@@ -220,17 +251,28 @@ def _git(root: str, *args: str) -> str:
     return proc.stdout
 
 
-def diff_text(root: str, base: str | None) -> str:
-    """Unified diff of the work under judgement.
+def diff_anchor(root: str, base: str | None) -> str:
+    """The commit the judged diff starts from.
 
-    With --base, compare against that ref. Without it, judge the working tree
-    plus the index, which is what a story in progress actually looks like.
+    Without --base that is HEAD: the working tree plus the index, which is what
+    a story in progress looks like — and which is empty right after a commit.
+    With --base it is merge-base(base, HEAD), so the diff to the working tree
+    covers everything since the story started: committed, staged and unstaged.
+    A ref git cannot resolve is no verdict (GitUnavailable → exit 3).
     """
     if not os.path.isdir(os.path.join(root, ".git")):
         raise GitUnavailable(f"not a git repository: {root}")
-    if base:
-        return _git(root, "diff", "--unified=0", f"{base}...HEAD")
-    return _git(root, "diff", "--unified=0", "HEAD")
+    if not base:
+        return "HEAD"
+    anchor = _git(root, "merge-base", base, "HEAD").strip()
+    if not anchor:
+        raise GitUnavailable(f"no common ancestor between {base} and HEAD")
+    return anchor
+
+
+def diff_text(root: str, base: str | None) -> str:
+    """Unified diff of the work under judgement (see diff_anchor)."""
+    return _git(root, "diff", "--unified=0", diff_anchor(root, base))
 
 
 def added_lines(diff: str) -> list[tuple[str, str]]:
@@ -249,11 +291,8 @@ def added_lines(diff: str) -> list[tuple[str, str]]:
 
 
 def added_files(root: str, base: str | None) -> list[str]:
-    if not os.path.isdir(os.path.join(root, ".git")):
-        raise GitUnavailable(f"not a git repository: {root}")
-    args = ["diff", "--name-only", "--diff-filter=A"]
-    args.append(f"{base}...HEAD" if base else "HEAD")
-    return [p for p in _git(root, *args).splitlines() if p.strip()]
+    out = _git(root, "diff", "--name-only", "--diff-filter=A", diff_anchor(root, base))
+    return [p for p in out.splitlines() if p.strip()]
 
 
 # --- checks ------------------------------------------------------------------
@@ -485,6 +524,18 @@ def self_test() -> int:
                     "## Test Evidence\n\n- `tests/unit/nope_test.py`\n")
         expect("P1 missing evidence", verdict(run_checks(d, story, None)), EXIT_ABORT)
 
+        # --base — off-convention file already committed: invisible vs HEAD,
+        # visible from the story-start commit
+        start = subprocess.run(["git", "rev-parse", "HEAD"], cwd=d, check=True,
+                               capture_output=True, encoding="utf-8").stdout.strip()
+        os.makedirs(os.path.join(d, "design"), exist_ok=True)
+        with open(os.path.join(d, "design", "stray.md"), "w") as f:
+            f.write("x\n")
+        git(d, "add", "-A")
+        git(d, "commit", "-qm", "mid-story")
+        expect("P4 committed, no --base", verdict(run_checks(d, None, None)), EXIT_COMPLIANT)
+        expect("P4 committed, --base", verdict(run_checks(d, None, start)), EXIT_WARNING)
+
         # P3 — both tracks present
         os.makedirs(os.path.join(d, "design", "gdd"), exist_ok=True)
         os.makedirs(os.path.join(d, "product", "prd"), exist_ok=True)
@@ -513,7 +564,12 @@ def main(argv: list[str]) -> int:
         description="Policy compliance gate — the axis completion checks miss"
     )
     ap.add_argument("--story", help="story file to judge for P1")
-    ap.add_argument("--base", help="git ref to diff against (default: HEAD)")
+    ap.add_argument(
+        "--base",
+        help="commit the story started from (or its branch fork point); judges "
+             "everything since merge-base(BASE, HEAD) including staged and "
+             "unstaged work. Default: HEAD only — blind right after a commit",
+    )
     ap.add_argument("--project-root", default=".", help="repository root")
     ap.add_argument("--quiet", action="store_true", help="summary line only")
     ap.add_argument("--json", action="store_true", dest="as_json",
