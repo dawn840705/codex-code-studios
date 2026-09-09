@@ -630,7 +630,7 @@ the source of truth). Verify:
 **Review mode check** — apply before spawning CD-GDD-ALIGN:
 - `solo` → skip. Note: "CD-GDD-ALIGN skipped — Solo mode." Proceed to Step 5b.
 - `lean` → skip (not a PHASE-GATE). Note: "CD-GDD-ALIGN skipped — Lean mode." Proceed to Step 5b.
-- `full` → spawn as normal.
+- `full` → spawn the named director as a separate reviewing subagent (read-only, final state only; `docs/director-gates.md`).
 
 Before finalizing the GDD, spawn `creative-director` as a Codex subagent using gate **CD-GDD-ALIGN** (`../../docs/director-gates.md`).
 

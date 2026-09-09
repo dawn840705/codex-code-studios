@@ -10,8 +10,9 @@ description: "Reviews a game design document for completeness, internal consiste
 > - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
 >   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
 >   the stack pinned in `.codex/studio/technical-preferences.md`. You are reviewing a PRD, not a GDD. The completeness check maps onto the PRD template's sections; "implementable" means an engineer can build it from the doc alone, and every success metric must be measurable.
-> - **Unresolved** — ask which track this is before doing anything. A greenfield project
->   has no signal either way; do not infer one from the repository contents.
+> - **Unresolved** — ask once which track this is, write the answer to `production/track.txt`,
+>   then continue. A greenfield project has no signal either way; do not infer one from the
+>   repository contents.
 
 ## Phase 0: Parse Arguments
 

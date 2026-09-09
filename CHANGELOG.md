@@ -1,5 +1,98 @@
 # Changelog
 
+## v0.8.0 — 2026-09-09
+
+### Changed — default behaviour is now "proceed, then report" (Codex Astra alignment)
+
+The plugin was written for models that had to be asked before every reversible
+write. Codex Astra's guidance is the opposite: bias towards action, pause only
+for clearly destructive or irreversible steps, and give the model a stopping
+rule before the task starts. The skills, role guides, rules, linter and hooks now
+follow one contract instead of contradicting each other. Background and
+evidence: [docs/design/v0.8.0-astra-autonomy-plan.md](docs/design/v0.8.0-astra-autonomy-plan.md).
+
+- **`rules/autonomy-contract.md`** is the canonical stopping rule; the same 13
+  lines sit in `docs/AGENTS-template.md` (for consumer projects) and `CLAUDE.md`
+  (compatibility layer), and `session-start.sh` echoes a 3-line summary. Stops
+  are only: R4 / paid calls, an unresolved track (ask once, write
+  `production/track.txt`), overturning a pinned decision, files outside write
+  ownership, facts only a person can observe (batched into the exit report),
+  and items the user explicitly asked to review. Everything else proceeds and
+  reports the path plus the revert command.
+- **Skills (67 of 91 touched).** "May I write…?" prompts: 106 → 0. Phase
+  transition approvals in every `team-*` skill removed; option widgets declare a
+  default; section-by-section approvals became section-by-section writes with
+  one review pass per document; a gate FAIL enters `$self-loop` instead of
+  "report and ask". One sprint story (`$sprint-plan` → `$story-readiness` →
+  `$dev-story` → `$story-done` → `$smoke-check` → `$team-qa`, lean mode) now
+  asks the user 3 times instead of 18, all three for facts only a person can
+  observe (manual acceptance, smoke, QA results), and an unanswered question is
+  DEFERRED rather than blocking. Kept as user decisions: onboarding (`$start`),
+  concept / platform / engine choice, string freeze, paid calls
+  (`$api-cost-gate`, `$remove-bg`), tag / deploy / store submission, Accepted
+  ADR reversals, live-ops ethics overrides.
+- **Role guides (41 of 45).** The copied "you are not an autonomous executor,
+  wait for yes" section was replaced by a subagent Working Protocol generated
+  from the three templates in `docs/templates/collaborative-protocols/`:
+  decide inside scope, write owned paths without asking, return decision items
+  (problem / recommendation / alternatives / evidence) instead of questions,
+  `BLOCKED: track unresolved` as the first line when the orchestrator did not
+  resolve the track. Domain theory, responsibilities, must-not lists and gate
+  verdict formats are unchanged. 5,966 → 4,937 lines.
+- **Director gates.** `lean` (default) runs PHASE-GATEs as a self-review
+  checklist plus `check_phase.py` / `verify_policy.py` exit codes, no spawn;
+  `full` spawns separate reviewing subagents (`rules/verify-route.md` § 4);
+  `solo` unchanged. Mode names, `--review`, and `production/review-mode.txt` are
+  unchanged. CONCERNS means "fix what has a defect ticket, record the rest,
+  proceed"; a director verdict is advisory, only deterministic gates block. The
+  `default to full` misprint in `docs/director-gates.md` is fixed (it was
+  `lean` everywhere else). Third-party model names removed.
+- **`rules/subagent-collaboration.md`.** Subagents return decision items, the
+  orchestrator decides within the contract and escalates only K1 items; the
+  unexplained "~300 lines (R2)" cap is gone. Living parts of
+  `docs/coordination-rules.md` (consultation order, report format, parallel
+  task protocol) moved here.
+- **Linter Check 4** now asks for a write-scope declaration (paths written, or
+  read-only) instead of ask-before-write wording; "May I write" alone no longer
+  passes. Check 4 warnings 23 → 0.
+- **`scripts/verify_policy.py`.** P4 recognises the 22 `design/` and
+  `production/` paths the plugin's own skills, hooks and catalog write
+  (`production/track.txt` included); `--base <rev>` judges from the merge-base to
+  the working tree so a mid-story commit no longer hides P2/P4, and
+  `$story-done` passes it.
+- **Hooks.** `detect-gaps.sh` no longer calls a project fresh when the type
+  detector already knows it; `session-start.sh` drops the Lesson Ledger nag;
+  `validate-commit.sh` warns about hardcoded numbers on the game track only and
+  no longer polices TODO owner tags; `pre-compact.sh` and the Unity animator
+  lint cap what they inject (30 lines / 5 findings); `validate-skill-change.sh`
+  notifies once per session per skill; `validate-push.sh` header and
+  `docs/hooks-reference.md` now say what the hooks actually do. Both blocking
+  paths (invalid asset JSON) and the `git commit` anchor are untouched.
+
+### Deprecated
+
+- `docs/coordination-rules.md` — orphaned; content moved to
+  `rules/subagent-collaboration.md` § 2.2–2.3 / § 3.2. Removed in the next
+  minor.
+- The old Check 4 meaning ("ask before writing") — references in earlier
+  CHANGELOG entries describe the pre-0.8 linter.
+
+### Restoring the previous level of confirmation
+
+Set `production/review-mode.txt` to `full` to spawn director reviewers at
+gates again. To be asked before specific writes, list them under the contract's
+last stop ("items the user explicitly asked to review") in the project's
+`AGENTS.md`; the skills no longer ask by default.
+
+### Not in this release
+
+- Skill-body density reduction (D10 in the plan) is a measured pilot, not a
+  rewrite: four sprint-loop skills get a condensed copy and are compared on the
+  same story before anything replaces a shipped skill.
+- Whether SessionStart stdout reaches the model in the current Codex app is
+  still unverified; `rules/work-records.md` and
+  `docs/hooks-reference/hook-input-schemas.md` disagree.
+
 ## v0.7.1 — 2026-09-07
 
 ### Added — anchor-based 3D art production

@@ -10,8 +10,9 @@ description: "Validates a UX spec, HUD design, or interaction pattern library fo
 > - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
 >   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
 >   the stack pinned in `.codex/studio/technical-preferences.md`. Validate against the PRD. "Accessibility tier" means WCAG 2.1 AA conformance, not controller remapping and subtitle scaling.
-> - **Unresolved** — ask which track this is before doing anything. A greenfield project
->   has no signal either way; do not infer one from the repository contents.
+> - **Unresolved** — ask once which track this is, write the answer to `production/track.txt`,
+>   then continue. A greenfield project has no signal either way; do not infer one from the
+>   repository contents.
 
 ## Overview
 

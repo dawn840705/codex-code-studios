@@ -86,6 +86,6 @@ before capture, which is the whole argument for briefing video at all.
 We do not reimplement its editing helpers, and we do not restate its design
 principles — its three (structured text surface with visuals on demand; ask →
 confirm → execute → self-eval; a bounded re-render loop) are conclusions this
-repo already holds, in `$spatial-audit`, the ask-before-write protocol, and
+repo already holds, in `$spatial-audit`, `rules/autonomy-contract.md` (stop only at the enumerated conditions, otherwise write and report), and
 `rules/self-loop.md` respectively. Worth knowing as convergent evidence; not
 worth a second copy here.

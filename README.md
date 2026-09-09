@@ -8,6 +8,8 @@ Codex 플러그인으로 패키징된 소프트웨어 스튜디오. **게임은 
 
 **전문 역할 가이드 45종** · **워크플로우 skill 91종** · **Codex lifecycle hooks** · **거버넌스/워크플로우 자산** · **도메인 팩 + 프로젝트 타입 자동 감지** — 프리프로덕션 → 프로덕션 → QA → 릴리스 → 라이브 옵스 전 단계를 다룹니다.
 
+> **v0.8.0 Astra 정합:** 기본 동작이 「묻고 쓰기」에서 「쓰고 보고」로 바뀝니다. 멈추는 조건은 `rules/autonomy-contract.md`의 여섯 가지(R4·유료 호출, 트랙 미확정, 확정 결정 번복, 소유 밖 파일, 사람만 관측 가능한 사실, 명시 검토 요청)뿐이고, 스킬 91종의 「May I write?」 106건과 역할 가이드 41종의 승인 대기 절이 그 계약에 맞춰 정리됐습니다. 스프린트 루프 한 스토리당 사용자 답변 18회 → 3회. 디렉터 게이트는 `lean`에서 스폰 없이 자기검토 + 결정적 게이트로 판정합니다. 이전 수준의 확인이 필요하면 `production/review-mode.txt`=`full`과 프로젝트 `AGENTS.md`의 명시 검토 항목으로 되살립니다. 배경: [docs/design/v0.8.0-astra-autonomy-plan.md](docs/design/v0.8.0-astra-autonomy-plan.md).
+
 > **v0.7.0 Codex 전환:** `.codex-plugin/plugin.json`과 `.agents/plugins/marketplace.json`이 새 배포 기준입니다. Claude의 독립 `agents/` 정의는 `$studio-orchestrator`가 필요할 때만 읽는 역할 참고자료로 전환했고, 호출 문법은 `$skill-name`, 프로젝트 상태는 `.codex/studio/`, 훅은 Codex의 `apply_patch`·`SessionEnd`·JSON 출력 계약을 사용합니다. `.claude-plugin/`과 `CLAUDE.md`는 한 릴리스 동안 이전 설치를 식별하기 위한 호환 레이어로만 유지합니다.
 
 > **v0.6.4 신규:** 결정적 게이트가 **자기가 도는 콘솔을 견디게** 됐습니다. 이 플러그인의 설계 원칙은 「종료 코드가 판정이다」인데, 그 종료 코드가 콘솔 인코딩 하나로 뒤집히고 있었습니다 — 게이트 리포트는 한국어인데 Windows 한국어 콘솔(cp949)이 em-dash 하나를 인코딩하지 못해 `UnicodeEncodeError` 로 죽었고, 그 죽음이 `exit 1` 로 나왔습니다. 규칙대로 종료 코드만 믿은 호출부는 **통과한 작업을 FAIL 로 읽었습니다.** `/humanize` · `/dev-story` · `/remove-bg` 가 각자의 게이트를 부르는 자리가 전부 그랬습니다.

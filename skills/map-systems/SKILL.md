@@ -137,7 +137,7 @@ Continue; the ordering is reviewed with the index in Phase 5b.
 **Review mode check** — apply before spawning TD-SYSTEM-BOUNDARY:
 - `solo` → skip. Note: "TD-SYSTEM-BOUNDARY skipped — Solo mode." Proceed to priority assignment.
 - `lean` → skip (not a PHASE-GATE). Note: "TD-SYSTEM-BOUNDARY skipped — Lean mode." Proceed to priority assignment.
-- `full` → spawn as normal.
+- `full` → spawn the named director as a separate reviewing subagent (read-only, final state only; `docs/director-gates.md`).
 
 **After dependency mapping is complete, spawn `technical-director` as a Codex subagent using gate TD-SYSTEM-BOUNDARY (`../../docs/director-gates.md`) before proceeding to priority assignment.**
 
@@ -176,7 +176,7 @@ Pure technical necessity ("X depends on Y") is insufficient alone when the syste
 **Review mode check** — apply before spawning PR-SCOPE:
 - `solo` → skip. Note: "PR-SCOPE skipped — Solo mode." Proceed to writing the systems index.
 - `lean` → skip (not a PHASE-GATE). Note: "PR-SCOPE skipped — Lean mode." Proceed to writing the systems index.
-- `full` → spawn as normal.
+- `full` → spawn the named director as a separate reviewing subagent (read-only, final state only; `docs/director-gates.md`).
 
 **After priorities are assigned, spawn `producer` as a Codex subagent using gate PR-SCOPE (`../../docs/director-gates.md`) before writing the index.**
 
@@ -223,7 +223,7 @@ command (`git checkout -- design/gdd/systems-index.md`). Then present the summar
 **Review mode check** — apply before spawning CD-SYSTEMS:
 - `solo` → skip. Note: "CD-SYSTEMS skipped — Solo mode." Proceed to Phase 7 next steps.
 - `lean` → skip (not a PHASE-GATE). Note: "CD-SYSTEMS skipped — Lean mode." Proceed to Phase 7 next steps.
-- `full` → spawn as normal.
+- `full` → spawn the named director as a separate reviewing subagent (read-only, final state only; `docs/director-gates.md`).
 
 **After the systems index is written, spawn `creative-director` as a Codex subagent using gate CD-SYSTEMS (`../../docs/director-gates.md`).**
 

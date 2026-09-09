@@ -333,7 +333,7 @@ to implement it.]
 **Review mode check** — apply before spawning TD-ADR:
 - `solo` → skip. Note: "TD-ADR skipped — Solo mode." Proceed to Step 4.7 (GDD sync check).
 - `lean` → skip (not a PHASE-GATE). Note: "TD-ADR skipped — Lean mode." Proceed to Step 4.7 (GDD sync check).
-- `full` → spawn as normal.
+- `full` → spawn the named director as a separate reviewing subagent (read-only, final state only; `docs/director-gates.md`).
 
 4.6. **Technical Director Strategic Review** — After the engine specialist validation, spawn `technical-director` as a Codex subagent using gate **TD-ADR** (`../../docs/director-gates.md`):
    - Pass: the ADR file path (or draft content), engine version, domain, any existing ADRs in the same domain

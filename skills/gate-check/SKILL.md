@@ -71,7 +71,7 @@ Also resolve the review mode (once, store for all gate spawns this run):
 2. Else read `production/review-mode.txt` → use that value
 3. Else → default to `lean`
 
-Note: in `solo` mode, director spawns (CD-PHASE-GATE, TD-PHASE-GATE, PR-PHASE-GATE, AD-PHASE-GATE) are skipped — gate-check becomes artifact-existence checks only. In `lean` mode, all four directors still run (phase gates are the purpose of lean mode).
+Note: in `solo` mode, director spawns (CD-PHASE-GATE, TD-PHASE-GATE, PR-PHASE-GATE, AD-PHASE-GATE) are skipped — gate-check becomes artifact-existence checks only. In `lean` mode the four PHASE-GATEs run as a **self-review** (no spawn): work through each gate prompt as a checklist and cite the `check_phase.py` / `verify_policy.py` exit codes. In `full` mode spawn them as separate reviewing subagents.
 
 - **With argument**: `$gate-check production` — validate readiness for that specific phase
 - **No argument**: auto-detect the current stage with `scripts/check_phase.py`
@@ -433,9 +433,13 @@ at CONCERNS.
 
 ## 4b. Director Panel Assessment
 
-Before generating the final verdict, spawn all four directors as **parallel subagents** as a Codex subagent using the parallel gate protocol from `../../docs/director-gates.md`. Issue all four Codex subagent calls simultaneously — do not wait for one before starting the next.
+Before generating the final verdict, run the four PHASE-GATEs according to the resolved review mode (`../../docs/director-gates.md`):
 
-**Spawn in parallel:**
+- `lean` (default) — **self-review, no spawn.** Work through the four gate prompts as one checklist, run `check_phase.py` and `verify_policy.py`, and record `[GATE-ID] self-review — Lean mode · check_phase.py exit N · verify_policy.py exit N` for each.
+- `full` — spawn all four directors as **parallel subagents** using the parallel gate protocol. Issue all four Codex subagent calls simultaneously — do not wait for one before starting the next. Each receives the final state only and may not edit.
+- `solo` — skip; the artifact checks above are the verdict.
+
+**The four gates (self-review in lean, spawned in full):**
 
 1. **`creative-director`** — gate **CD-PHASE-GATE** (`../../docs/director-gates.md`)
 2. **`technical-director`** — gate **TD-PHASE-GATE** (`../../docs/director-gates.md`)

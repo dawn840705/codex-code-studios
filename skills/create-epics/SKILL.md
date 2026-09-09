@@ -131,7 +131,7 @@ The epic is written at Step 5. Skip a system only when it has no Approved/Design
 **Review mode check** — apply before spawning PR-EPIC:
 - `solo` → skip. Note: "PR-EPIC skipped — Solo mode." Proceed to Step 5 (write epic files).
 - `lean` → skip (not a PHASE-GATE). Note: "PR-EPIC skipped — Lean mode." Proceed to Step 5 (write epic files).
-- `full` → spawn as normal.
+- `full` → spawn the named director as a separate reviewing subagent (read-only, final state only; `docs/director-gates.md`).
 
 After all epics for the current layer are defined (Step 4 completed for all in-scope systems), and before writing any files, spawn `producer` as a Codex subagent using gate **PR-EPIC** (`../../docs/director-gates.md`).
 

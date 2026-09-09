@@ -166,7 +166,7 @@ stories that haven't changed, add new stories, remove dropped ones.
 **Review mode check** — apply before spawning PR-SPRINT:
 - `solo` → skip. Note: "PR-SPRINT skipped — Solo mode." Proceed to Phase 5 (QA plan gate).
 - `lean` → skip (not a PHASE-GATE). Note: "PR-SPRINT skipped — Lean mode." Proceed to Phase 5 (QA plan gate).
-- `full` → spawn as normal.
+- `full` → spawn the named director as a separate reviewing subagent (read-only, final state only; `docs/director-gates.md`).
 
 Before finalising the sprint plan, spawn `producer` as a Codex subagent using gate **PR-SPRINT** (`../../docs/director-gates.md`).
 

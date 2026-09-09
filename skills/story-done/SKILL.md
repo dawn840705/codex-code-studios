@@ -235,7 +235,7 @@ For each deviation found, categorize:
 **Review mode check** — apply before spawning QL-TEST-COVERAGE:
 - `solo` → skip. Note: "QL-TEST-COVERAGE skipped — Solo mode." Proceed to Phase 5.
 - `lean` → skip (not a PHASE-GATE). Note: "QL-TEST-COVERAGE skipped — Lean mode." Proceed to Phase 5.
-- `full` → spawn as normal.
+- `full` → spawn the named director as a separate reviewing subagent (read-only, final state only; `docs/director-gates.md`).
 
 After completing the deviation checks in Phase 4, spawn `qa-lead` as a Codex subagent using gate **QL-TEST-COVERAGE** (`../../docs/director-gates.md`).
 
@@ -261,7 +261,7 @@ Skip this phase for Config/Data stories (no code tests required).
 **Review mode check** — apply before spawning LP-CODE-REVIEW:
 - `solo` → skip. Note: "LP-CODE-REVIEW skipped — Solo mode." Proceed to Phase 6 (completion report).
 - `lean` → skip (not a PHASE-GATE). Note: "LP-CODE-REVIEW skipped — Lean mode." Proceed to Phase 6 (completion report).
-- `full` → spawn as normal.
+- `full` → spawn the named director as a separate reviewing subagent (read-only, final state only; `docs/director-gates.md`).
 
 Spawn `lead-programmer` as a Codex subagent using gate **LP-CODE-REVIEW** (`../../docs/director-gates.md`).
 

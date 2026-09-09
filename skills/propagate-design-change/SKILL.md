@@ -146,7 +146,7 @@ ADRs referencing this GDD: [M]
 **Review mode check** — apply before spawning TD-CHANGE-IMPACT:
 - `solo` → skip. Note: "TD-CHANGE-IMPACT skipped — Solo mode." Proceed to Phase 7.
 - `lean` → skip. Note: "TD-CHANGE-IMPACT skipped — Lean mode." Proceed to Phase 7.
-- `full` → spawn as normal.
+- `full` → spawn the named director as a separate reviewing subagent (read-only, final state only; `docs/director-gates.md`).
 
 Spawn `technical-director` as a Codex subagent using gate **TD-CHANGE-IMPACT** (`../../docs/director-gates.md`).
 

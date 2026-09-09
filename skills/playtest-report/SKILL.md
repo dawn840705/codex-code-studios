@@ -120,7 +120,7 @@ Present the categorized list, then route:
 **Review mode check** — apply before spawning CD-PLAYTEST:
 - `solo` → skip. Note: "CD-PLAYTEST skipped — Solo mode." Proceed to Phase 4 (save the report).
 - `lean` → skip (not a PHASE-GATE). Note: "CD-PLAYTEST skipped — Lean mode." Proceed to Phase 4 (save the report).
-- `full` → spawn as normal.
+- `full` → spawn the named director as a separate reviewing subagent (read-only, final state only; `docs/director-gates.md`).
 
 After categorising findings, spawn `creative-director` as a Codex subagent using gate **CD-PLAYTEST** (`../../docs/director-gates.md`).
 

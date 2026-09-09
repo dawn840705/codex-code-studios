@@ -1,9 +1,6 @@
 {
   "_comment": "Pre-existing lint failures, recorded so CI blocks NEW violations without demanding the whole backlog be fixed first. Delete an entry once it is fixed — the linter reports stale entries.",
   "known_failures": {
-    "adopt": [
-      "Check 3: no verdict keyword"
-    ],
     "api-cost-gate": [
       "Check 3: no verdict keyword"
     ],
@@ -17,9 +14,6 @@
       "Check 3: no verdict keyword"
     ],
     "lesson-review": [
-      "Check 3: no verdict keyword"
-    ],
-    "security-audit": [
       "Check 3: no verdict keyword"
     ],
     "sot-audit": [

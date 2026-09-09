@@ -117,7 +117,7 @@ Record the preview in the report. A rule the user adds or removes later is one e
 **Review mode check** — apply before spawning TD-MANIFEST:
 - `solo` → skip. Note: "TD-MANIFEST skipped — Solo mode." Proceed to Phase 5.
 - `lean` → skip. Note: "TD-MANIFEST skipped — Lean mode." Proceed to Phase 5.
-- `full` → spawn as normal.
+- `full` → spawn the named director as a separate reviewing subagent (read-only, final state only; `docs/director-gates.md`).
 
 Spawn `technical-director` as a Codex subagent using gate **TD-MANIFEST** (`../../docs/director-gates.md`).
 

@@ -111,7 +111,7 @@ command (`git checkout -- prototypes/[concept-name]/` or `rm -rf` if untracked).
 **Review mode check** — apply before spawning CD-PLAYTEST:
 - `solo` → skip. Note: "CD-PLAYTEST skipped — Solo mode." Proceed to Phase 7 summary with the prototyper's recommendation as the final verdict.
 - `lean` → skip (not a PHASE-GATE). Note: "CD-PLAYTEST skipped — Lean mode." Proceed to Phase 7 summary with the prototyper's recommendation as the final verdict.
-- `full` → spawn as normal.
+- `full` → spawn the named director as a separate reviewing subagent (read-only, final state only; `docs/director-gates.md`).
 
 Spawn `creative-director` as a Codex subagent using gate **CD-PLAYTEST** (`../../docs/director-gates.md`).
 

@@ -310,7 +310,7 @@ Apply the review mode resolved in Phase 0 before spawning QL-STORY-READY:
 
 - `solo` → skip. Note: "QL-STORY-READY skipped — Solo mode." Proceed to close.
 - `lean` → skip. Note: "QL-STORY-READY skipped — Lean mode." Proceed to close.
-- `full` → spawn as normal.
+- `full` → spawn the named director as a separate reviewing subagent (read-only, final state only; `docs/director-gates.md`).
 
 Spawn `qa-lead` as a Codex subagent using gate **QL-STORY-READY** (`../../docs/director-gates.md`).
 

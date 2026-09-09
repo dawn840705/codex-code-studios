@@ -10,8 +10,9 @@ description: "Scaffold the test framework and CI/CD pipeline for the project's e
 > - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
 >   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
 >   the stack pinned in `.codex/studio/technical-preferences.md`. Scaffold the pinned stack's runner (vitest / jest / pytest / go test), not a game engine. Skip the Unity and Godot CI jobs. Integration tests run against a dev server or a test database, never a game scene.
-> - **Unresolved** — ask which track this is before doing anything. A greenfield project
->   has no signal either way; do not infer one from the repository contents.
+> - **Unresolved** — ask once which track this is, write the answer to `production/track.txt`,
+>   then continue. A greenfield project has no signal either way; do not infer one from the
+>   repository contents.
 
 # Test Setup
 

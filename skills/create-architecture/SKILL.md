@@ -10,8 +10,9 @@ description: "Guided, section-by-section authoring of the master architecture do
 > - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
 >   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
 >   the stack pinned in `.codex/studio/technical-preferences.md`. Read `product/prd/product-concept.md` and every `product/prd/prd-*.md` in place of `design/gdd/game-concept.md` and the GDDs. There is no systems-index; the concept's scope tiers bound the layers. The engine section becomes the pinned stack — framework, hosting, data store.
-> - **Unresolved** — ask which track this is before doing anything. A greenfield project
->   has no signal either way; do not infer one from the repository contents.
+> - **Unresolved** — ask once which track this is, write the answer to `production/track.txt`,
+>   then continue. A greenfield project has no signal either way; do not infer one from the
+>   repository contents.
 
 # Create Architecture
 
@@ -351,7 +352,7 @@ Apply gate **TD-ARCHITECTURE** (`../../docs/director-gates.md`) as a self-review
 **Review mode check** — apply before spawning LP-FEASIBILITY:
 - `solo` → skip. Note: "LP-FEASIBILITY skipped — Solo mode." Proceed to Phase 8 handoff.
 - `lean` → skip (not a PHASE-GATE). Note: "LP-FEASIBILITY skipped — Lean mode." Proceed to Phase 8 handoff.
-- `full` → spawn as normal.
+- `full` → spawn the named director as a separate reviewing subagent (read-only, final state only; `docs/director-gates.md`).
 
 **Step 2 — Spawn `lead-programmer` as a Codex subagent using gate LP-FEASIBILITY (`../../docs/director-gates.md`):**
 

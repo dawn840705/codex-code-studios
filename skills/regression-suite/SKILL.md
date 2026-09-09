@@ -10,8 +10,9 @@ description: "Map test coverage to GDD critical paths, identify fixed bugs witho
 > - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
 >   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
 >   the stack pinned in `.codex/studio/technical-preferences.md`. Map coverage to the PRD's critical user journeys, not GDD critical paths.
-> - **Unresolved** — ask which track this is before doing anything. A greenfield project
->   has no signal either way; do not infer one from the repository contents.
+> - **Unresolved** — ask once which track this is, write the answer to `production/track.txt`,
+>   then continue. A greenfield project has no signal either way; do not infer one from the
+>   repository contents.
 
 # Regression Suite
 

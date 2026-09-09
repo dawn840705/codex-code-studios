@@ -10,8 +10,9 @@ description: "Audit the game for security vulnerabilities: save tampering, cheat
 > - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
 >   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
 >   the stack pinned in `.codex/studio/technical-preferences.md`. Save tampering and cheat vectors do not apply. Audit authn/authz, injection (SQL / XSS / SSRF), secrets in the repo and in transit, PII handling and retention, dependency CVEs, and rate limiting.
-> - **Unresolved** — ask which track this is before doing anything. A greenfield project
->   has no signal either way; do not infer one from the repository contents.
+> - **Unresolved** — ask once which track this is, write the answer to `production/track.txt`,
+>   then continue. A greenfield project has no signal either way; do not infer one from the
+>   repository contents.
 
 # Security Audit
 

@@ -188,7 +188,7 @@ Write the approved section to file.
 **Review mode check** — apply before spawning AD-ART-BIBLE:
 - `solo` → skip. Note: "AD-ART-BIBLE skipped — Solo mode." Proceed to Phase 6.
 - `lean` → skip (not a PHASE-GATE). Note: "AD-ART-BIBLE skipped — Lean mode." Proceed to Phase 6.
-- `full` → spawn as normal.
+- `full` → spawn the named director as a separate reviewing subagent (read-only, final state only; `docs/director-gates.md`).
 
 After all sections are complete (or the scoped set from Phase 1 is complete), spawn `creative-director` as a Codex subagent using gate **AD-ART-BIBLE** (`../../docs/director-gates.md`).
 

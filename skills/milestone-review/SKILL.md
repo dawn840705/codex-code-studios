@@ -108,7 +108,7 @@ Read all sprint reports for sprints within this milestone from `production/sprin
 **Review mode check** — apply before spawning PR-MILESTONE:
 - `solo` → skip. Note: "PR-MILESTONE skipped — Solo mode." Present the Go/No-Go section without a producer verdict.
 - `lean` → skip (not a PHASE-GATE). Note: "PR-MILESTONE skipped — Lean mode." Present the Go/No-Go section without a producer verdict.
-- `full` → spawn as normal.
+- `full` → spawn the named director as a separate reviewing subagent (read-only, final state only; `docs/director-gates.md`).
 
 Before generating the Go/No-Go recommendation, spawn `producer` as a Codex subagent using gate **PR-MILESTONE** (`../../docs/director-gates.md`).
 

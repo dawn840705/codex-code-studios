@@ -193,7 +193,7 @@ not a reason to stop here.
 **Review mode check** — apply before spawning CD-PILLARS and AD-CONCEPT-VISUAL:
 - `solo` → skip both. Note: "CD-PILLARS skipped — Solo mode. AD-CONCEPT-VISUAL skipped — Solo mode." Proceed to Phase 5.
 - `lean` → skip both (not PHASE-GATEs). Note: "CD-PILLARS skipped — Lean mode. AD-CONCEPT-VISUAL skipped — Lean mode." Proceed to Phase 5.
-- `full` → spawn as normal.
+- `full` → spawn the named director as a separate reviewing subagent (read-only, final state only; `docs/director-gates.md`).
 
 **After pillars and anti-pillars are agreed, spawn BOTH `creative-director` AND `art-director` as a Codex subagent in parallel before moving to Phase 5. Issue both Codex subagent calls simultaneously — do not wait for one before starting the other.**
 
@@ -249,7 +249,7 @@ Ground the concept in reality:
 **Review mode check** — apply before spawning TD-FEASIBILITY:
 - `solo` → skip. Note: "TD-FEASIBILITY skipped — Solo mode." Proceed directly to scope tier definition.
 - `lean` → skip (not a PHASE-GATE). Note: "TD-FEASIBILITY skipped — Lean mode." Proceed directly to scope tier definition.
-- `full` → spawn as normal.
+- `full` → spawn the named director as a separate reviewing subagent (read-only, final state only; `docs/director-gates.md`).
 
 **After identifying biggest technical risks, spawn `technical-director` as a Codex subagent using gate TD-FEASIBILITY (`../../docs/director-gates.md`) before scope tiers are defined.**
 
@@ -260,7 +260,7 @@ Report the assessment. If HIGH RISK, move the risky element out of the MVP tier 
 **Review mode check** — apply before spawning PR-SCOPE:
 - `solo` → skip. Note: "PR-SCOPE skipped — Solo mode." Proceed to document generation.
 - `lean` → skip (not a PHASE-GATE). Note: "PR-SCOPE skipped — Lean mode." Proceed to document generation.
-- `full` → spawn as normal.
+- `full` → spawn the named director as a separate reviewing subagent (read-only, final state only; `docs/director-gates.md`).
 
 **After scope tiers are defined, spawn `producer` as a Codex subagent using gate PR-SCOPE (`../../docs/director-gates.md`).**
 
