@@ -12,7 +12,7 @@ will be compacted or lost. Files on disk persist across compactions and session 
 Maintain `production/session-state/active.md` as a living checkpoint. Update it
 after each significant milestone:
 
-- Design section approved and written to file
+- Design section written to file
 - Architecture decision made
 - Implementation milestone reached
 - Test results obtained
@@ -45,8 +45,11 @@ After any disruption, compaction, crash, or new task, read the state file first.
 When creating multi-section documents (design docs, architecture docs, lore entries):
 
 1. Create the file immediately with a skeleton (all section headers, empty bodies)
-2. Discuss and draft one section at a time in conversation
-3. Write each section to the file as soon as it's approved
+2. Draft one section at a time
+3. Write each section to the file as soon as it is drafted, then continue to the
+   next — no approval wait between sections. A section draft is reversible
+   (`rules/autonomy-contract.md`); one review pass at the end of the document
+   replaces per-section approval
 4. Update the session state file after each section
 5. After writing a section, previous discussion about that section can be safely
    compacted — the decisions are in the file
@@ -71,13 +74,14 @@ This keeps the context window holding only the *current* section's discussion
 
 ## Subagent Delegation
 
-Use subagents for research and exploration to keep the main session clean.
-Subagents run in their own context window and return only summaries:
+Pick the route before spawning — `rules/route-hint.md`: light = handle it
+yourself (0 agents), standard = 1 specialist, heavy = fan-out. The size of the
+reads is not a signal; splitting reloads the shared context into every call, and
+the lighter route wins a tie.
 
-- **Use subagents** when investigating across multiple files, exploring unfamiliar code,
-  or doing research that would consume >5k tokens of file reads
-- **Use direct reads** when you know exactly which 1-2 files to check
-- Subagents do not inherit conversation history — provide full context in the prompt
+Subagents run in their own context window and return only summaries. They do not
+inherit conversation history — brief them per `rules/subagent-collaboration.md`
+§ 3 (self-contained prompt, return boundary).
 
 ## Compaction Instructions
 

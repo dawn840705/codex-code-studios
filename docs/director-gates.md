@@ -14,12 +14,14 @@ all key Tier 2 leads. Any skill, team orchestrator, or workflow may invoke these
 In any skill, replace an inline director prompt with a reference:
 
 ```
-Spawn `creative-director` as a Codex subagent using gate **CD-PILLARS** from
-`docs/director-gates.md`.
+Run gate **CD-PILLARS** from `docs/director-gates.md` (`creative-director`).
 ```
 
-Pass the context listed under that gate's **Context to pass** field, then handle
-the verdict using the **Verdict handling** rules below.
+How the gate runs is decided by the review mode below: in `lean` the orchestrator
+works through the gate prompt as a self-review checklist, in `full` it spawns the
+named director as a separate reviewing subagent. Pass the context listed under
+that gate's **Context to pass** field, then handle the verdict using the
+**Standard Verdict Format** rules below.
 
 ---
 
@@ -43,53 +45,76 @@ $architecture-decision --review solo     → skips all gates this run
 
 | Mode | What runs | Best for |
 |------|-----------|----------|
-| `full` | All gates active — every workflow step reviewed | Teams, learning users, or when you want thorough director feedback at every step |
-| `lean` | PHASE-GATEs only (`$gate-check`) — per-skill gates skipped | **Default** — solo devs and small teams; directors review at milestones only |
+| `full` | Every gate spawns the named director as a **separate reviewing subagent** (reviewer ≠ author) | R3+ changes (`rules/verify-route.md` § 4), or when the user asks for evidence or a second opinion. Also restores the pre-v0.8.0 behaviour |
+| `lean` | **No spawn.** PHASE-GATEs run as a **self-review**: the orchestrator works through the gate prompt as a checklist and cites the deterministic gates (`scripts/check_phase.py`, `scripts/verify_policy.py`) by exit code. Per-skill gates skipped | **Default** — the gate prompts are already question lists; the exit code is the verdict |
 | `solo` | No director gates anywhere | Game jams, prototypes, maximum speed |
 
-**Check pattern — apply before every gate spawn:**
+The mode names, `--review [full|lean|solo]`, and `production/review-mode.txt`
+are public API and do not change.
+
+**Check pattern — apply before every gate:**
 
 ```
-Before spawning gate [GATE-ID]:
+Before running gate [GATE-ID]:
 1. If skill was called with --review [mode], use that
 2. Else read production/review-mode.txt
-3. Else default to full
+3. Else default to `lean`
+4. If the change under review is R3 or above (rules/verify-route.md § 1), or the
+   user asked for evidence / a second opinion, run THIS gate as `full` even when
+   1-3 resolved to `lean` — at R3+ the reviewer must not be the author.
 
 Apply the resolved mode:
-- solo → skip all gates. Note: "[GATE-ID] skipped — Solo mode"
-- lean → skip unless this is a PHASE-GATE (CD-PHASE-GATE, TD-PHASE-GATE, PR-PHASE-GATE)
-         Note: "[GATE-ID] skipped — Lean mode"
-- full → spawn as normal
+- solo → skip all director gates. Note: "[GATE-ID] skipped — Solo mode"
+- lean → PHASE-GATE (CD/TD/PR/AD-PHASE-GATE): self-review, no spawn. Answer the gate
+         prompt as a checklist, run the deterministic gates, cite exit codes.
+         Note: "[GATE-ID] self-review — Lean mode · check_phase.py exit N · verify_policy.py exit N"
+         Any other gate: "[GATE-ID] skipped — Lean mode" (the artifact's own deterministic gate is the check)
+- full → spawn the named director as a separate reviewing subagent
 ```
+
+`solo` skips *director* gates only. Deterministic gates still run, and the
+separate reviewer that `rules/verify-route.md` § 4 requires at R3+ is a
+verification route, not a director gate — this document does not waive it.
 
 ---
 
 ## Invocation Pattern (copy into any skill)
 
-**MANDATORY: Resolve review mode before every gate spawn.** Never spawn a gate without checking. The resolved mode is determined once per skill run:
+**MANDATORY: Resolve review mode before every gate.** Never spawn a reviewer without checking. The resolved mode is determined once per skill run, then escalated per gate:
 1. If skill was called with `--review [mode]`, use that
 2. Else read `production/review-mode.txt`
 3. Else default to `lean`
+4. Escalate this gate to `full` when the change is R3+ (`rules/verify-route.md` § 4) or the user asked for evidence or a second opinion
 
 Apply the resolved mode:
-- `solo` → **skip all gates**. Note in output: `[GATE-ID] skipped — Solo mode`
-- `lean` → **skip unless this is a PHASE-GATE** (CD-PHASE-GATE, TD-PHASE-GATE, PR-PHASE-GATE, AD-PHASE-GATE). Note: `[GATE-ID] skipped — Lean mode`
-- `full` → spawn as normal
+- `solo` → **skip all director gates**. Note in output: `[GATE-ID] skipped — Solo mode`
+- `lean` → **no spawn.** PHASE-GATEs (CD-PHASE-GATE, TD-PHASE-GATE, PR-PHASE-GATE, AD-PHASE-GATE) run as a self-review checklist plus deterministic gate exit codes. Note: `[GATE-ID] self-review — Lean mode · <gate> exit N`. Other gates: `[GATE-ID] skipped — Lean mode`
+- `full` → spawn the named director as a separate reviewing subagent
 
 ```
-# Apply mode check, then:
+# lean, PHASE-GATE:
+Self-review against gate [GATE-ID] (see docs/director-gates.md):
+- Context: [fields listed under that gate] — read them, do not summarise from memory
+- Answer every question in the gate prompt; cite the file and line for each answer
+- Run scripts/check_phase.py and scripts/verify_policy.py; the exit codes decide
+- Return the verdict token, then proceed per the Standard Verdict Format
+
+# full:
 Spawn `[agent-name]` as a Codex subagent:
 - Gate: [GATE-ID] (see docs/director-gates.md)
-- Context: [fields listed under that gate]
+- Context: [fields listed under that gate] — final state only, not the narrative
+- Read-only: return the verdict and defect tickets, edit nothing
 - Await the verdict before proceeding.
 ```
 
-For parallel spawning (multiple directors at the same gate point):
+For parallel gates (multiple directors at the same gate point):
 
 ```
-# Apply mode check for each gate first, then spawn all that survive:
-Spawn all [N] agents simultaneously as a Codex subagent — issue all Codex subagent calls before
+# Apply mode check for each gate first. In full, spawn all that survive:
+Spawn all [N] agents simultaneously as Codex subagents — issue all calls before
 waiting for any result. Collect all verdicts before proceeding.
+# In lean, work through the surviving checklists in one pass; the deterministic
+# gates run once and their exit codes apply to every gate.
 ```
 
 ---
@@ -101,10 +126,16 @@ All gates return one of three verdicts. Skills must handle all three:
 | Verdict | Meaning | Default action |
 |---------|---------|----------------|
 | **APPROVE / READY** | No issues. Proceed. | Continue the workflow |
-| **CONCERNS [list]** | Issues present but not blocking. | Surface to user via a direct user question — options: `Revise flagged items` / `Accept and proceed` / `Discuss further` |
-| **REJECT / NOT READY [blockers]** | Blocking issues. Do not proceed. | Surface blockers to user. Do not write files or advance stage until resolved. |
+| **CONCERNS [list]** | Issues present but not blocking. | Fix the items that carry a defect ticket (`rules/self-loop.md` § 2.1); leave the rest in the report as accepted concerns and proceed. No user question |
+| **REJECT / NOT READY [blockers]** | Blocking issues in the reviewer's judgment. | Do not advance the stage on this run; report the blockers with the deciding deterministic gate named. Rework via `$self-loop` when a defect ticket exists |
 
-**Escalation rule**: When multiple directors are spawned in parallel, apply the
+**Director verdicts are advisory** — the same standing `CLAUDE.md` gives
+`/gate-check`. Only deterministic gates block: `scripts/verify_policy.py → exit 2`
+blocks regardless of any director verdict, and no director verdict overrides a
+gate exit code (`docs/deterministic-gates.md`). The user may override an advisory
+REJECT; nobody overrides an exit 2.
+
+**Escalation rule**: When multiple directors run at the same gate point, apply the
 strictest verdict — one NOT READY overrides all READY verdicts.
 
 ---
@@ -115,6 +146,7 @@ After a gate resolves, record the verdict in the relevant document's status head
 
 ```markdown
 > **[Director] Review ([GATE-ID])**: APPROVED [date] / CONCERNS (accepted) [date] / REVISED [date]
+> **Mode**: full (spawned) / lean (self-review · check_phase.py exit N · verify_policy.py exit N)
 ```
 
 For phase gates, record in `docs/architecture/architecture.md` or
@@ -124,7 +156,7 @@ For phase gates, record in `docs/architecture/architecture.md` or
 
 ## Tier 1 — Creative Director Gates
 
-Agent: `creative-director` | Model tier: Opus | Domain: Vision, pillars, player experience
+Agent: `creative-director` | Model: session model | Domain: Vision, pillars, player experience
 
 ---
 
@@ -246,7 +278,7 @@ any session that produces player feedback
 
 ### CD-PHASE-GATE — Creative Readiness at Phase Transition
 
-**Trigger**: Always at `$gate-check` — spawn in parallel with TD-PHASE-GATE and PR-PHASE-GATE
+**Trigger**: Always at `$gate-check` — run in parallel with TD-PHASE-GATE and PR-PHASE-GATE
 
 **Context to pass**:
 - Target phase name
@@ -266,7 +298,7 @@ any session that produces player feedback
 
 ## Tier 1 — Technical Director Gates
 
-Agent: `technical-director` | Model tier: Opus | Domain: Architecture, engine risk, performance
+Agent: `technical-director` | Model: session model | Domain: Architecture, engine risk, performance
 
 ---
 
@@ -391,7 +423,7 @@ or before finalizing any engine-specific implementation approach
 
 ### TD-PHASE-GATE — Technical Readiness at Phase Transition
 
-**Trigger**: Always at `$gate-check` — spawn in parallel with CD-PHASE-GATE and PR-PHASE-GATE
+**Trigger**: Always at `$gate-check` — run in parallel with CD-PHASE-GATE and PR-PHASE-GATE
 
 **Context to pass**:
 - Target phase name
@@ -412,7 +444,7 @@ or before finalizing any engine-specific implementation approach
 
 ## Tier 1 — Producer Gates
 
-Agent: `producer` | Model tier: Opus | Domain: Scope, timeline, dependencies, production risk
+Agent: `producer` | Model: session model | Domain: Scope, timeline, dependencies, production risk
 
 ---
 
@@ -517,7 +549,7 @@ is invoked
 
 ### PR-PHASE-GATE — Production Readiness at Phase Transition
 
-**Trigger**: Always at `$gate-check` — spawn in parallel with CD-PHASE-GATE and TD-PHASE-GATE
+**Trigger**: Always at `$gate-check` — run in parallel with CD-PHASE-GATE and TD-PHASE-GATE
 
 **Context to pass**:
 - Target phase name
@@ -538,7 +570,7 @@ is invoked
 
 ## Tier 1 — Art Director Gates
 
-Agent: `art-director` | Model tier: Sonnet | Domain: Visual identity, art bible, visual production readiness
+Agent: `art-director` | Model: session model | Domain: Visual identity, art bible, visual production readiness
 
 ---
 
@@ -593,7 +625,7 @@ Agent: `art-director` | Model tier: Sonnet | Domain: Visual identity, art bible,
 
 ### AD-PHASE-GATE — Visual Readiness at Phase Transition
 
-**Trigger**: Always at `$gate-check` — spawn in parallel with CD-PHASE-GATE, TD-PHASE-GATE, and PR-PHASE-GATE
+**Trigger**: Always at `$gate-check` — run in parallel with CD-PHASE-GATE, TD-PHASE-GATE, and PR-PHASE-GATE
 
 **Context to pass**:
 - Target phase name
@@ -619,7 +651,8 @@ Agent: `art-director` | Model tier: Sonnet | Domain: Visual identity, art bible,
 ## Tier 2 — Lead Gates
 
 These gates are invoked by orchestration skills and senior skills when a domain
-specialist's feasibility sign-off is needed. Tier 2 leads use Sonnet (default).
+specialist's feasibility sign-off is needed. Tier 2 leads run on the session
+model — never downgraded on the orchestrator's own judgment (`rules/route-hint.md`).
 
 ---
 
@@ -763,14 +796,18 @@ introduced, or when a tech art decision affects visual style
 ## Parallel Gate Protocol
 
 When a workflow requires multiple directors at the same checkpoint (most common
-at `$gate-check`), spawn all agents simultaneously:
+at `$gate-check`), resolve the review mode first. In `full`, spawn all agents
+simultaneously; in `lean`, work through the four gate prompts as one self-review
+pass and run the deterministic gates once:
 
 ```
-Spawn in parallel (issue all Codex subagent calls before waiting for any result):
+full — spawn in parallel (issue all Codex subagent calls before waiting for any result):
 1. creative-director  → gate CD-PHASE-GATE
 2. technical-director → gate TD-PHASE-GATE
 3. producer           → gate PR-PHASE-GATE
 4. art-director       → gate AD-PHASE-GATE
+
+lean — self-review the same four prompts; check_phase.py / verify_policy.py exit codes apply to all.
 
 Collect all four verdicts, then apply escalation rules:
 - Any NOT READY / REJECT → overall verdict minimum FAIL
