@@ -15,6 +15,8 @@ Examples of multi-witness systems:
 
 This skill produces a **N-way mismatch matrix** with severity classifications, so you can fix high-severity silent-fails first.
 
+Read-only: writes nothing — the mismatch matrix is returned in the conversation; no witness file is edited.
+
 ---
 
 ## Phase 1: Identify the SoT and its witnesses

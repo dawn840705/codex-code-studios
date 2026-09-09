@@ -9,6 +9,8 @@ After a major pivot — a version migration, a platform change, an API deprecati
 
 This skill produces a **categorized audit report** of suspect residue. It never auto-deletes — every finding is human-reviewed.
 
+Read-only: writes nothing — the report is returned in the conversation; no file is edited, deleted, or staged.
+
 Examples of pivot/migration scenarios:
 - **Genre pivot** — mobile vertical → PC horizontal
 - **API deprecation** — legacy input system → new input system

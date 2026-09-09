@@ -14,6 +14,8 @@ description: "Documentation reorganization without breaking links — baseline t
 - **이 스킬(모델)은 판단만 한다.** 무엇을 어디로 옮길지, 이동 금지 제약이
   없는지, 스크립트가 못 다루는 잔여를 어떻게 처리할지.
 
+Writes: `Documents/` 아래 마크다운 링크(및 `--extra` 경로)를 `scripts/doc_relink.py relink` 가 제자리에서 고쳐 쓴다. 모델은 링크를 손으로 편집하지 않는다.
+
 ## 절차 (순서가 곧 안전장치다)
 
 ```bash

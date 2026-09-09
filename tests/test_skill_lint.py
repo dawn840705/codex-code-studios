@@ -73,13 +73,13 @@ class TestFrontmatter(unittest.TestCase):
 
 class TestChecks(unittest.TestCase):
     def test_well_formed_skill_has_no_failures(self):
-        # read-only 스킬이라 Check 4 는 WARN 이 남는다(설계된 동작). failures 만 0.
+        # 쓰기 범위 선언이 없어 Check 4 는 WARN 이 남는다(설계된 동작). failures 만 0.
         r = ls.lint_skill("good/SKILL.md", GOOD_SKILL)
         self.assertEqual(r.failures, [], f"unexpected failures: {r.failures}")
         self.assertEqual(r.verdict, "WARNINGS")
 
     def test_fully_compliant_skill(self):
-        text = GOOD_SKILL.replace("Body.", "Body. May I write the result to the file?")
+        text = GOOD_SKILL.replace("Body.", "Body. Writes the result to `production/qa/result.md`.")
         r = ls.lint_skill("good/SKILL.md", text)
         self.assertEqual(r.failures, [])
         self.assertEqual(r.warnings, [])
@@ -105,15 +105,42 @@ class TestChecks(unittest.TestCase):
         self.assertTrue(any("Check 4" in w for w in r.warnings))
         self.assertFalse(any("Check 4" in f for f in r.failures))
 
-    def test_check4_readonly_skill_only_warns(self):
-        r = ls.lint_skill("x/SKILL.md", GOOD_SKILL)
-        self.assertTrue(any("Check 4" in w for w in r.warnings))
-        self.assertFalse(any("Check 4" in f for f in r.failures))
+    # Check 4 는 "쓰기 범위 선언" 검사다 (v0.8.0 A-2). 어느 경로에 쓰는지 밝히거나
+    # read-only 임을 밝히면 통과. 허락을 구하는 문구는 범위를 말하지 않으므로 통과가 아니다.
+    def test_check4_path_declaration_passes(self):
+        for phrase in ("Writes: `production/qa/report.md`.",
+                       "Write the ADR to `docs/architecture/adr-0001.md`.",
+                       "**Output:** `design/gdd/[system].md`",
+                       "`Documents/Lessons/INDEX.md` 를 작성한다.",
+                       "결과를 `production/qa/smoke.md`에 저장한다.",
+                       "## Output\n\nThe report."):
+            r = ls.lint_skill("x/SKILL.md", GOOD_SKILL.replace("Body.", phrase))
+            self.assertFalse(any("Check 4" in w for w in r.warnings), phrase)
 
-    def test_check4_ask_language_satisfies_write_tools(self):
-        text = GOOD_SKILL.replace("Body.", "Body. May I write this to the file?")
-        r = ls.lint_skill("x/SKILL.md", text)
-        self.assertFalse(any("Check 4" in f for f in r.failures))
+    def test_check4_ask_language_alone_still_warns(self):
+        for phrase in ("May I write this to the file?",
+                       "Ask before writing.",
+                       "Get approval before creating the file.",
+                       # 동사 어간이 아닌 단어(product/production, creative-director)와
+                       # 빈 백틱 경로(` / `)는 선언으로 치지 않는다.
+                       "Production artifacts live under `production/`.",
+                       "Spawn `creative-director` with gate AD-1 (`../../docs/director-gates.md`).",
+                       "Hook `Update()` / `FixedUpdate()` — never write here."):
+            r = ls.lint_skill("x/SKILL.md", GOOD_SKILL.replace("Body.", phrase))
+            self.assertTrue(any("Check 4" in w for w in r.warnings), phrase)
+            self.assertFalse(any("Check 4" in f for f in r.failures), phrase)
+
+    def test_check4_read_only_declaration_passes(self):
+        for phrase in ("Read-only: writes nothing.",
+                       "This skill is read-only — no files are written.",
+                       "This orchestrator does not write files directly.",
+                       "이 스킬은 파일을 쓰지 않는다."):
+            r = ls.lint_skill("x/SKILL.md", GOOD_SKILL.replace("Body.", phrase))
+            self.assertFalse(any("Check 4" in w for w in r.warnings), phrase)
+        # API 호출 종류를 나열한 "Read-only / metadata calls" 는 스킬에 대한 선언이 아니다.
+        r = ls.lint_skill("x/SKILL.md", GOOD_SKILL.replace(
+            "Body.", "- **Read-only / metadata calls** — fetching credit balance."))
+        self.assertTrue(any("Check 4" in w for w in r.warnings))
 
     def test_check5_missing_handoff_warns(self):
         text = GOOD_SKILL.replace("## Recommended next\n\nRun `$other-skill`.\n", "")
@@ -213,7 +240,7 @@ class TestExitCodes(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             skills = os.path.join(d, "skills")
             os.makedirs(skills)
-            _write_skill(skills, "warner", GOOD_SKILL)  # Check 4 read-only WARN
+            _write_skill(skills, "warner", GOOD_SKILL)  # Check 4: no write-scope declaration → WARN
             self.assertEqual(ls.main([skills, "--quiet"]), 0)
             self.assertEqual(ls.main([skills, "--quiet", "--strict"]), 1)
 

@@ -13,6 +13,8 @@ appropriate design or architecture documentation. Use this when:
 - You prototyped a mechanic and need to formalize it
 - You need to document "why" behind existing code
 
+Writes: `design/gdd/[system-name].md`, `docs/architecture/[decision-name].md`, or `prototypes/[name]/CONCEPT.md` — one document per run, chosen by `<type>` (Phase 5 table); the analyzed source is never modified.
+
 ---
 
 ## Workflow

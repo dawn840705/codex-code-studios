@@ -3,6 +3,8 @@ name: art-bible
 description: "Guided, section-by-section Art Bible authoring. Creates the visual identity specification that gates all asset production. Run after $brainstorm is approved and before $map-systems or any GDD authoring begins."
 ---
 
+Writes: `design/art/art-bible.md` — one section at a time; no other file is modified.
+
 ## Phase 0: Parse Arguments and Context Check
 
 Resolve the review mode (once, store for all gate spawns this run):

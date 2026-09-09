@@ -8,6 +8,8 @@ description: "Validate Code Studios skill and role files with the repository's e
 Use the executable linter as the source of truth. Do not reproduce its verdict by
 manually scanning files when Python is available.
 
+Read-only: writes nothing — the linter and pytest only read `skills/`, `tests/`, and `scripts/lint_baseline.json`.
+
 ## Phase 1: Select scope
 
 - `static all` or no argument: all skills plus all orchestrator role guides.
@@ -40,9 +42,12 @@ failure; warnings and explicitly baselined debt remain visible. Exit `2` means
 the invocation or target is invalid.
 
 The linter requires Codex skill frontmatter fields `name` and `description`,
-checks body structure and verdict/handoff conventions, and evaluates routing
-description quality. Role references require `name` and `description` only;
-Claude-only fields such as `model`, `tools`, and `maxTurns` must not return.
+checks body structure and verdict/handoff conventions, requires a write-scope
+declaration (Check 4: the paths the skill writes, or an explicit read-only
+statement — "May I write…?" wording declares no scope and does not count), and
+evaluates routing description quality. Role references require `name` and
+`description` only; Claude-only fields such as `model`, `tools`, and `maxTurns`
+must not return.
 
 ## Phase 3: Verify manifest counts
 

@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """Structural linter for codex-code-studios skills and role references.
 
-This is the executable form of the 7 static checks defined in
-`skills/skill-test/SKILL.md` (Phase 2A). That skill is read and performed by an
-LLM, so it cannot run in CI and does nothing unless a human invokes it. This
-script is the SSOT for the *mechanical* checks; the skill keeps the qualitative
-evaluation on top.
+This is the executable form of the static checks that `skills/skill-test/SKILL.md`
+(Phase 2) runs. That skill is read and performed by an LLM, so it cannot run in
+CI and does nothing unless a human invokes it. This script is the SSOT for the
+*mechanical* checks; the skill keeps the qualitative evaluation on top.
 
 Standard library only — no third-party dependencies.
 
@@ -63,13 +62,45 @@ VERDICT_KEYWORDS = (
     "NON-COMPLIANT",
 )
 
-# ask-before-write language (Check 4)
-ASK_PATTERNS = (
-    re.compile(r"may i write", re.I),
-    re.compile(r"before writing", re.I),
-    re.compile(r"ask .{0,40}before .{0,20}(writ|creat)", re.I | re.S),
-    re.compile(r"(approval|confirm)[^.\n]{0,60}(writ|creat|overwrit)", re.I),
-    re.compile(r"(writ|creat)[^.\n]{0,60}(approval|confirmation|permission)", re.I),
+# write-scope declaration (Check 4)
+#
+# Until v0.7 this check rewarded ask-before-write wording ("May I write…?"),
+# the opposite of the autonomy contract the repo is moving to
+# (docs/design/v0.8.0-astra-autonomy-plan.md § 2.4, A-2). A skill now passes by
+# saying *where* it writes — a write verb next to a backticked path, or an
+# output/artifact heading — or by saying it is read-only. Asking permission
+# declares nothing about scope, so it no longer counts.
+#
+# Verb stems are bounded to their conjugations on purpose: `produc\w*` matches
+# "product"/"production" and `creat\w*` matches "creative-director", and both
+# sit next to a path in a large part of the roster (13 false passes measured).
+_WRITE_VERB = (
+    r"(?:(?:writ(?:e|es|ing|ten)|creat(?:e|es|ed|ing)|sav(?:e|es|ed|ing)"
+    r"|generat(?:e|es|ed|ing)|produc(?:e|es|ed|ing)|emit(?:s|ted|ting)?"
+    r"|output(?:s|ted|ting)?|append(?:s|ed|ing)?|updat(?:e|es|ed|ing)"
+    r"|overwrit(?:e|es|ing|ten)|record(?:s|ed|ing)?)\b|저장|생성|작성|기록)"
+)
+# A backticked token containing a slash and at least one word character:
+# `a/b.md`, `production/`, `../../docs/x.md` — but not "` / `" or "`/`", which
+# the roster produces from "`Update()` / `FixedUpdate()`" and "`game`/`product`".
+_BACKTICK_PATH = r"`(?=[^`\s]*/)(?=[^`\s]*\w)[^`\s]+`"
+
+WRITE_SCOPE_PATTERNS = (
+    # verb → path: "write the report to `docs/x.md`", "Writes: `a/b/`", "결과를 `x/y.md`에 저장"
+    re.compile(_WRITE_VERB + r"[^\n]{0,80}?" + _BACKTICK_PATH, re.I),
+    # path → verb: "`a/b.md` — write", "`Documents/x.md` 를 작성"
+    re.compile(_BACKTICK_PATH + r"[^\n]{0,40}?" + _WRITE_VERB, re.I),
+    # an output / artifact section
+    re.compile(r"^#{1,4}\s.*(output|artifact|deliverable|writes|산출물|출력|결과물)", re.I | re.M),
+    # an explicit read-only statement *about the skill* — "Read-only / metadata
+    # calls" (a list of API call kinds) must not count
+    re.compile(
+        r"(?:skill|mode|audit|orchestrator|command|this)\b[^.\n]{0,25}?\bread[- ]only"
+        r"|does not (?:write|modify|create)"
+        r"|writes? (?:nothing|no files)|no files are written"
+        r"|파일을 (?:쓰지|수정하지|만들지) 않",
+        re.I,
+    ),
 )
 
 # next-step handoff (Check 5)
@@ -288,11 +319,12 @@ def lint_skill(path: str, text: str) -> Result:
     if not any(k in body for k in VERDICT_KEYWORDS):
         r.failures.append("Check 3: no verdict keyword")
 
-    # Check 4 — make user-owned file writes explicit. Codex skills do not declare
-    # tool allowlists in frontmatter, so this remains an advisory content check.
-    has_ask = any(p.search(body) for p in ASK_PATTERNS)
-    if not has_ask:
-        r.warnings.append("Check 4: no explicit user-owned-file write boundary")
+    # Check 4 — declare the write scope. Codex skills do not declare tool
+    # allowlists in frontmatter, so this remains an advisory content check.
+    if not any(p.search(body) for p in WRITE_SCOPE_PATTERNS):
+        r.warnings.append(
+            "Check 4: no write-scope declaration (name the paths written, or say read-only)"
+        )
 
     # Check 5 — next-step handoff
     if not any(p.search(body) for p in HANDOFF_PATTERNS):

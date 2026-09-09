@@ -7,6 +7,8 @@ description: AI가 쓴 한글 텍스트를 자연스럽게 윤문하는 진입 �
 
 `humanize-korean` 스킬을 발동해 인자로 전달된 한글 텍스트(또는 파일)에 윤문을 실행한다.
 
+Writes: `_workspace/{YYYY-MM-DD-NNN}/` (humanize-korean 작업 디렉터리)만 새로 만든다. 입력 파일 덮어쓰기는 Phase 3 규칙을 따른다.
+
 ## 입력
 the invocation arguments
 

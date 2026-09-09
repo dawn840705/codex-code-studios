@@ -10,6 +10,8 @@ plan → execute → score → judge, repeated until every pass criterion scores
 8/10 or higher. The full rule (including rationale) lives in
 `../../rules/self-loop.md` — this skill is its executable form.
 
+Writes: only the target deliverable locked in Phase 1 (e.g. `production/stories/<story>.md`, a GDD under `design/gdd/`, code under `src/`); the exit report goes to the conversation, not to a file.
+
 Two traps this skill actively defends against:
 
 1. **Score inflation** — the model grades itself leniently to exit the loop.

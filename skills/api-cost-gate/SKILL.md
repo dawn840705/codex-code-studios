@@ -19,6 +19,8 @@ This skill enforces a **pre-flight 4-point disclosure** before any paid call. Th
 
 Auto-mode does **not** override this gate. Even when the agent is running autonomously, paid API calls require explicit user OK each time.
 
+Writes: `Documents/api-cost-log.md` (one appended row per approved call); nothing else is created or modified.
+
 ---
 
 ## Phase 1: Identify the call

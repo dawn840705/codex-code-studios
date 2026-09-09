@@ -13,6 +13,8 @@ of artifacts, and gaps that need attention. It's especially useful when:
 - Checking what's missing before a milestone
 - Understanding "where are we?"
 
+Writes: `production/project-stage-report.md` (the stage report) — no other file is touched.
+
 ---
 
 ## Workflow
