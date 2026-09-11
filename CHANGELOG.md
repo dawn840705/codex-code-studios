@@ -1,5 +1,34 @@
 # Changelog
 
+## Unreleased
+
+### Added — 런타임 모드: 이 프로젝트를 누가 작업하는지
+
+`claude-code-studios` 와 갈라진 뒤로 한 프로젝트는 Codex 단독, Claude 단독, 또는
+둘이 분업 중 하나로 진행된다. 셋 다 "풀 스튜디오로 행동한다"가 정답이 아닌데 세션이
+그걸 알아낼 방법이 없었다. `rules/runtime-modes.md` 가 그 자리를 만들고,
+`AGENTS.md` 에 진입점을 달았다.
+
+- **모드는 `production/runtime.txt` 한 줄이 정본이다** (`codex` · `claude` ·
+  `split`, 없으면 `codex`). `CLAUDE.md` 나 `.claude/` 가 보인다는 건 Claude Code 가
+  언젠가 거기 설정됐다는 뜻이지 지금 이 작업을 하고 있다는 뜻이 아니다.
+- **분업 시 경로 단위 소유권 분할을 먼저 적는다.** 두 런타임은 세션·컨텍스트·도구
+  로그를 공유하지 않으므로 덮어쓰기가 양쪽 모두에게 보이지 않고, 진 쪽도 성공했다고
+  보고한다.
+- **강점 분담은 미확정으로 남겼다** — 규칙이 그걸 지어내지 않는다.
+
+### Fixed — 루트 `CLAUDE.md` 가 없는 에이전트 45개를 안내하고 있었다
+
+`AGENTS.md` 는 `CLAUDE.md` 를 0.7 전환용 호환 껍데기로 규정했지만, 파일 내용은
+`claude-code-studios` 의 옛 가이드가 거의 그대로 남아 `agents/` 45개 · `/skill`
+호출 · `.claude/settings.json` 을 안내했다. 이 트리에 `agents/` 는 없다 — 45개 역할
+가이드는 `skills/studio-orchestrator/references/roles/` 의 참조다. Claude Code 로 이
+저장소를 열면 그대로 틀린 지시를 받았다.
+
+225줄을 86줄로 줄이고, **무엇이 여기 없는지**를 표로 먼저 세웠다. 런타임 무관한
+「작업 원칙」과 종료 코드 계약은 남기고, Claude 쪽 스튜디오 기계장치(도메인 팩·에이전트
+스폰 규칙·진입점 목록)는 덜어냈다. 판정 권한은 `AGENTS.md` 에 있다고 명시했다.
+
 ## v0.7.1 — 2026-09-07
 
 ### Added — anchor-based 3D art production

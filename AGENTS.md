@@ -11,6 +11,23 @@ This repository is the source package for the `codex-code-studios` Codex plugin.
 - `hooks/hooks.json` and `hooks/*.sh` implement Codex lifecycle hooks.
 - `rules/*.md`, `docs/`, and `templates/` are plugin resources. They are not Codex command-approval rule files.
 
+## Runtime modes
+
+This studio ships twice: `codex-code-studios` (Codex, `$skill-name`) and the
+sibling `claude-code-studios` (Claude Code, `/skill-name`). A user project may
+be worked by one alone or by both at once, and that decides whether this plugin
+acts at all.
+
+`production/runtime.txt` in the user's project is the source of truth — one
+line: `codex` (full studio, default) · `claude` (stand down; the sibling owns
+the work) · `split` (work only the partition this runtime owns). Absent means
+`codex`. Never infer the mode from a `CLAUDE.md` or `.claude/` sighting.
+
+In `split` mode, write ownership is partitioned **by path** before work starts.
+The two runtimes share no session, context or tool log, so an overwrite is
+invisible to both and the losing side still reports success. Full rule:
+[`rules/runtime-modes.md`](rules/runtime-modes.md).
+
 ## Change rules
 
 1. Preserve existing public skill names unless a migration explicitly documents a rename.
