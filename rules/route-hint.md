@@ -83,6 +83,13 @@ Two guards:
   resolving ambiguity) is a routing error — pull the work back up, don't let
   the cheap lane's answer stand.
 
+Pick the lane **before** dispatching, not mid-task: a lower tier or lower
+reasoning effort doesn't refund the quota already spent on a higher one, and a
+lower tier is not automatically worse — a low-effort pass on a stronger model
+can outperform a high-effort pass on a weaker one, so "start low, escalate on
+a concrete signal" beats "start high to be safe." Source:
+[docs/reasoning-effort.md](../docs/reasoning-effort.md#2026-09-17-추가--astrasolterraluna-할당량-절약-팁-채택).
+
 ## Reference implementation
 
 `scripts/prepare_monolith_input.py` routes Korean rewriting deterministically:

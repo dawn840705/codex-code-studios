@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+### Added — quota-efficiency tips from a third-party OpenAI Plus guide
+
+- Reviewed a 2026-09-15 X post summarizing OpenAI Help documentation on
+  ChatGPT Work/Codex shared-quota management (model tiers, reasoning effort,
+  Fast mode, reference-doc scoping, upfront completion criteria). The
+  underlying `help.openai.com` pages were not independently fetched — treated
+  as a secondary source. Full review and what was deliberately not adopted:
+  [docs/reasoning-effort.md](docs/reasoning-effort.md#2026-09-17-추가--astrasolterraluna-할당량-절약-팁-채택).
+- Added `docs/rules/token-efficiency.md` **R7** (scope reference-doc reads to
+  the scenario instead of reading everything every time) and **R8** (state
+  completion criteria and delegation boundaries upfront instead of
+  round-tripping on ambiguous micro-decisions).
+- Reinforced `rules/route-hint.md`'s Model axis: pick the tier/effort lane
+  before dispatching — downgrading mid-task doesn't refund already-spent
+  quota, and a low-effort pass on a stronger model can beat a high-effort
+  pass on a weaker one.
+
 ## v0.7.2 — 2026-09-12
 
 ### Added — 런타임 모드: 이 프로젝트를 누가 작업하는지

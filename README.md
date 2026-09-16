@@ -82,7 +82,7 @@ Engine/genre/platform-agnostic workflow assets:
 | API CLI template | [docs/templates/api-cli-template.py](docs/templates/api-cli-template.py) | Scaffold for a pay-as-you-go external AI API wrapper (env loading, auth, async polling, sync binary, download) |
 | Product PRD template | [docs/templates/product-requirements-document.md](docs/templates/product-requirements-document.md) | Product-level PRD for the product track — problem, personas, core loop, MVP scope, requirements, KPIs, out-of-scope |
 | Human action queue template | [docs/templates/human-action-queue.md](docs/templates/human-action-queue.md) | A standing queue for things only a human can do — separates execution (🔴) from judgment (🟡), keeps a "why a human" column, demotes rather than deletes on completion |
-| Token efficiency rules | [docs/rules/token-efficiency.md](docs/rules/token-efficiency.md) | R1–R6: commit message length, meeting-notes length, batch reporting, parallel reads, memory discipline, response length |
+| Token efficiency rules | [docs/rules/token-efficiency.md](docs/rules/token-efficiency.md) | R1–R8: commit message length, meeting-notes length, batch reporting, parallel reads, memory discipline, response length, scoped reference reads, upfront completion criteria |
 | Artifact organization rules | [docs/rules/artifact-organization.md](docs/rules/artifact-organization.md) | Three-zone discipline (Workshop / Curated / Engine) + prefix naming + `.prompt.txt` companion rule |
 
 ---
@@ -235,7 +235,7 @@ Add the assets you need to your project's `AGENTS.md` so Codex reads them as pro
 ```markdown
 ## Workflow rules
 
-- Token efficiency: docs/rules/token-efficiency.md (R1–R6)
+- Token efficiency: docs/rules/token-efficiency.md (R1–R8)
 - Artifact organization: docs/rules/artifact-organization.md (Workshop / Curated / Engine three-zone + prefix naming)
 - Meeting notes: use the docs/templates/meeting-template.md format
 ```
