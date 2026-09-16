@@ -15,7 +15,7 @@ It mirrors how a real studio is organized: directors (creative / technical / pro
 
 Engine-agnostic: works with Godot, Unity, Unreal, GameMaker, or a custom engine.
 
-> **Latest (v0.7.2):** added `rules/runtime-modes.md` so a project worked on by both Codex and Claude Code declares who's actually driving in `production/runtime.txt` — the two CLIs don't share sessions or tool logs, so an overwrite is invisible to both sides until it's already happened. v0.7.1 added an anchor-based 3D art pipeline (reviewed anchor → consistent views → generated model → Blender rig/animation). v0.7.0 migrated the whole plugin from Claude Code's format to a native Codex plugin — `.codex-plugin/plugin.json` and `.agents/plugins/marketplace.json` are now the install manifests, skills use `$skill-name` invocation, and hooks use Codex's `apply_patch`/`SessionEnd`/JSON output contract. Full version history, including the v0.6.4 fix for a gate that silently flipped PASS to FAIL on Korean-locale Windows consoles, is in [CHANGELOG.md](CHANGELOG.md).
+> **Latest (v0.7.3):** added advisory pre-task model recommendations, reference-scoping and delegation-boundary guidance, and safer handling for externally changed open Unity scenes. v0.7.2 added `rules/runtime-modes.md` so projects shared by Codex and Claude Code declare ownership in `production/runtime.txt`. Full version history is in [CHANGELOG.md](CHANGELOG.md).
 
 ## Table of Contents
 
@@ -287,6 +287,7 @@ Skills create these folders automatically as work progresses.
 
 Full per-version history is in [CHANGELOG.md](CHANGELOG.md).
 
+- **v0.7.3** — advisory pre-task model recommendations, scoped reference loading, explicit delegation boundaries, and safe open-scene handling for external Unity changes.
 - **v0.7.2** — `rules/runtime-modes.md`: a project worked by both Codex and Claude Code declares who's driving in `production/runtime.txt`, since the two CLIs share no session/context/tool log and a losing side can report success while silently overwriting the other's work.
 - **v0.7.1** — anchor-based 3D art pipeline (reviewed anchor → consistent views → generated model → Blender rig/animation), wired into orchestration, asset specs, and read-only delivery audits.
 - **v0.7.0** — migrated from a Claude Code plugin to a native Codex plugin (`.codex-plugin/plugin.json`, `$skill-name` invocation, `.codex/studio/` state, Codex-native hooks). `.claude-plugin/` and `CLAUDE.md` remain only as a compatibility layer to identify prior installs.

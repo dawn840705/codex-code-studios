@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.7.3 — 2026-09-17
+
 ### Added — pre-task model recommendation
 
 - `UserPromptSubmit` now recommends a standard tool/script for deterministic
