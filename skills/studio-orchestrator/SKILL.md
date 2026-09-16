@@ -9,6 +9,10 @@ Use this skill when a request spans disciplines or benefits from specialist revi
 
 ## 1. Establish the track and stage
 
+Before starting work, use the `UserPromptSubmit` model recommendation when it
+is present. Treat it as advisory only: preserve an explicit user model choice,
+and recommend a standard script/tool instead of a model for deterministic work.
+
 1. Read `production/track.txt` when it exists.
 2. Treat `game` as the game-development track and `product` as the app, web, or service track.
 3. If the track cannot be inferred safely and changes the requested outcome, ask the user.

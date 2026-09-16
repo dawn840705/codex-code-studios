@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""요청별 effort 관찰과 명시적으로 승인된 Codex CLI 실행.
+"""요청별 모델 권고, effort 관찰과 명시적으로 승인된 Codex CLI 실행.
 
-Standard library only. No model routing, config writes, or automatic retries.
+Standard library only. No model switching, config writes, or automatic retries.
 Task files and verifier argv are trusted operator input, never hook input.
 """
 from __future__ import annotations
@@ -33,6 +33,44 @@ SIGNALS = {
 FAILURES = ("none", "reasoning", "environment", "permission", "auth", "tool", "unknown")
 RISK_WORDS = re.compile(r"인증|권한|결제|마이그레이션|저장.*(?:깨|손상|삭제)|동시성|"
                         r"\b(?:auth|permission|payment|migration|concurrency|data loss)\b", re.I)
+JUDGMENT_WORDS = re.compile(
+    r"설계|아키텍처|검토|리뷰|보안|마이그레이션|전략|결정|정책|인증|권한|결제|"
+    r"\b(?:design|architecture|review|security|migration|strategy|decision|policy|"
+    r"auth|permission|payment)\b",
+    re.I,
+)
+MECHANICAL_WORDS = re.compile(
+    r"목록|개수|인벤토리|포맷|형식|링크|경로|이름 변경|일괄|해시|체크섬|정규화|"
+    r"\b(?:list|count|inventory|format|link|path|rename|bulk|hash|checksum|"
+    r"normalize|deterministic|script|audit)\b",
+    re.I,
+)
+
+
+def recommend_model(prompt, current_model):
+    """Return a transparent model recommendation without changing runtime settings."""
+    model = (current_model or "현재 세션 모델").strip()
+    prompt = prompt or ""
+    if JUDGMENT_WORDS.search(prompt):
+        return {
+            "lane": "judgment",
+            "recommended_model": model,
+            "recommendation": f"{model} 유지",
+            "reason": "설계·위험·사용자 판단이 필요한 작업은 세션 모델을 유지",
+        }
+    if MECHANICAL_WORDS.search(prompt):
+        return {
+            "lane": "deterministic",
+            "recommended_model": None,
+            "recommendation": "모델 불필요 — 표준 도구/스크립트 권장",
+            "reason": "결정적 목록·변환·검사는 실행 도구가 토큰보다 효율적",
+        }
+    return {
+        "lane": "standard",
+        "recommended_model": model,
+        "recommendation": f"{model} 유지",
+        "reason": "범위를 확인하기 전에는 현재 세션 모델이 가장 안전한 기본값",
+    }
 
 
 def digest(value):
@@ -293,31 +331,41 @@ def execute(task, decision_path, root, approval_ref, executable="codex", timeout
 
 
 def hook():
-    """Opt-in automatic observation. Never launch an executor from a prompt hook."""
+    """Recommend before every prompt; observe effort only when the project opts in."""
     event = json.load(sys.stdin)
     if not isinstance(event, dict):
         raise ValueError("hook event must be an object")
     if event.get("hook_event_name") != "UserPromptSubmit":
         return
     root = Path(event["cwd"])
+    recommendation = recommend_model(event.get("prompt", ""), event.get("model"))
+    details = (
+        f"Model recommendation: {recommendation['recommendation']}. "
+        f"Reason: {recommendation['reason']}. Advisory only; do not switch models automatically. "
+        "Explicit user model choice wins."
+    )
     policy_path = root / ".codex" / "reasoning-effort.json"
-    if not policy_path.exists():
-        return
-    policy = read_json(policy_path)
-    if not isinstance(policy, dict):
-        raise ValueError("observation policy must be an object")
-    if policy.get("mode") != "observe":
-        return
-    task = {"task_id": event["session_id"] + ":" + event["turn_id"],
-            "prompt": event["prompt"], "model": event["model"]}
-    path, record = observe(task, root, idempotent=True)
-    message = (f"Effort observation: selected={record['selected_effort']}; passed=null; applied=null. "
-               "Parent runtime unchanged. UI effort is not exposed by this hook; preserve explicit user settings. "
-               f"Decision: {path}. After scope inspection, use {Path(__file__).resolve()} observe "
-               "with evidence at a task boundary; do not reclassify after every tool call. "
-               "No execution authorization is granted; keep every required safety and verification gate.")
+    if policy_path.exists():
+        try:
+            policy = read_json(policy_path)
+            if not isinstance(policy, dict):
+                raise ValueError("observation policy must be an object")
+            if policy.get("mode") == "observe":
+                task = {"task_id": event["session_id"] + ":" + event["turn_id"],
+                        "prompt": event["prompt"], "model": event["model"]}
+                path, record = observe(task, root, idempotent=True)
+                details += (
+                    f" Effort observation: selected={record['selected_effort']}; passed=null; applied=null. "
+                    "Parent runtime unchanged. UI effort is not exposed by this hook; preserve explicit user settings. "
+                    f"Decision: {path}. After scope inspection, use {Path(__file__).resolve()} observe "
+                    "with evidence at a task boundary; do not reclassify after every tool call. "
+                    "No execution authorization is granted; keep every required safety and verification gate."
+                )
+        except (ValueError, OSError, TypeError) as exc:
+            # A broken opt-in file must not suppress the always-on recommendation.
+            print(f"reasoning-effort: {type(exc).__name__}: {exc}", file=sys.stderr)
     print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit",
-                                             "additionalContext": message}}))
+                                             "additionalContext": details}}, ensure_ascii=False))
 
 
 def main():

@@ -85,6 +85,7 @@ Codex 플러그인으로 패키징된 소프트웨어 스튜디오. **게임은 
 
 ### Hooks
 
+- `UserPromptSubmit`: 매 작업 전 모델 권고(결정적 작업은 모델 불필요, 판단 작업은 세션 모델 유지); opt-in effort 관찰
 - `SessionStart`: 프로젝트 컨텍스트 로드 + 누락 문서 감지 + 프로젝트 타입 판별
 - `PreToolUse` (`exec_command`/`Bash`): git 커밋/푸시 검증
 - `PostToolUse` (`apply_patch` 및 편집 alias): 한 패치의 모든 변경 파일을 추출해 자산 명명·skill 변경·Unity 안전장치 검사

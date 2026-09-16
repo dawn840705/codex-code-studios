@@ -75,6 +75,21 @@ The recommended standing policy (adopt by copying into project `AGENTS.md`):
 | Design judgment, code review, anything adjacent to a user decision | **session model, never downgraded** | This is what the user is paying the premium tier for |
 | Deterministic transforms (renames, link rewrites, bulk edits) | **no model at all — a script** | Exit code beats token spend; see `doc_relink.py` |
 
+## Prompt-boundary model recommendation
+
+Before every user task, the `UserPromptSubmit` hook emits a model recommendation
+as advisory context. It is intentionally not runtime routing: the hook never
+changes the selected model, and an explicit user model choice wins.
+
+- Deterministic inventory, formatting, link/path audits, and bulk transforms →
+  **no model; use a standard tool or script**.
+- Design judgment, review, security, migration, or ambiguous work → **keep the
+  current session model**; do not downgrade it.
+- Everything else → **keep the current session model** until scope is inspected.
+
+The recommendation runs even when effort observation is disabled. Effort records
+remain opt-in and the parent runtime is unchanged.
+
 Two guards:
 
 - When unsure which lane a task is in, it is not a mechanical sweep. Inherit

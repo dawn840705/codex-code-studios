@@ -130,7 +130,11 @@ def run_hook(root, event=None):
 
 
 def test_hook_opt_in_and_never_runtime_change(tmp_path):
-    assert run_hook(tmp_path).stdout == ""
+    result = run_hook(tmp_path)
+    assert result.returncode == 0
+    context = json.loads(result.stdout)["hookSpecificOutput"]
+    assert "Model recommendation:" in context["additionalContext"]
+    assert not list(tmp_path.glob(".codex/reasoning-effort/*/decision.json"))
     config = tmp_path / ".codex/reasoning-effort.json"
     config.parent.mkdir()
     config.write_text('{"mode":"observe"}')
@@ -138,6 +142,7 @@ def test_hook_opt_in_and_never_runtime_change(tmp_path):
     assert result.returncode == 0
     context = json.loads(result.stdout)["hookSpecificOutput"]
     assert context["hookEventName"] == "UserPromptSubmit"
+    assert "Model recommendation:" in context["additionalContext"]
     assert "passed=null; applied=null" in context["additionalContext"]
     records = list(tmp_path.glob(".codex/reasoning-effort/*/decision.json"))
     assert len(records) == 1
@@ -147,10 +152,23 @@ def test_hook_opt_in_and_never_runtime_change(tmp_path):
     assert len(list(tmp_path.glob(".codex/reasoning-effort/*/decision.json"))) == 1
     assert json.loads(records[0].read_text())["model"] == "gpt-5.5"
     config.write_text('{"mode":"execute"}')
-    assert run_hook(tmp_path).stdout == ""
+    assert "Model recommendation:" in json.loads(run_hook(tmp_path).stdout)["hookSpecificOutput"]["additionalContext"]
     config.write_text('invalid')
     result = run_hook(tmp_path)
     assert result.returncode == 0 and "reasoning-effort:" in result.stderr
+    assert "Model recommendation:" in json.loads(result.stdout)["hookSpecificOutput"]["additionalContext"]
+
+
+def test_model_recommendation_uses_tool_for_deterministic_work():
+    result = effort.recommend_model("파일 목록과 링크 경로를 검사해", "gpt-5.5")
+    assert result["lane"] == "deterministic"
+    assert result["recommended_model"] is None
+
+
+def test_model_recommendation_preserves_session_model_for_judgment():
+    result = effort.recommend_model("아키텍처를 검토하고 보안 결정을 내려", "gpt-5.5")
+    assert result["lane"] == "judgment"
+    assert result["recommended_model"] == "gpt-5.5"
 
 
 @pytest.fixture
