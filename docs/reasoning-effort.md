@@ -56,6 +56,24 @@ spawn → `[agents]` default → parent 순서로 결정된다. spawn 인자만 
 | [Adaptive Reasoning Router](https://github.com/blackjose007-stack/adaptive-reasoning-router/tree/71ec619828a0f3ce3ced0888e69486b58c42559a) | HEAD `71ec619`, README 검토. runtime 변경 보장 없음·로그 호출 필요 명시. 경계별 결정 참고. 가중치 기반 반사실 추정은 토큰 실측이 아님. 전체 코드 감사 안 함 |
 | [Gearbox #20855](https://github.com/openai/codex/issues/20855) | 조사 시 Open/enhancement. 이유·상한·전환 기록 참고. 제공 중 기능으로 간주하지 않음 |
 | [RouteLLM](https://github.com/lm-sys/RouteLLM) | 평가·임계값 보정 참고. 모델 간 라우팅이며 이번 동일 모델 effort 선택과 구분 |
+| [過労くん — GPT-6 Astra 절약 설정 5선](https://x.com/karoukun_ai/status/2099834185678782928) | 2026-09-15 X 포스트. OpenAI Help 문서 4건(`help.openai.com/en/articles/20001516` 등, Work/Codex 공유 할당량·모델별 5시간 메시지 한도)을 인용해 Plus 플랜 절약 팁을 정리했다. **원문 help 페이지는 이번에 직접 열람하지 않았다** — 포스트의 인용을 그대로 옮겨 적은 2차 출처로 취급한다. 채택 범위는 아래 절 참고 |
+
+### 2026-09-17 추가 — Astra/Sol/Terra/Luna 할당량 절약 팁 채택
+
+위 포스트가 정리한 5가지 설정 중, 이 저장소에 이미 있는 개념과 겹치지 않고 실무에
+바로 적용 가능한 3가지만 반영했다. 반영 위치와 이유:
+
+| 포스트의 팁 | 반영 위치 | 비고 |
+|---|---|---|
+| 작업 난이도로 모델 고르기 (Astra/Sol/Terra/Luna), 다운그레이드해도 이미 쓴 할당량은 안 돌아온다 | [`rules/route-hint.md`](../rules/route-hint.md) Model axis | 기존 "lane별 standing policy" 원칙을 이미 갖고 있었다. 이번엔 "결정은 시작 전에, 도중 다운그레이드는 환불 없음" 한 줄만 근거로 보강 |
+| reasoning은 Low/Medium부터 — 높인다고 항상 좋아지지 않고, 약한 모델의 Low가 강한 모델의 High를 이기기도 한다 | 위와 동일 | 이 저장소의 `rules/reasoning-effort.md`는 "모델은 고정, effort만 변수"라는 별도 축이라 모델 간 비교 주장은 그쪽에 넣지 않았다 |
+| 참조 문서는 장면별로 읽을 범위를 지정하고, 매번 전체를 읽히지 않는다 | [`docs/rules/token-efficiency.md`](rules/token-efficiency.md) R7 (신설) | 기존 R1-R6에 없던 축이라 신설 |
+| 완료 조건과 위임 범위를 먼저 던지고, 애매한 판단은 끝에 몰아서 보고받는다 | 위와 동일 R8 (신설) | 왕복 확인 감소 — 역시 기존 R1-R6에 없던 축 |
+
+**반영하지 않은 것과 이유:**
+- **Fast 모드 끄기** — 이 저장소에는 대응하는 실행 스위치가 없다(오케스트레이터가 호출하는 CLI 실행기에 그런 옵션 없음). 있지도 않은 기능을 문서화하지 않는다.
+- **할당량 소진 시 즉시 리셋 구매** — 과금 액션이라 `$api-cost-gate` 범위이지 워크플로 규칙 범위가 아니다.
+- **Usage 잔여량 사전 확인** — 유용하지만 이 저장소의 `scripts/reasoning_effort.py`는 Usage API를 조회하지 않는다. 있다고 암시하는 문서를 쓰지 않고, 미구현으로 남긴다.
 
 auto-reasoning의 [CLI adapter](https://github.com/luckeyfaraday/auto-reasoning/blob/a70c7c4274391cad2fa298db0f11fbc1eba2c469/src/adapters/codex-cli.ts)는
 effort 뒤에 `extraArgs`를 붙이고 prompt를 위치 인자로 전달한다. 우리 구현은

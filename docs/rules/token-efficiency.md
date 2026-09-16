@@ -1,6 +1,6 @@
 # Token Efficiency Rules
 
-Six lightweight rules to keep Codex agent collaboration efficient over long-running projects. Adopt as-is or fork.
+Eight lightweight rules to keep Codex agent collaboration efficient over long-running projects. Adopt as-is or fork.
 
 ---
 
@@ -79,6 +79,42 @@ For paid API calls and other gated actions, this rule is **constrained by the ga
 
 ---
 
+## R7 — Reference docs: scope the read to the scenario, not "read everything every time"
+
+When a task prompt points to a pile of reference material (a pricing sheet, a style guide, a brand doc), don't instruct the agent to read all of it on every run. Name which document applies to which scenario:
+
+```
+Only consult reference material for the scenario at hand.
+Pricing questions: <pricing doc>
+Wording/tone questions: <past announcement doc>
+Logo/color questions: <brand doc>
+For anything else, proceed without reading reference material.
+```
+
+Blanket "always read every doc" instructions inflate input size on every call regardless of whether that call needed the material, and a full-history fork reloads them per turn. Same principle as **R4** (parallel reads), applied to *whether* a read happens at all, not just how it's scheduled.
+
+**Anti-pattern:** a standing instruction to re-read the full design doc / brand bible / API reference before every task, "just in case," when most tasks only touch one section of it.
+
+---
+
+## R8 — Delegated work: state completion criteria and decision boundaries upfront
+
+Before handing off a multi-step task, give the agent three things in the same prompt instead of letting it stop to ask mid-task:
+
+```
+Done when: <concrete, checkable conditions>
+Decide freely: <choices the agent can make on its own>
+Confirm first: <irreversible or costly actions — sending, spending, deleting>
+Everything else: assume the reasonable choice, keep going, and report
+what you assumed at the end.
+```
+
+An agent that checks in on every ambiguous micro-decision burns a round-trip per question — each one reloads context on both sides. Most of those decisions don't need the user; they need permission to decide and a place to report the decision afterward. Reserve actual check-ins for the "confirm first" bucket.
+
+**Anti-pattern:** a task handed off with no stated finish line, so the agent either stops after the first partial result to "check if this is right" or keeps going past where the user actually wanted it to stop.
+
+---
+
 ## Adoption notes
 
 - Adopt these rules in the project `AGENTS.md` so every Codex task inherits them.
@@ -89,4 +125,6 @@ For paid API calls and other gated actions, this rule is **constrained by the ga
 
 ## Origin
 
-Distilled from real production logs of Claude Code sessions on a multi-month game project. Each rule corrects a specific pattern that *cost reader time without delivering proportionate value*. R1-R6 are listed in roughly the order each pattern surfaced.
+R1-R6 are distilled from real production logs of Claude Code sessions on a multi-month game project, listed in roughly the order each pattern surfaced. Each corrects a specific pattern that *cost reader time without delivering proportionate value*.
+
+R7-R8 (2026-09-17) come from a different angle — a third-party summary of OpenAI's own Plus-plan quota guidance for ChatGPT Work/Codex, cross-checked against what this repo already had. See [docs/reasoning-effort.md](../reasoning-effort.md#2026-09-17-추가--astrasolterraluna-할당량-절약-팁-채택) for the source and what was deliberately left out.

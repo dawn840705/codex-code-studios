@@ -2,13 +2,30 @@
 
 ## Unreleased
 
-### Added — 매 작업 전 모델 권고
+### Added — pre-task model recommendation
 
-- `UserPromptSubmit` 훅이 모든 사용자 작업 전에 모델 권고를 표시한다. 결정적
-  목록·변환·검사는 표준 도구/스크립트, 판단이 필요한 작업은 현재 세션 모델을
-  유지하도록 권고한다.
-- 권고는 advisory-only다. 모델 자동 전환·설정 변경은 없고, 명시한 사용자 모델이
-  항상 우선한다. 기존 opt-in effort 관찰 동작은 유지한다.
+- `UserPromptSubmit` now recommends a standard tool/script for deterministic
+  work and retaining the current session model for judgment work.
+- The recommendation is advisory only: it never switches models or changes
+  settings, explicit user model choices win, and opt-in effort observation is
+  unchanged.
+
+### Added — quota-efficiency tips from a third-party OpenAI Plus guide
+
+- Reviewed a 2026-09-15 X post summarizing OpenAI Help documentation on
+  ChatGPT Work/Codex shared-quota management (model tiers, reasoning effort,
+  Fast mode, reference-doc scoping, upfront completion criteria). The
+  underlying `help.openai.com` pages were not independently fetched — treated
+  as a secondary source. Full review and what was deliberately not adopted:
+  [docs/reasoning-effort.md](docs/reasoning-effort.md#2026-09-17-추가--astrasolterraluna-할당량-절약-팁-채택).
+- Added `docs/rules/token-efficiency.md` **R7** (scope reference-doc reads to
+  the scenario instead of reading everything every time) and **R8** (state
+  completion criteria and delegation boundaries upfront instead of
+  round-tripping on ambiguous micro-decisions).
+- Reinforced `rules/route-hint.md`'s Model axis: pick the tier/effort lane
+  before dispatching — downgrading mid-task doesn't refund already-spent
+  quota, and a low-effort pass on a stronger model can beat a high-effort
+  pass on a weaker one.
 
 ## v0.7.2 — 2026-09-12
 
