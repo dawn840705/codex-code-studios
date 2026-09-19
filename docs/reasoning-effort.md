@@ -91,7 +91,7 @@ single-agent에 한정하며 응답 사이 입력으로 다음 응답에 적용�
 ## 구현과 사용법
 
 - `scripts/reasoning_effort.py`: stdlib 분류, 관찰, 단일 실행과 검증 기록.
-- `hooks/observe-effort.sh` + `hooks/hooks.json`: opt-in 입력 관찰.
+- `hooks/hooks.json` → `scripts/reasoning_effort.py hook`: opt-in 입력 관찰과 작업 전 모델 권고.
 - `rules/reasoning-effort.md`: 선택·권한·재평가 계약.
 - `skills/studio-orchestrator/SKILL.md`: 범위 조사 후 관찰 안내.
 - `.codex/reasoning-effort.json`: **이 저장소만** 관찰 활성화.

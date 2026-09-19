@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${PLUGIN_ROOT}/hooks/observe-effort.sh\"",
+            "command": "python3 \"${PLUGIN_ROOT}/scripts/reasoning_effort.py\" hook",
             "timeout": 5
           }
         ]

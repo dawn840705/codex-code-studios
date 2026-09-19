@@ -11,6 +11,8 @@
 - The recommendation is advisory only: it never switches models or changes
   settings, explicit user model choices win, and opt-in effort observation is
   unchanged.
+- The prompt hook now invokes its Python entry point directly, avoiding a
+  Windows failure where `bash` resolved to an unconfigured WSL launcher.
 
 ### Added — quota-efficiency tips from a third-party OpenAI Plus guide
 

@@ -125,8 +125,15 @@ def test_concurrent_atomic_observations_and_prompt_privacy(tmp_path):
 def run_hook(root, event=None):
     event = event or {"hook_event_name": "UserPromptSubmit", "session_id": "session", "turn_id": "turn",
                       "cwd": str(root), "model": "gpt-5.5", "prompt": "간단히 고쳐"}
-    return subprocess.run(["bash", str(ROOT / "hooks/observe-effort.sh")], input=json.dumps(event),
+    return subprocess.run([sys.executable, str(ROOT / "scripts/reasoning_effort.py"), "hook"], input=json.dumps(event),
                           text=True, encoding="utf-8", capture_output=True, cwd=root)
+
+
+def test_hook_registration_does_not_require_bash():
+    hooks = json.loads((ROOT / "hooks/hooks.json").read_text(encoding="utf-8"))
+    command = hooks["hooks"]["UserPromptSubmit"][0]["hooks"][0]["command"]
+    assert "bash" not in command
+    assert "scripts/reasoning_effort.py" in command
 
 
 def test_hook_opt_in_and_never_runtime_change(tmp_path):
