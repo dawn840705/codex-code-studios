@@ -16,12 +16,14 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 
 import pytest
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOOKS = os.path.join(REPO, "hooks")
 LIB = os.path.join(HOOKS, "lib", "detect-layout.sh")
+RUN_BASH = os.path.join(HOOKS, "run-bash.py")
 
 DETECT_GAPS = os.path.join(HOOKS, "detect-gaps.sh")
 VALIDATE_COMMIT = os.path.join(HOOKS, "validate-commit.sh")
@@ -49,7 +51,7 @@ def run_hook(script, cwd, stdin="", env=None):
     if env:
         full_env.update(env)
     return subprocess.run(
-        ["bash", script],
+        [sys.executable, RUN_BASH, script],
         cwd=str(cwd),
         input=stdin,
         capture_output=True,
@@ -69,7 +71,7 @@ def probe(cwd, snippet, env=None, prelude=""):
     if env:
         full_env.update(env)
     return subprocess.run(
-        ["bash", "-c", f'{prelude}\n. "{LIB}"\n{snippet}'],
+        [sys.executable, RUN_BASH, "-c", f'{prelude}\n. "{LIB}"\n{snippet}'],
         cwd=str(cwd),
         capture_output=True,
         text=True,
@@ -804,6 +806,18 @@ def test_post_tool_use_matcher_includes_codex_apply_patch():
         data = json.load(fh)
     matchers = [entry["matcher"] for entry in data["hooks"]["PostToolUse"]]
     assert all("apply_patch" in m for m in matchers), matchers
+
+
+def test_manifest_routes_shell_hooks_through_runner_with_gap_scan_headroom():
+    hook_config = os.path.join(REPO, "hooks", "hooks.json")
+    with open(hook_config, encoding="utf-8") as fh:
+        data = json.load(fh)
+    commands = [hook for entries in data["hooks"].values()
+                for entry in entries for hook in entry["hooks"]]
+    shell_hooks = [hook for hook in commands if ".sh" in hook["command"]]
+    assert shell_hooks and all("run-bash.py" in hook["command"] for hook in shell_hooks)
+    gap = next(hook for hook in shell_hooks if "detect-gaps.sh" in hook["command"])
+    assert gap["timeout"] >= 30
 
 
 def test_apply_patch_paths_are_validated(web):

@@ -1,6 +1,7 @@
 """Offline policy, observation, dispatch and accounting contract tests."""
 import importlib.util
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -180,15 +181,20 @@ def test_model_recommendation_preserves_session_model_for_judgment():
 
 @pytest.fixture
 def fake_cli(tmp_path):
-    cli = tmp_path / "fake-codex"
-    cli.write_text("#!" + sys.executable + "\n" + '''import json,sys
+    script = tmp_path / ("fake-codex.py" if os.name == "nt" else "fake-codex")
+    script.write_text("#!" + sys.executable + "\n" + '''import json,sys
 from pathlib import Path
 Path("received.json").write_text(json.dumps({"argv":sys.argv[1:],"prompt":sys.stdin.read()}))
 print(json.dumps({"type":"item.completed","item":{"text":"applied high"}}))
 print(json.dumps({"type":"turn.completed","usage":{"input_tokens":20,"cached_input_tokens":8,"output_tokens":5}}))
 print(json.dumps({"type":"turn.completed","usage":{"input_tokens":7,"cached_input_tokens":0,"output_tokens":3}}))
 ''')
-    cli.chmod(0o700)
+    script.chmod(0o700)
+    cli = script
+    if os.name == "nt":
+        cli = tmp_path / "fake-codex.cmd"
+        cli.write_text('@set "PYTHONIOENCODING=utf-8"\n'
+                       f'@"{sys.executable}" "{script}" %*\n')
     return str(cli)
 
 
@@ -254,7 +260,8 @@ def test_verifier_failure_not_executor_exit_zero_decides_success(tmp_path, fake_
 
 
 def test_timeout_recorded_no_retry(tmp_path, fake_cli):
-    Path(fake_cli).write_text("#!" + sys.executable + "\nimport time; time.sleep(10)\n")
+    target = Path(fake_cli).with_suffix(".py") if os.name == "nt" else Path(fake_cli)
+    target.write_text("#!" + sys.executable + "\nimport time; time.sleep(10)\n")
     sample = task()
     path, _ = effort.observe(sample, tmp_path)
     _, result = effort.execute(sample, path, tmp_path, "TEST", fake_cli, timeout=.05)

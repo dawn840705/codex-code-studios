@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import sys
 
@@ -45,11 +46,16 @@ def test_pilot_snapshot_and_dispatch_cap(tmp_path):
     plan = pilot.prepare(repo, output, "fixed", ["low", "medium", "high"], "TEST fake only")
     assert (output / "snapshot/skills/a/SKILL.md").read_text() == "one"
     assert plan["expected"] == "1" and sorted(plan["order"]) == ["auto", "high", "medium"]
-    cli = tmp_path / "fake-codex"
-    cli.write_text("#!" + sys.executable + '\nimport json,sys\nsys.stdin.read()\n'
-                   'print(json.dumps({"type":"item.completed","item":{"type":"agent_message","text":"1"}}))\n'
-                   'print(json.dumps({"type":"turn.completed","usage":{"input_tokens":4,"cached_input_tokens":0,"output_tokens":1}}))\n')
-    cli.chmod(0o700)
+    cli_script = tmp_path / ("fake-codex.py" if os.name == "nt" else "fake-codex")
+    cli_script.write_text("#!" + sys.executable + '\nimport json,sys\nsys.stdin.read()\n'
+                          'print(json.dumps({"type":"item.completed","item":{"type":"agent_message","text":"1"}}))\n'
+                          'print(json.dumps({"type":"turn.completed","usage":{"input_tokens":4,"cached_input_tokens":0,"output_tokens":1}}))\n')
+    cli_script.chmod(0o700)
+    cli = cli_script
+    if os.name == "nt":
+        cli = tmp_path / "fake-codex.cmd"
+        cli.write_text('@set "PYTHONIOENCODING=utf-8"\n'
+                       f'@"{sys.executable}" "{cli_script}" %*\n')
     result = pilot.run(output, executable=str(cli), standalone=True)
     assert result["status"] == "completed" and len(result["runs"]) == 3
     assert all(r["success"] and r["model"] == "fixed" for r in result["runs"])
@@ -63,10 +69,10 @@ def test_pilot_snapshot_and_dispatch_cap(tmp_path):
     expanded = tmp_path / 'expanded'
     pilot.prepare(repo, expanded, 'fixed', ['low', 'medium', 'high'], 'TEST fake only',
                   cases=pilot.CASES, repetitions=3)
-    cli.write_text('#!' + sys.executable + '\nimport json,sys\nprompt=sys.stdin.read()\n'
-                   'answer="0.7.0" if "version" in prompt else ("[\\\"SessionStart\\\"]" if "hooks/hooks.json" in prompt else "1")\n'
-                   'print(json.dumps({"type":"item.completed","item":{"type":"agent_message","text":answer}}))\n'
-                   'print(json.dumps({"type":"turn.completed","usage":{"input_tokens":4,"cached_input_tokens":0,"output_tokens":1}}))\n')
+    cli_script.write_text('#!' + sys.executable + '\nimport json,sys\nprompt=sys.stdin.read()\n'
+                          'answer="0.7.0" if "version" in prompt else ("[\\\"SessionStart\\\"]" if "hooks/hooks.json" in prompt else "1")\n'
+                          'print(json.dumps({"type":"item.completed","item":{"type":"agent_message","text":answer}}))\n'
+                          'print(json.dumps({"type":"turn.completed","usage":{"input_tokens":4,"cached_input_tokens":0,"output_tokens":1}}))\n')
     result = pilot.run(expanded, executable=str(cli), remaining_percent=50, standalone=True)
     assert result['status'] == 'completed' and len(result['runs']) == 27
     assert all(r['success'] and r['source_unchanged'] for r in result['runs'])

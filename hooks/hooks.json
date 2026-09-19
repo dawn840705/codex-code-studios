@@ -16,17 +16,17 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${PLUGIN_ROOT}/hooks/session-start.sh\"",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/run-bash.py\" \"${PLUGIN_ROOT}/hooks/session-start.sh\"",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "bash \"${PLUGIN_ROOT}/hooks/detect-gaps.sh\"",
-            "timeout": 10
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/run-bash.py\" \"${PLUGIN_ROOT}/hooks/detect-gaps.sh\"",
+            "timeout": 30
           },
           {
             "type": "command",
-            "command": "bash \"${PLUGIN_ROOT}/hooks/detect-project-type.sh\"",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/run-bash.py\" \"${PLUGIN_ROOT}/hooks/detect-project-type.sh\"",
             "timeout": 10
           }
         ]
@@ -38,12 +38,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${PLUGIN_ROOT}/hooks/validate-commit.sh\"",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/run-bash.py\" \"${PLUGIN_ROOT}/hooks/validate-commit.sh\"",
             "timeout": 15
           },
           {
             "type": "command",
-            "command": "bash \"${PLUGIN_ROOT}/hooks/validate-push.sh\"",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/run-bash.py\" \"${PLUGIN_ROOT}/hooks/validate-push.sh\"",
             "timeout": 10
           }
         ]
@@ -55,22 +55,22 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${PLUGIN_ROOT}/hooks/validate-assets.sh\"",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/run-bash.py\" \"${PLUGIN_ROOT}/hooks/validate-assets.sh\"",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "bash \"${PLUGIN_ROOT}/hooks/validate-skill-change.sh\"",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/run-bash.py\" \"${PLUGIN_ROOT}/hooks/validate-skill-change.sh\"",
             "timeout": 5
           },
           {
             "type": "command",
-            "command": "bash \"${PLUGIN_ROOT}/hooks/unity-meta-check.sh\"",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/run-bash.py\" \"${PLUGIN_ROOT}/hooks/unity-meta-check.sh\"",
             "timeout": 5
           },
           {
             "type": "command",
-            "command": "bash \"${PLUGIN_ROOT}/hooks/unity-animator-string-lint.sh\"",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/run-bash.py\" \"${PLUGIN_ROOT}/hooks/unity-animator-string-lint.sh\"",
             "timeout": 5
           }
         ]
@@ -81,7 +81,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${PLUGIN_ROOT}/hooks/pre-compact.sh\"",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/run-bash.py\" \"${PLUGIN_ROOT}/hooks/pre-compact.sh\"",
             "timeout": 10
           }
         ]
@@ -92,7 +92,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${PLUGIN_ROOT}/hooks/post-compact.sh\"",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/run-bash.py\" \"${PLUGIN_ROOT}/hooks/post-compact.sh\"",
             "timeout": 10
           }
         ]
@@ -103,7 +103,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${PLUGIN_ROOT}/hooks/session-stop.sh\"",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/run-bash.py\" \"${PLUGIN_ROOT}/hooks/session-stop.sh\"",
             "timeout": 10
           }
         ]
@@ -114,7 +114,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${PLUGIN_ROOT}/hooks/log-agent.sh\"",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/run-bash.py\" \"${PLUGIN_ROOT}/hooks/log-agent.sh\"",
             "timeout": 5
           }
         ]
@@ -125,7 +125,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${PLUGIN_ROOT}/hooks/log-agent-stop.sh\"",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/run-bash.py\" \"${PLUGIN_ROOT}/hooks/log-agent-stop.sh\"",
             "timeout": 5
           }
         ]

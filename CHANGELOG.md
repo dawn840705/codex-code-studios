@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## v0.7.4 — 2026-09-19
+
+### Fixed — Windows lifecycle hooks selected the WSL launcher
+
+- All lifecycle hooks now run through a small cross-platform Bash resolver.
+  On Windows it locates Git Bash from the Git installation instead of invoking
+  `C:\Windows\System32\bash.exe`, which fails when WSL has no distribution.
+- Hook layout tests use the same resolver, so the Windows path is covered by
+  the executable regression suite rather than a mocked command.
+- The documentation-gap scan now has a 30-second session-start budget; the
+  repaired hook takes about 13 seconds on the large StarDiver Unity tree.
+- Windows fake-CLI fixtures now use native `.cmd` launchers with UTF-8 I/O,
+  keeping the reasoning-effort and effort-pilot tests platform-independent.
+
 ## v0.7.3 — 2026-09-17
 
 ### Added — pre-task model recommendation
