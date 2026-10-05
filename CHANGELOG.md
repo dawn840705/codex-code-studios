@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.7.5 — 2026-10-05
+
 ### Fixed
 
 - Shell hooks now bound stdin/EOF waiting and terminate their child process tree

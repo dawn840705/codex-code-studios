@@ -15,7 +15,7 @@ It mirrors how a real studio is organized: directors (creative / technical / pro
 
 Engine-agnostic: works with Godot, Unity, Unreal, GameMaker, or a custom engine.
 
-> **Latest (v0.7.4):** fixed Windows lifecycle hooks selecting the WSL launcher instead of an installed Git Bash. v0.7.3 added advisory pre-task model recommendations, reference-scoping and delegation-boundary guidance, and safer handling for externally changed open Unity scenes. Full version history is in [CHANGELOG.md](CHANGELOG.md).
+> **Latest (v0.7.5):** bounded hook input/execution lifetime and child-process cleanup; shared repository memory, implementation contracts, runtime review, and build evidence checks. v0.7.4 fixed Git Bash resolution on Windows. v0.7.3 added advisory pre-task model recommendations, reference-scoping and delegation-boundary guidance, and safer handling for externally changed open Unity scenes. Full version history is in [CHANGELOG.md](CHANGELOG.md).
 
 ## Table of Contents
 
@@ -287,6 +287,7 @@ Skills create these folders automatically as work progresses.
 
 Full per-version history is in [CHANGELOG.md](CHANGELOG.md).
 
+- **v0.7.5** — hook timeout/tree cleanup and verified inbox policy improvements.
 - **v0.7.4** — Windows lifecycle hooks resolve Git Bash from the Git installation instead of the WSL launcher.
 - **v0.7.3** — advisory pre-task model recommendations, scoped reference loading, explicit delegation boundaries, and safe open-scene handling for external Unity changes.
 - **v0.7.2** — `rules/runtime-modes.md`: a project worked by both Codex and Claude Code declares who's driving in `production/runtime.txt`, since the two CLIs share no session/context/tool log and a losing side can report success while silently overwriting the other's work.
