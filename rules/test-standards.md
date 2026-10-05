@@ -16,6 +16,18 @@ paths:
 - Rejection tests must start from a valid fixture and identify the intended failure by target, reason, or error code. An assertion that accepts any exception can pass because an unrelated earlier precondition failed. Verify the valid path succeeds, then invalidate only the intended condition and assert both the specific rejection and absence of unintended mutations.
 - For Unity JsonUtility save compatibility, test missing/null nested classes in the target engine; they may deserialize as default objects. When absence differs from a valid zero-valued snapshot, encode presence explicitly and verify repeated loading preserves that distinction without unnecessary migration writes.
 
+## Build handoff and evidence capture
+
+- Before handing off a playtest/release build, exercise required recording and
+  feedback instruments in the actual packaged build. Source presence, input
+  bindings, and successful compilation do not establish runtime recording.
+- Use an observable assertion: e.g. trigger a marker twice, then verify two new
+  records in the expected output file with current-run timestamps/session IDs.
+  Check the destination is writable and inspect failed writes. Adapt the count
+  and format to the instrument; do not treat stale output as passing evidence.
+- If required evidence capture fails or cannot be checked, mark the delivery
+  gate unresolved and do not deliver the build as playtest-ready.
+
 ## Unity skinned-mesh coordinate checks
 
 - When checking posed vertices, grounding, or bounds, establish the bake output's coordinate space and scale handling for the actual Unity version and renderer hierarchy. [Unity 6 BakeMesh documentation](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/SkinnedMeshRenderer.BakeMesh.html) defines `useScale: true` as compensating Transform scale and `false` as retaining the scaled size. Applying `TransformPoint` to already scaled bake vertices can apply scale twice. Do not infer this contract from the parameter name or prescribe one conversion for every mesh/import hierarchy.

@@ -69,11 +69,21 @@ Identify the system category (engine, gameplay, AI, networking, UI, tools) and e
 
 ## Phase 6: Game-Specific Concerns
 
+Read [`../../rules/gameplay-code.md`](../../rules/gameplay-code.md), especially
+runtime cleanup and state ownership. Apply engine-specific checks only to the
+matching code; review justified dynamic paths rather than mechanically banning
+every API occurrence.
+
 - [ ] Frame-rate independence (delta time usage)
 - [ ] No allocations in hot paths (update loops)
 - [ ] Proper null/empty state handling
 - [ ] Thread safety where required
 - [ ] Resource cleanup (no leaks)
+- [ ] No repeated discovery or allocating physics/LINQ in frame loops, including missing-target paths
+- [ ] Stable anchors are not recalculated from animated bounds/physics unintentionally
+- [ ] One writer per state; camera/aim updates do not overwrite each other
+- [ ] Task-only tools are retired; apparent dead code was checked for dynamic/serialized entry points
+- [ ] Large-file restructuring preserves behavior with characterization tests before extraction
 
 ---
 

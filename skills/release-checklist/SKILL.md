@@ -14,6 +14,7 @@ Read the argument for the target platform (`pc`, `console`, `mobile`, or `all`).
 ## Phase 2: Load Project Context
 
 - Read `AGENTS.md` for project context, version information, and platform targets.
+- Read `../../rules/test-standards.md`, including build handoff and evidence capture.
 - Read the current milestone from `production/milestones/` to understand what features and content should be included in this release.
 
 ---
@@ -49,6 +50,8 @@ Generated: [Date]
 - [ ] Build size within budget ([target size])
 - [ ] Build version number correctly set ([version])
 - [ ] Build is reproducible from tagged commit
+- [ ] Required recording/feedback instruments work in the packaged build: trigger twice and verify two new records (or the instrument's documented equivalent)
+- [ ] Current-run evidence and writable output destination verified; failed/unrun capture blocks playtest-ready delivery
 
 ### Quality Gates
 - [ ] Zero S1 (Critical) bugs

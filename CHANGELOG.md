@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+### Fixed
+
+- Shell hooks now bound stdin/EOF waiting and terminate their child process tree
+  before the host's timeout. Unrelated skill/Unity edits avoid launching Bash;
+  asset validation continues to respect custom layouts and arbitrary extensions.
+
+### Changed
+
+- Shared-memory and implementation handoff templates use repository records,
+  evidence-based alternatives, and the project's actual approval boundaries.
+- Runtime review covers repeated frame-loop discovery, unstable anchors, state
+  ownership, dynamic entry points, and behavior-preserving controller cleanup.
+- Build/playtest handoff checks verify recording instruments in the packaged
+  build, and voice-feedback analysis checks transcription coverage over game audio.
+
 ## v0.7.4 — 2026-09-19
 
 ### Fixed — Windows lifecycle hooks selected the WSL launcher

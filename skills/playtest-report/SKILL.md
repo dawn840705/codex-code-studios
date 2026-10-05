@@ -21,6 +21,10 @@ Determine the mode:
 
 ## Phase 2A: New Template Mode
 
+Read `../../rules/test-standards.md` for build handoff and evidence capture.
+Before delivery, verify the required instruments in the actual build; report
+unverified capture as an unresolved gate rather than a ready build.
+
 Generate this template and output it to the user:
 
 ```markdown
@@ -34,6 +38,7 @@ Generate this template and output it to the user:
 - **Platform**: [PC/Console/Mobile]
 - **Input Method**: [KB+M / Gamepad / Touch]
 - **Session Type**: [First time / Returning / Targeted test]
+- **Capture smoke check**: [Actual build / triggers / new records / output path / pass or unresolved]
 
 ## Test Focus
 [What specific features or flows were being tested]
@@ -90,6 +95,14 @@ Generate this template and output it to the user:
 ## Phase 2B: Analyze Mode
 
 Read the raw notes at the provided path. Cross-reference with existing design documents. Fill in the template above with structured findings. Flag any playtest observations that conflict with design intent.
+
+When transcribing voice feedback over game audio, default to disabling VAD and
+using a medium-or-larger model when the selected local tool supports those
+options. Verify voice coverage against the recording's full duration, especially
+quiet speech and the ending; retry missing spans and label uncertain words.
+This is a starting configuration from observed dropped speech, not a guarantee
+for every tool or recording. Respect available resources and the project's paid
+API/credential gates; do not launch a new paid transcription implicitly.
 
 ---
 

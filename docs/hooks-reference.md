@@ -25,6 +25,27 @@ not registered because Codex has no `Notification` hook event.
 
 ## Which hooks can actually block
 
+### Bash wrapper lifetime
+
+`run-bash.py` reads stdin with a one-second EOF limit, then passes the completed
+payload through a private pipe to Bash and closes it. Every registered shell
+hook has an internal `--timeout` three seconds shorter than Codex's outer
+timeout, leaving time to terminate and reap the child tree. Timeouts/input
+failure return 124 with a diagnostic; they are not successful validation.
+On POSIX, Bash runs in a new session and timeout/termination kills its process
+group. On Windows, the wrapper uses a new process group and `taskkill /T /F`
+on its own Bash PID. An uncatchable wrapper kill or machine shutdown still
+cannot be handled by Python; the internal deadline avoids relying on the host
+to kill the wrapper first. Direct shell invocations must also close stdin.
+
+The wrapper avoids spawning Bash for provably unrelated skill/Unity edits and
+empty changed-path lists. Malformed payloads are left to the shell behavior.
+Asset naming/JSON validation remains in Bash because custom layout roots and
+arbitrary asset extensions cannot safely be excluded by an extension filter.
+Unity already uses PascalCase naming in `detect-layout.sh`, not snake case.
+Do not silently skip validation on a concurrency cap: bounded lifetime fixes
+the accumulating processes without dropping relevant checks under edit load.
+
 A hook that only ever exits 0 has never rendered a verdict, and "no verdict" is
 not "pass" — the same rule [`deterministic-gates.md`](./deterministic-gates.md)
 states for gates. Read this table before treating a silent hook as a green light.
