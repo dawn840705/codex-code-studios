@@ -37,3 +37,10 @@
 - 출처: StarDiver `Documents/Meetings/2026-10-01-Playtest-Evidence.md` · `-Playtest-Owner-Feedback.md`
 - 근거: 플레이테스트 마커(F8/L3)가 코드·바인딩·빌드 포함까지 확인됐는데 실제 빌드에서 파일이 안 생겼고, 그 빌드가 사용자에게 전달됐다. 사용자 녹화의 음성 전사는 기본 VAD 가 게임 소리에 묻힌 목소리를 놓쳐 뒤 10분을 잃었다(VAD 끄기 + medium 으로 회수).
 - 제안: 빌드 스모크에 «마커 키 2회 → 기록 파일 2줄» 같은 실동작 확인을 넣고, 통과 전 전달 금지. 음성 피드백 전사는 게임 소리가 깔린 녹화면 VAD 끄기·중형 모델 이상을 기본으로.
+
+## 2026-10-05 — Windows 훅 래퍼가 시간 초과 때 bash 자식을 남겨 프로세스가 수백 개 쌓인다
+
+- 출처: StarDiver (Codex `codex exec` Unity 레인67 실행 중 · 2026-10-05)
+- 근거: PostToolUse(`apply_patch|Write|Edit|MultiEdit`) 4개 훅이 매 편집마다 `python3 hooks/run-bash.py <script>.sh` 로 뜬다. 20분 동안 `bash.exe` 280 + `python/python3.exe` 110 개가 동시에 떠 CPU 를 잡아먹었다(대부분 `validate-assets.sh`). `run-bash.py` 는 `subprocess.run([bash, …])` 로 기다리기만 해서, Codex 가 timeout(10s/5s) 으로 python 래퍼를 죽여도 Windows 에서는 bash 손자 프로세스가 고아로 남는다(프로세스 트리 종료가 없다). `validate-assets.sh` 는 `INPUT=$(cat)` 로 stdin 을 기다리므로 파이프가 안 닫히면 영원히 대기한다. 또 이 프로젝트는 Unity(`Assets/` PascalCase) 라 «에셋 이름 = 소문자_밑줄» 검사가 애초에 맞지 않는다. 임시 조치로 Codex 설정에서 플러그인을 끄고(`enabled = false`), 남은 고아를 정리했다.
+- 제안: ① `run-bash.py` 를 `Popen` + 자체 timeout + **프로세스 트리 종료**(Windows `taskkill /T /F` 또는 `CREATE_NEW_PROCESS_GROUP` 후 그룹 종료)로 바꾸고 stdin 을 명시적으로 전달·닫기 ② 훅 시작 시 stdin 읽기에 타임아웃(`read -t`) 또는 빈 입력이면 즉시 exit 0 ③ 바뀐 파일 경로에 대상 확장자가 없으면 bash 를 띄우지 말고 python 에서 바로 종료(편집당 4프로세스 → 0) ④ `detect-layout` 이 Unity 레이아웃(`Assets/` + `ProjectSettings/`) 이면 소문자 규칙을 끄기 ⑤ 동시 실행 상한(같은 훅이 이미 N개 돌면 건너뛰기).
+- 상태: 대기
