@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## v0.7.6 — 2026-10-07
+
+- Bound hook stdin and execution time; terminate each timed-out hook's process
+  tree before Codex's outer deadline. Recovered the installed 0.7.5 fix into source.
+- Replace four edit hook handlers with one native Python input reader and checks,
+  preserving asset JSON failures and combining advisory feedback into one JSON object.
+- Commit checks scan files once in Python instead of spawning grep for every
+  section in every staged document; the shell entry point delegates to that check.
+- Remove automatic session-end and subagent audit hooks; scripts remain available.
+
 ## v0.7.4 — 2026-09-19
 
 ### Fixed — Windows lifecycle hooks selected the WSL launcher

@@ -26,7 +26,7 @@ LIB = os.path.join(HOOKS, "lib", "detect-layout.sh")
 RUN_BASH = os.path.join(HOOKS, "run-bash.py")
 
 DETECT_GAPS = os.path.join(HOOKS, "detect-gaps.sh")
-VALIDATE_COMMIT = os.path.join(HOOKS, "validate-commit.sh")
+VALIDATE_COMMIT = os.path.join(HOOKS, "pre-commit.py")
 VALIDATE_ASSETS = os.path.join(HOOKS, "validate-assets.sh")
 
 COMMIT_EVENT = json.dumps(
@@ -51,7 +51,9 @@ def run_hook(script, cwd, stdin="", env=None):
     if env:
         full_env.update(env)
     return subprocess.run(
-        [sys.executable, RUN_BASH, script],
+        # Layout behavior is tested separately from the production time budgets.
+        ([sys.executable, script] if script.endswith(".py") else
+         [sys.executable, RUN_BASH, "--timeout", "120", script]),
         cwd=str(cwd),
         input=stdin,
         capture_output=True,
@@ -71,7 +73,7 @@ def probe(cwd, snippet, env=None, prelude=""):
     if env:
         full_env.update(env)
     return subprocess.run(
-        [sys.executable, RUN_BASH, "-c", f'{prelude}\n. "{LIB}"\n{snippet}'],
+        [sys.executable, RUN_BASH, "--timeout", "120", "--", "-c", f'{prelude}\n. "{LIB}"\n{snippet}'],
         cwd=str(cwd),
         capture_output=True,
         text=True,
@@ -831,7 +833,7 @@ def test_apply_patch_paths_are_validated(web):
 
 
 def test_every_layout_aware_hook_sources_the_helper():
-    for script in (DETECT_GAPS, VALIDATE_COMMIT, VALIDATE_ASSETS):
+    for script in (DETECT_GAPS, VALIDATE_ASSETS):
         with open(script, encoding="utf-8") as fh:
             body = fh.read()
         assert "lib/detect-layout.sh" in body, script

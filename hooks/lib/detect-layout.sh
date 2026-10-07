@@ -106,15 +106,15 @@ studio__json_get() {
 # studio__config_get <leaf-key> — Codex file first, then legacy fallbacks.
 studio__config_get() {
     studio__cg_value=""
-    if studio__cg_value=$(studio__json_get ".codex/studio-layout.json" ".$1" "$1"); then
+    if [ -f ".codex/studio-layout.json" ] && studio__cg_value=$(studio__json_get ".codex/studio-layout.json" ".$1" "$1"); then
         printf '%s' "$studio__cg_value"
         return 0
     fi
-    if studio__cg_value=$(studio__json_get ".claude/studio-layout.json" ".$1" "$1"); then
+    if [ -f ".claude/studio-layout.json" ] && studio__cg_value=$(studio__json_get ".claude/studio-layout.json" ".$1" "$1"); then
         printf '%s' "$studio__cg_value"
         return 0
     fi
-    if studio__cg_value=$(studio__json_get ".claude/settings.json" ".studio.layout.$1" "$1"); then
+    if [ -f ".claude/settings.json" ] && studio__cg_value=$(studio__json_get ".claude/settings.json" ".studio.layout.$1" "$1"); then
         printf '%s' "$studio__cg_value"
         return 0
     fi

@@ -15,7 +15,7 @@ It mirrors how a real studio is organized: directors (creative / technical / pro
 
 Engine-agnostic: works with Godot, Unity, Unreal, GameMaker, or a custom engine.
 
-> **Latest (v0.7.4):** fixed Windows lifecycle hooks selecting the WSL launcher instead of an installed Git Bash. v0.7.3 added advisory pre-task model recommendations, reference-scoping and delegation-boundary guidance, and safer handling for externally changed open Unity scenes. Full version history is in [CHANGELOG.md](CHANGELOG.md).
+> **Latest (v0.7.6):** edit checks now use one native Python process instead of four Bash wrappers. Hook stdin and execution are bounded, Windows process trees are owned and cleaned up, and automatic session-end/subagent audit hooks are optional. Full version history is in [CHANGELOG.md](CHANGELOG.md).
 
 ## Table of Contents
 
