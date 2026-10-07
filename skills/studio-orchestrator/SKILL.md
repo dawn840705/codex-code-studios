@@ -17,6 +17,9 @@ and recommend a standard script/tool instead of a model for deterministic work.
 2. Treat `game` as the game-development track and `product` as the app, web, or service track.
 3. If the track cannot be inferred safely and changes the requested outcome, ask the user.
 4. Inspect existing plans, milestones, specifications, and recent changes before staffing work.
+5. Read linked handoff instructions first and follow
+   [`../../rules/work-records.md`](../../rules/work-records.md) for shared memory.
+   Do not cite private agent memory as a project decision or instruction.
 
 For an approved visual anchor → consistent views → generated 3D model → Blender
 editing/rigging/animation request, read
