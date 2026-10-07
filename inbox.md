@@ -44,3 +44,12 @@
 - 근거: PostToolUse(`apply_patch|Write|Edit|MultiEdit`) 4개 훅이 매 편집마다 `python3 hooks/run-bash.py <script>.sh` 로 뜬다. 20분 동안 `bash.exe` 280 + `python/python3.exe` 110 개가 동시에 떠 CPU 를 잡아먹었다(대부분 `validate-assets.sh`). `run-bash.py` 는 `subprocess.run([bash, …])` 로 기다리기만 해서, Codex 가 timeout(10s/5s) 으로 python 래퍼를 죽여도 Windows 에서는 bash 손자 프로세스가 고아로 남는다(프로세스 트리 종료가 없다). `validate-assets.sh` 는 `INPUT=$(cat)` 로 stdin 을 기다리므로 파이프가 안 닫히면 영원히 대기한다. 또 이 프로젝트는 Unity(`Assets/` PascalCase) 라 «에셋 이름 = 소문자_밑줄» 검사가 애초에 맞지 않는다. 임시 조치로 Codex 설정에서 플러그인을 끄고(`enabled = false`), 남은 고아를 정리했다.
 - 제안: ① `run-bash.py` 를 `Popen` + 자체 timeout + **프로세스 트리 종료**(Windows `taskkill /T /F` 또는 `CREATE_NEW_PROCESS_GROUP` 후 그룹 종료)로 바꾸고 stdin 을 명시적으로 전달·닫기 ② 훅 시작 시 stdin 읽기에 타임아웃(`read -t`) 또는 빈 입력이면 즉시 exit 0 ③ 바뀐 파일 경로에 대상 확장자가 없으면 bash 를 띄우지 말고 python 에서 바로 종료(편집당 4프로세스 → 0) ④ `detect-layout` 이 Unity 레이아웃(`Assets/` + `ProjectSettings/`) 이면 소문자 규칙을 끄기 ⑤ 동시 실행 상한(같은 훅이 이미 N개 돌면 건너뛰기).
 - 상태: 대기
+
+## 2026-10-07 — GPT Bridge로 ChatGPT와 로컬 코드 연결 활용 후보
+
+- 출처: StarDiver 사장님 직접 요청 — 쇼츠 요약을 검토한 뒤 이 방식을 Code Studios 인박스에 남기라고 지시. 상세 검토 = [StarDiver 공유 기록 · 07f649b9c](https://github.com/dawn840705/StarDiver/blob/07f649b9ca8d899ea17b357a442ada358c3a1083/Documents/Shared-Knowledge/Facts-And-References.md). 해당 파일의 «GPT Bridge 활용 검토» 항목 참조.
+- 전달받은 방식: VS Code 로컬 서버 → OpenAI 공식 터널 → ChatGPT/Astra가 작업 폴더 코드를 읽고 오류 원인·수정안 제안 → 작업자 검토 후 수동 저장. 영상 URL·GPT Bridge 저장소는 미제공이어서 특정 도구의 동작은 미확인.
+- 확인 근거: [Secure MCP Tunnel](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels)은 로컬/비공개 MCP 서버 연결을 지원한다. [Pricing](https://learn.chatgpt.com/docs/pricing)은 **ChatGPT Work와 Codex의 한도 공유**를 명시한다. [플러그인 안내](https://learn.chatgpt.com/docs/migrate-custom-gpts)는 일반 Chat에서도 설정에 따라 플러그인을 사용할 수 있다고 설명하지만, 개인 Pro 계정의 Chat+Astra+로컬 MCP가 Codex와 별도 한도를 쓴다는 주장은 확인되지 않았다. 설치·터널 생성·API 호출 시험은 아직 하지 않았다.
+- 제안: 범용 오류 분석·코드 리뷰·작은 패치 초안 경로로 검토한다. 읽기 전용 검색·파일 일부 읽기·diff·기존 컴파일 로그 제공부터 시작하고, 수정안은 격리된 패치로 보관한 뒤 기존 실행 담당이 검토·적용·검증한다. 수동 저장은 선택 가능한 모드로 두고 사용자의 반복 작업을 필수로 만들지 않는다. 실제 프로젝트 계약의 경로 소유·실데이터 보호 규칙을 따른다.
+- 검증 조건: 정확한 GPT Bridge 배포물과 권한을 먼저 확인한다. 샘플 파일 하나로 Chat/Work 구분·모델·시각·사용량 전후·원본 SHA 불변·패치 정확도·왕복 시간을 기록한다. 반올림된 사용량이 한 번 그대로인 것만으로 한도 분리를 주장하지 않는다. 인증 파일·구매 원본·캐시·실사용 저장 데이터를 제공하지 않으며, 비공개 터널을 로컬 추론으로 오해하지 않는다. 터널과 모델 호출 비용은 따로 확인하고 API 모델 호출을 구독 내 무료 사용으로 가정하지 않는다.
+- 상태: **대기 — 활용 후보만 접수. 별도 한도·특정 도구 실측 후 채택 여부 판단.**
