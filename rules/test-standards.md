@@ -16,6 +16,23 @@ paths:
 - Rejection tests must start from a valid fixture and identify the intended failure by target, reason, or error code. An assertion that accepts any exception can pass because an unrelated earlier precondition failed. Verify the valid path succeeds, then invalidate only the intended condition and assert both the specific rejection and absence of unintended mutations.
 - For Unity JsonUtility save compatibility, test missing/null nested classes in the target engine; they may deserialize as default objects. When absence differs from a valid zero-valued snapshot, encode presence explicitly and verify repeated loading preserves that distinction without unnecessary migration writes.
 
+## Product behavior and completion evidence
+
+- Passing basic tests or compilation alone does not establish that changed
+  product behavior works. For gameplay or UI changes, exercise the affected
+  real input/user path and inspect the resulting screen and behavior where
+  available. Direct state mutation and synthetic fixtures remain diagnostic
+  evidence; they do not prove the user can perform the interaction.
+- Report source implementation, automated checks, actual application execution,
+  and human acceptance separately. Name unexecuted checks and the next required
+  verification; do not turn unavailable evidence into a passing result.
+- Where experience or feel requires human judgment, preserve the project's
+  designated human acceptance gate and leave it unresolved until judged.
+  Agent-driven execution does not substitute for that judgment.
+- Keep verification proportional to the changed path and use isolated test
+  data. Reuse valid existing evidence; do not expand into unrelated audits or
+  repeated captures. Documentation-only changes do not require an engine run.
+
 ## Build handoff and evidence capture
 
 - Before handing off a playtest/release build, exercise required recording and

@@ -20,6 +20,10 @@ and recommend a standard script/tool instead of a model for deterministic work.
 5. Read linked handoff instructions first and follow
    [`../../rules/work-records.md`](../../rules/work-records.md) for shared memory.
    Do not cite private agent memory as a project decision or instruction.
+6. For implementation work, read
+   [`../../docs/templates/collaborative-protocols/implementation-agent-protocol.md`](../../docs/templates/collaborative-protocols/implementation-agent-protocol.md).
+   Establish purpose, expected behavior, and acceptance criteria from available
+   evidence; examine failure cases and alternatives before assigning code.
 
 For an approved visual anchor → consistent views → generated 3D model → Blender
 editing/rigging/animation request, read
@@ -63,6 +67,13 @@ the request did not authorize implementation.
 ## 5. Integrate and verify
 
 Review subagent evidence, resolve conflicts, and run deterministic checks before qualitative review. Follow `../../rules/verify-route.md`, `../../rules/self-loop.md`, and `../../docs/director-gates.md`. A clear quality criterion is iterative: execute, score with evidence, fix the weakest criterion, and stop when every criterion reaches the documented threshold or the iteration guard fires.
+
+For changed product behavior, read the completion-evidence requirements in
+[`../../rules/test-standards.md`](../../rules/test-standards.md). Keep automated
+checks, actual execution, and human acceptance distinct. When a repeated mistake
+reveals a prevention measure, apply
+[`../../rules/lesson-capture.md`](../../rules/lesson-capture.md) to the existing
+shared rule without duplicating the lesson history.
 
 ## 6. Report
 

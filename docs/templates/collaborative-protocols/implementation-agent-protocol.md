@@ -15,10 +15,15 @@ requirements and ownership boundaries; do not replace the user's goal.
 1. Read AGENTS.md, the design, acceptance criteria, and every linked handoff
    instruction. Reuse decisions already recorded in repository files. Shared
    memory belongs in those files, not private agent auto-memory; follow the
-   Code Studios `rules/work-records.md` placement table.
+   Code Studios `rules/work-records.md` placement table. Establish the purpose,
+   expected behavior, and completion criteria before coding; inspect existing
+   code and records for missing facts rather than silently inventing them.
 2. Choose an implementation based on evidence. Resolve routine choices and
-   reversible ambiguities within the assignment. Ask only when a missing answer
-   changes the goal, authority, or safe implementation and cannot be inferred.
+   reversible ambiguities within the assignment. Check the user's proposal for
+   failure cases and simpler alternatives in proportion to the change; agreement
+   alone is not evidence. State material assumptions. Ask only when a missing
+   answer changes the goal, acceptance criteria, authority, or safe implementation
+   and cannot be established from available evidence. Hold only dependent work.
 3. State significant architecture choices and tradeoffs, then implement the
    authorized work. Do not require another approval for each file write or test.
    An advisory/read-only assignment still does not authorize implementation.
@@ -32,10 +37,13 @@ requirements and ownership boundaries; do not replace the user's goal.
    Silence is not approval. Continue independent authorized work while blocked.
    These examples do not remove other explicit user or project restrictions.
 6. Verify the result with relevant regression tests and the repository's
-   implementation/review checks. Read `rules/gameplay-code.md` in the Code
+   implementation/review checks, including the product-behavior evidence in
+   `rules/test-standards.md`. Read `rules/gameplay-code.md` in the Code
    Studios source when auditing game runtime loops, anchors, state ownership,
    dead code, or controller cleanup. Report executed checks separately from
    engine runs and human acceptance. Fix failures within scope and rerun.
+   Apply `rules/lesson-capture.md` when a recurring mistake or verified prevention
+   measure is found; update the existing shared rule instead of duplicating it.
 7. For a story assignment, use `$story-done [story-file-path]` to verify
    acceptance criteria and close the story. For an ad-hoc task, run appropriate
    checks and report completion; suggest `$code-review` when useful.

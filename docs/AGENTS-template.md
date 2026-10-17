@@ -24,7 +24,17 @@ credentials out of this file.
 - If both runtimes work here, keep `CLAUDE.md` aligned with these agreements or
   link both entry points to the same shared rules. Recommend disabling automatic
   memory where supported; check the runtime's setting syntax first.
-- Run the relevant tests after code changes.
+- Before implementation, establish purpose, expected behavior, and acceptance
+  criteria from the design, code, and records. Examine failure cases and
+  alternatives; state material assumptions. Resolve routine choices within
+  scope and ask only about consequential unknowns that evidence cannot settle.
+- Run relevant tests after code changes. For changed gameplay/UI, also exercise
+  the real user path and inspect the screen/behavior where available. Report
+  implementation, automated checks, execution, and human acceptance separately;
+  keep missing verification explicit and honor the project's human gates.
+- Turn verified recurring mistakes into concise prevention rules linked to the
+  evidence. Update matching rules instead of accumulating duplicates; retain
+  detailed lesson history. Follow `rules/lesson-capture.md` in the source checkout.
 - Preserve existing user changes and avoid destructive cleanup.
 - Record major technical choices as ADRs.
 - Keep `production/session-state/active.md` current during multi-session work.
